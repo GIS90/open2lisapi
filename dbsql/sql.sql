@@ -1,0 +1,217 @@
+------------------------------------------------
+describe:
+    database: twtoolbox
+    user: twtoolbox
+    tables:
+        sysuser: 用户基础信息表
+        role: 角色权限表
+        menu: 系统菜单表
+        request: 系统API请求记录表
+        api: API接口说明表
+
+
+
+usage:
+    execute sql in database client
+
+
+base_info:
+    __author__ = "PyGo"
+    __time__ = "2022/2/19 4:15 下午"
+    __version__ = "v.1.0.0"
+    __mail__ = "gaoming971366@163.com"
+    __blog__ = "www.pygo2.top"
+    __project__ = "twtoolbox_isapi"
+------------------------------------------------
+-- 创建数据库、用户、授权
+create database twtoolbox default character set utf8 collate utf8_general_ci;
+create user 'twtoolbox'@'%' IDENTIFIED BY '2dcc0521bd32dc5100c6d65a1effa8e6';
+grant all on twtoolbox.* to 'twtoolbox';
+flush  privileges;
+
+use twtoolbox;
+
+-- create user
+DROP TABLES IF EXISTS `sysuser`;
+CREATE TABLE `sysuser` (
+	`id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+	`rtx_id` varchar(25) not null COMMENT '用户rtx唯一标识',
+	`md5_id` varchar(55) not null COMMENT 'rtx-md5标识',
+	`fullname` varchar(30) not null COMMENT '用户名称',
+	`password` varchar(30) not null COMMENT '用户明文密码',
+	`email` varchar(35)  COMMENT '邮箱',
+	`phone` varchar(15)  COMMENT '电话',
+	`avatar` varchar(255)  COMMENT '头像URL',
+	`introduction` text  COMMENT '用户描述',
+	`role` varchar(55) not null COMMENT '用户角色md5值，关联role表',
+	`department` varchar(55) not null COMMENT '用户部门md5值，关联department表',
+	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+	`create_operator` varchar(25) COMMENT '创建人',
+	`is_del` bool  COMMENT '是否已删除',
+	`del_time` timestamp COMMENT '删除时间',
+	`del_operator` varchar(25) COMMENT '删除操作人',
+
+	PRIMARY KEY (`id`),
+	UNIQUE INDEX rtx_id(id ASC)
+) COMMENT='用户基础信息表';
+
+-- create index
+CREATE UNIQUE INDEX sysuser_index ON sysuser (`rtx_id`);
+
+-- insert default admin
+insert into
+sysuser(rtx_id, md5_id, fullname, `password`, email , phone, avatar, introduction, role, create_operator, is_del)
+VALUES
+('admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '123456', 'gaoming971366@163.com', '13051355646',
+'http://pygo2.top/images/article_github.jpg', '我是一名Python程序员', '21232f297a57a5a743894a0e4a801fc3', '第一用户', FALSE),
+('test', '098f6bcd4621d373cade4e832627b4f6', '测试号', '123456', 'gaoming971366@163.com', '13051355646',
+'http://pygo2.top/images/article_github.jpg', '我是一名Python程序员', '127870930d65c57ee65fcc47f2170d38', 'admin', FALSE);
+
+
+
+
+-- create role && index
+DROP TABLES IF EXISTS `role`;
+CREATE TABLE `role`  (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `engname` varchar(25) NOT NULL COMMENT '角色英文名称',
+    `chnname` varchar(35) NOT NULL COMMENT '角色中文名称',
+    `md5_id` varchar(55) NOT NULL COMMENT 'md5值',
+    `authority` varchar(255) NULL COMMENT '角色权限，用英文；分割',
+    `introduction` text NULL COMMENT '角色描述',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_operator` varchar(25) COMMENT '创建人',
+	`is_del` bool  COMMENT '是否已删除',
+	`del_time` timestamp COMMENT '删除时间',
+	`del_operator` varchar(25) COMMENT '删除操作人',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `role_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
+  UNIQUE INDEX `role_name_index`(`engname`) USING HASH COMMENT 'engname唯一索引'
+) COMMENT='角色权限表';
+-- insert default role
+insert into
+role(engname, chnname, md5_id,  authority, introduction, create_operator, is_del)
+VALUES
+('admin', '管理员', '21232f297a57a5a743894a0e4a801fc3', '', '系统管理员总权限', 'admin', True),
+('operator', '普通用户', '4b583376b2767b923c3e1da60d10de59', '1;2;3;4;5;6;11;12;13', '普通用户', 'admin', True),
+('visitor', '参观用户', '127870930d65c57ee65fcc47f2170d38', '11;12;13', '参观用户', 'admin', True);
+
+
+
+
+-- create menu && index
+DROP TABLES IF EXISTS `menu`;
+CREATE TABLE `menu`  (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `name` varchar(15) NOT NULL COMMENT '路由name，首字母大写',
+    `path` varchar(35) NOT NULL COMMENT '路由path，首字母小写',
+    `title` varchar(25) NOT NULL COMMENT '名称',
+    `pid` int NOT NULL COMMENT '父ID',
+    `level` int NOT NULL default 1 COMMENT '级别',
+    `md5_id` varchar(55) NOT NULL COMMENT 'md5值',
+    `component` varchar(15) NOT NULL COMMENT '路由组件，与router mappings映射',
+    `hidden` bool default False COMMENT '是否在SideBar显示，默认为false',
+    `redirect` varchar(55) COMMENT '重定向',
+    `icon` varchar(25) COMMENT '图标',
+	`noCache` bool default false COMMENT '页面是否进行cache，默认false',
+	`affix` bool default false  COMMENT '是否在tags-view固定，默认false',
+	`breadcrumb` bool default true COMMENT '是否breadcrumb中显示，默认true',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_operator` varchar(25) COMMENT '创建人',
+	`is_del` bool  COMMENT '是否已删除',
+	`del_time` timestamp COMMENT '删除时间',
+	`del_operator` varchar(25) COMMENT '删除操作人',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `menu_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
+  UNIQUE INDEX `menu_name_index`(`name`) USING HASH COMMENT 'name唯一索引'
+) COMMENT='系统菜单表';
+
+-- insert default menu
+delete from menu;
+insert into
+menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `noCache`, `affix`, `breadcrumb`, `create_operator`, `is_del`)
+VALUES
+-- 问题检索
+(1, '问题检索', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'i_search', FALSE, FALSE, TRUE, 'admin', FALSE),
+(2, '问题仓库', 'SearchProbase', 'probase', 1, 2, 'c97d41080c06a689936f1c665ea334b5', 'search_probase', FALSE, '', 'i_problem', FALSE, FALSE, TRUE, 'admin', FALSE),
+(3, '取数仓库', 'SearchSqlbase', 'sqlbase', 1, 2, '1b29b5aa48db5845f4a14c54a44eeb18', 'search_sqlbase', FALSE, '', 'i_sql', FALSE, FALSE, TRUE, 'admin', FALSE),
+-- 表格工具
+(4, '表格工具', 'Excel', '/excel', 0, 1, 'c1d81af5835844b4e9d936910ded8fdc', 'layout', FALSE, '/excel/merge', 'i_excel', FALSE, FALSE, TRUE, 'admin', FALSE),
+(5, '表格合并', 'ExcelMerge', 'merge', 4, 2, '68be4837f6c739877233e527a996dd00', 'excel_merge', FALSE, '', 'i_merge', FALSE, FALSE, TRUE, 'admin', FALSE),
+(6, '表格拆分', 'ExcelSplit', 'split', 4, 2, '8a9e64d86ed12ad40de129bc7f4683b2', 'excel_split', FALSE, '', 'i_split', FALSE, FALSE, TRUE, 'admin', FALSE),
+(7, '我的历史', 'ExcelHistory', 'history', 4, 2, '76c9a06443a050eccb7989cda6fff225', 'excel_history', FALSE, '', 'i_history', FALSE, FALSE, TRUE, 'admin', FALSE),
+-- 通知管理
+(8, '通知消息', 'Notify', '/notify', 0, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'i_notify', FALSE, FALSE, TRUE, 'admin', FALSE),
+(9, '短信通知', 'NotifyMessage', 'message', 8, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notify_message', FALSE, '', 'message', FALSE, FALSE, TRUE, 'admin', FALSE),
+(10, '钉钉绩效', 'NotifyDtalk', 'dtalk', 8, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notify_dtalk', FALSE, '', 'i_dtalk', FALSE, FALSE, TRUE, 'admin', FALSE),
+-- 文档转换
+(11, '文档转换', 'Convert', '/convert', 0, 1, '920f4a0c5c8b9a0747380cf7c7f0b3c5', 'layout', FALSE, '/convert/pdf2word', 'i_convert', FALSE, FALSE, TRUE, 'admin', FALSE),
+(12, 'PDF转WORD', 'ConvertPdf2word', 'pdf2word', 11, 2, 'aa40dbd997f60d173d05f1f8375eb6bd', 'convert_pdf2word', FALSE, '', 'i_word', FALSE, FALSE, TRUE, 'admin', FALSE),
+-- 权限管理
+(13, '权限管理', 'Manage', '/manage', 0, 1, '34e34c43ec6b943c10a3cc1a1a16fb11', 'layout', FALSE, '/manage/user', 'i_manage', FALSE, FALSE, TRUE, 'admin', FALSE),
+(14, '用户管理', 'ManageUser', 'user', 13, 2, '8f9bfe9d1345237cb3b2b205864da075', 'manage_user', FALSE, '', 'peoples', FALSE, FALSE, TRUE, 'admin', FALSE),
+(15, '角色管理', 'ManageRole', 'role', 13, 2, 'bbbabdbe1b262f75d99d62880b953be1', 'manage_role', FALSE, '', 'i_role', FALSE, FALSE, TRUE, 'admin', FALSE),
+(16, '菜单管理', 'ManageMenu', 'menu', 13, 2, 'b61541208db7fa7dba42c85224405911', 'manage_menu', FALSE, '', 'component', FALSE, FALSE, TRUE, 'admin', FALSE),
+-- 信息维护
+(17, '信息维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'i_info', FALSE, FALSE, TRUE, 'admin', FALSE),
+(18, '部门架构', 'InfoDepartment', 'department', 17, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'info_department', FALSE, '', 'tree', FALSE, FALSE, TRUE, 'admin', FALSE),
+(19, '数据字典', 'InfoDict', 'dict', 17, 2, '91516e7a50ce0a67a8eb1f9229c293d1', 'info_dict', FALSE, '', 'i_dict', FALSE, FALSE, TRUE, 'admin', FALSE),
+-- 个人设置
+(20, '个人设置', 'Setter', '/setter', 0, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'i_setter', FALSE, FALSE, TRUE, 'admin', FALSE),
+(21, '个人中心', 'SetterProfile', 'profile', 20, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setter_profile', FALSE, '', 'i_user', FALSE, FALSE, TRUE, 'admin', FALSE),
+(22, '系统向导', 'SetterGuide', 'guide', 20, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setter_guide', FALSE, '', 'guide', FALSE, FALSE, TRUE, 'admin', FALSE);
+
+
+
+
+-- create request && index
+DROP TABLES IF EXISTS `request`;
+CREATE TABLE `request`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+  `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx唯一标识',
+  `ip` varchar(15) NOT NULL COMMENT '用户IP',
+  `blueprint` varchar(25) NULL COMMENT 'API地址blueprint',
+  `endpoint` varchar(35) NULL COMMENT 'API地址endpoint',
+  `method` varchar(10) NULL COMMENT 'API请求method',
+  `path` varchar(35) NULL COMMENT 'API地址path',
+  `full_path` varchar(85) NULL COMMENT 'API地址full_path',
+  `host_url` varchar(55) NULL COMMENT 'API地址host_url',
+  `url` varchar(120) NULL COMMENT 'API地址url',
+  `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '请求时间点',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
+) COMMENT='系统API请求记录表';
+
+
+
+
+-- create api mapping && index
+DROP TABLES IF EXISTS `api`;
+CREATE TABLE `api`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+  `blueprint` varchar(25) NULL COMMENT 'API接口blueprint',
+  `endpoint` varchar(35) NULL COMMENT 'API接口endpoint',
+  `path` varchar(35) NULL COMMENT 'API接口path，与request表关联',
+  `type` varchar(15) NULL COMMENT 'API接口类型：primary登录/success数据获取/warning/danger退出/info新增/更新/删除数据',
+  `short` varchar(35) NULL COMMENT 'API接口简述',
+  `long` text NULL COMMENT 'API接口描述',
+  `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '数据添加时间',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
+) COMMENT='API接口说明表';
+-- delete
+delete from api;
+-- insert data
+insert into
+api(`blueprint`, `endpoint`, `path`, `type`, `short`, `long`)
+VALUES
+-- manage
+('manage', 'manage.login_in', '/manage/login', 'primary', '登录', '用户请求系统登录'),
+('manage', 'manage.login_out', '/manage/logout', 'danger', '退出', '用户请求系统退出'),
+-- user
+('user', 'user.info', '/user/info', 'info', '用户信息', '请求获取用户信息'),
+('user', 'user.auth', '/user/auth', 'info', '用户权限', '请求获取用户权限'),
+('user', 'user.timeline', '/user/timeline', 'info', '访问日志', '请求用户操作系统日志信息'),
+('user', 'user.update', '/user/update', 'success', '更新用户信息', '更新用户基础信息数据'),
+('user', 'user.password', '/user/password', 'success', '更新用户密码', '更新用户密码信息'),
+('user', 'user.avatar', '/user/avatar', 'success', '更新用户头像', '更新用户头像信息');
