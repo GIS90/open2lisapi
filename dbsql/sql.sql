@@ -215,3 +215,60 @@ VALUES
 ('user', 'user.update', '/user/update', 'success', '更新用户信息', '更新用户基础信息数据'),
 ('user', 'user.password', '/user/password', 'success', '更新用户密码', '更新用户密码信息'),
 ('user', 'user.avatar', '/user/avatar', 'success', '更新用户头像', '更新用户头像信息');
+
+
+-- create excel_source
+DROP TABLES IF EXISTS `excel_source`;
+
+CREATE TABLE `excel_source` (
+	`id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+	`name` varchar(150) COMMENT '原始名称',
+	`store_name` varchar(150) COMMENT '存储名称',
+	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
+	`etype` varchar(10) NOT NULL COMMENT '文件上传类型：1拆分;2合并',
+	`status` bool DEFAULT False COMMENT '是否转换',
+	`operate_time` datetime COMMENT '转换时间',
+	`url` varchar(200) COMMENT '文件资源路径',
+	`nsheet` int COMMENT 'sheet数',
+	`set_sheet` varchar(55) COMMENT '当前设置的sheet选择索引，列表格式',
+	`sheet_names` varchar(255) COMMENT 'Sheets名称列表，以json方式存储',
+	`sheet_columns` varchar(255) COMMENT 'Sheets列名的集合，以json方式存储',
+	`headers` varchar(255) COMMENT 'excel的header信息，以json方式存储',
+	`upload_rtx` varchar(50) COMMENT '上传用户rtx',
+	`upload_time` datetime COMMENT '上传时间',
+	`delete_rtx` varchar(50) COMMENT '删除用户rtx',
+	`delete_time` datetime COMMENT '删除时间',
+	`is_del` bool DEFAULT False COMMENT '是否删除',
+	PRIMARY KEY (`id`)
+) COMMENT='excel原始文件表';
+
+CREATE UNIQUE INDEX excel_source_index ON excel_source (`md5_id`);
+
+-- create excel_result
+DROP TABLES IF EXISTS `excel_result`;
+
+CREATE TABLE `excel_result` (
+	`id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+	`name` varchar(150) COMMENT '原始名称',
+	`store_name` varchar(150) COMMENT '存储名称',
+	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
+	`transfer` varchar(10) NOT NULL COMMENT '转换类型：1拆分;2合并',
+	`transfer_time` datetime COMMENT '转换时间',
+	`url` varchar(200) COMMENT '文件资源路径',
+	`is_compress` bool DEFAULT False COMMENT '是否是压缩文件',
+	`nfile` int COMMENT '文件个数',
+	`nsheet` int COMMENT 'sheet总数',
+	`row` int COMMENT '行数',
+	`col` int COMMENT '列数',
+	`sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
+	`sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
+	`headers` text COMMENT 'excel的header信息，以json方式存储',
+	`operate_rtx` varchar(50) COMMENT '操作用户rtx',
+	`operate_time` datetime COMMENT '操作时间',
+	`delete_rtx` varchar(50) COMMENT '删除用户rtx',
+	`delete_time` datetime COMMENT '删除时间',
+	`is_del` bool DEFAULT False COMMENT '是否删除',
+	PRIMARY KEY (`id`)
+) COMMENT='excel转换结果记录表';
+
+CREATE UNIQUE INDEX excel_result_index ON excel_result (`md5_id`);
