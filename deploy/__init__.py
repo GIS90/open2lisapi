@@ -38,7 +38,7 @@ Life is short, I use python.
 import os
 import sys
 from datetime import timedelta
-from flask import (Flask,
+from flask import (Flask, make_response,
                    abort,
                    redirect,
                    url_for,
@@ -55,6 +55,7 @@ from deploy.utils.status_msg import StatusMsgs
 
 from deploy.views.manage import manage
 from deploy.views.user import user
+from deploy.views.excel import excel
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
 
@@ -63,6 +64,7 @@ app = Flask(__name__)
 """
 全局CORS跨域，不建议使用
 在指定需要跨域的路由中进行配置
+服务器允许用户跨源发出Cookie或经过身份验证的请求，supports_credentials设置为True，否则设置False
 """
 # from flask_cors import CORS
 # CORS(app, supports_credentials=True)
@@ -133,6 +135,17 @@ class WebFlaskServer(WebBaseClass):
                 {}
             ).json()
 
+        # @self.app.after_request
+        # def after_request(response):
+        #     """
+        #     在after_request钩子函数中对response进行添加headers，所有的url跨域请求都会允许。。。
+        #     """
+        #     resp = make_response(response)
+        #     resp.headers['Access-Control-Allow-Origin'] = '*'
+        #     resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
+        #     resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
+        #     return resp
+
         @self.app.before_first_request
         def before_first_request():
             g._session = get_session()
@@ -166,6 +179,7 @@ class WebFlaskServer(WebBaseClass):
     def _autoinit_register_blueprint(self):
         self.register_blueprint('manage', manage)
         self.register_blueprint('user', user)
+        self.register_blueprint('excel', excel)
 
     def init_run(self):
         LOG.debug('Server is initializing......')
