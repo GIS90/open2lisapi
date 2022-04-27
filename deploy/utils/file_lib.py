@@ -87,7 +87,7 @@ class FileLib(object):
                 _real_file = os.path.join(real_store_dir, new_file_name)
             file.save(_real_file)
             return True, {'name': file_name,
-                          'md5': md5_v if md5_v else md5,
+                          'md5': md5_v if md5_v else md5(file_name),
                           'store_name': '%s/%s' % (now_date, file_name),
                           'path': os.path.join(real_store_dir, file_name),
                           'message': 'success'}

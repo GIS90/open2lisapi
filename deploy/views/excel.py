@@ -61,15 +61,15 @@ def upload():
         ).json()
     try:
         # 参数
-        form = request.form
-        rtx_id = form.get('rtx_id')
+        params = request.form
         # 文件
         files = request.files
         if not files or (files and not files.get('files')):
             return Status(
                 216, 'failure', StatusMsgs.get(216), {}
             ).json()
-        return ExcelService().excel_upload(rtx_id, request.files.get('files'))
+
+        return ExcelService().excel_upload(params, request.files.get('files'))
     except Exception as e:
         LOG.error("excel>upload is error: %s" % e)
         return Status(501, 'failure',
@@ -89,17 +89,18 @@ def uploads():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
 
+    # 参数
+    params = request.form
+    # 文件
+    files = request.files
+    if not files:
+        return Status(
+            216, 'failure', StatusMsgs.get(216), {}
+        ).json()
+
+    return ExcelService().excel_upload_m(params, files)
     try:
-        # 参数
-        form = request.form
-        rtx_id = form.get('rtx_id')
-        # 文件
-        files = request.files
-        if not files:
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}
-            ).json()
-        return ExcelService().excel_upload_m(rtx_id, files)
+        pass
     except Exception as e:
         LOG.error("excel>uploads is error: %s" % e)
         return Status(501, 'failure',

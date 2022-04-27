@@ -1,18 +1,33 @@
 # -*- coding: utf-8 -*-
 
+
 """
 ------------------------------------------------
 
-describe: 
+describe:
+    excel service
+
+base_info:
+    __author__ = "PyGo"
+    __time__ = "2022/4/27 04:06 下午"
+    __version__ = "v.1.0.0"
+    __mail__ = "gaoming971366@163.com"
+    __blog__ = "www.pygo2.top"
+    __project__ = "open2lisapi"
 
 usage:
 
-base_info:
-    __version__ = "v.10"
-    __author__ = "PyGo"
-    __time__ = "2021/8/2"
-    __mail__ = "gaoming971366@163.com"
-    
+design:
+
+reference urls:
+
+python version:
+    python3
+
+
+Enjoy the good life everyday！！!
+Life is short, I use python.
+
 ------------------------------------------------
 """
 import os
@@ -21,10 +36,10 @@ import xlrd
 import openpyxl
 import zipfile
 
-from deploy.utils.utils import get_storefilename_by_md5, \
+from deploy.utils.utils import filename2md5, \
     get_base_dir, get_now, mk_dirs
 from deploy.utils.utils import get_now
-from deploy.config import TRANSFER_BASE_DIR
+from deploy.config import STORE_CACHE
 
 
 class ExcelLib(object):
@@ -106,8 +121,8 @@ class ExcelLib(object):
         result is contain real path, relative path
         """
         now_date = get_now(format="%Y-%m-%d")
-        real_store_dir = get_base_dir() + TRANSFER_BASE_DIR + now_date
-        store_dir = os.path.join(TRANSFER_BASE_DIR + now_date)
+        real_store_dir = get_base_dir() + STORE_CACHE + now_date
+        store_dir = os.path.join(STORE_CACHE + now_date)
         if not os.path.exists(real_store_dir):
             mk_dirs(real_store_dir)
         if os.path.exists(os.path.join(real_store_dir, file_name)):
@@ -126,12 +141,12 @@ class ExcelLib(object):
         """
         now_date_str = get_now(format="%Y-%m-%d")
         split_dir = '%s/%s' % (now_date_str, dir_name)
-        real_store_dir = get_base_dir() + TRANSFER_BASE_DIR + split_dir
-        relate_dir = os.path.join(TRANSFER_BASE_DIR + split_dir)
+        real_store_dir = get_base_dir() + STORE_CACHE + split_dir
+        relate_dir = os.path.join(STORE_CACHE + split_dir)
         if os.path.exists(real_store_dir):
             split_dir = '%s/%s_%s' % (now_date_str, dir_name, get_now(format="%Y-%m-%d-%H-%M-%S"))
-            real_store_dir = get_base_dir() + TRANSFER_BASE_DIR + split_dir
-            relate_dir = os.path.join(TRANSFER_BASE_DIR + split_dir)
+            real_store_dir = get_base_dir() + STORE_CACHE + split_dir
+            relate_dir = os.path.join(STORE_CACHE + split_dir)
             if not os.path.exists(real_store_dir):
                 mk_dirs(real_store_dir)
         else:

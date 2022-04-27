@@ -220,25 +220,56 @@ VALUES
 ('excel', 'excel.upload', '/excel/upload', 'success', 'Excel上传文件', '上传多个Excel文件');
 
 
+
+
+-- create enum mapping && index
+DROP TABLES IF EXISTS `enum`;
+CREATE TABLE `enum`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+  `name` varchar(25) NULL COMMENT '枚举名称',
+  `md5_id` varchar(55) NULL COMMENT '枚举md5-id，以name为md5',
+  `key` varchar(25) NULL COMMENT '枚举子集对应的key',
+  `value` varchar(55) NULL COMMENT '枚举子集对应的value',
+  `description` text COMMENT '枚举子集对应的value说明',
+  `create_rtx` varchar(50) COMMENT '创建用户rtx',
+  `create_time` datetime COMMENT '创建时间',
+  `delete_rtx` varchar(50) COMMENT '删除用户rtx',
+  `delete_time` datetime COMMENT '删除时间',
+  `is_del` bool DEFAULT False COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
+) COMMENT='ENUM枚举表';
+-- delete
+delete from enum;
+-- insert data
+insert into
+enum(`name`, `md5_id`, `key`, `value`, `description`, `create_rtx`, `create_time`)
+VALUES
+-- manage
+('excel-type', '3a4048a9372203790ebfc88337f38981', '1', '合并', '表格处理方式合并', 'admin', '2022-04-27 00:00:00'),
+('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', 'admin', '2022-04-27 00:00:00');
+
+
+
+
 -- create excel_source
 DROP TABLES IF EXISTS `excel_source`;
 
 CREATE TABLE `excel_source` (
 	`id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
-	`name` varchar(150) COMMENT '原始名称',
-	`store_name` varchar(150) COMMENT '存储名称',
+	`name` varchar(100) COMMENT '原始名称',
+	`store_name` varchar(100) COMMENT '存储名称',
 	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
-	`etype` varchar(10) NOT NULL COMMENT '文件上传类型：1拆分;2合并',
-	`status` bool DEFAULT False COMMENT '是否转换',
-	`operate_time` datetime COMMENT '转换时间',
-	`url` varchar(200) COMMENT '文件资源路径',
+	`rtx_id` varchar(55) NOT NULL COMMENT '用户rtx-id',
+	`ftype` varchar(2) NOT NULL COMMENT '文件上传类型：1拆分;2合并',
+	`local_url` varchar(100) COMMENT '文件本地资源路径（绝对路径）',
+	`store_url` varchar(100) COMMENT '文件store对象存储资源路径（相对路径）',
 	`nsheet` int COMMENT 'sheet数',
 	`set_sheet` varchar(55) COMMENT '当前设置的sheet选择索引，列表格式',
-	`sheet_names` varchar(255) COMMENT 'Sheets名称列表，以json方式存储',
-	`sheet_columns` varchar(255) COMMENT 'Sheets列名的集合，以json方式存储',
-	`headers` varchar(255) COMMENT 'excel的header信息，以json方式存储',
-	`upload_rtx` varchar(50) COMMENT '上传用户rtx',
-	`upload_time` datetime COMMENT '上传时间',
+	`sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
+	`sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
+	`headers`text COMMENT 'excel的header信息，以json方式存储',
+	`create_time` datetime COMMENT '创建时间',
 	`delete_rtx` varchar(50) COMMENT '删除用户rtx',
 	`delete_time` datetime COMMENT '删除时间',
 	`is_del` bool DEFAULT False COMMENT '是否删除',
@@ -246,6 +277,9 @@ CREATE TABLE `excel_source` (
 ) COMMENT='excel原始文件表';
 
 CREATE UNIQUE INDEX excel_source_index ON excel_source (`md5_id`);
+
+
+
 
 -- create excel_result
 DROP TABLES IF EXISTS `excel_result`;
@@ -255,9 +289,11 @@ CREATE TABLE `excel_result` (
 	`name` varchar(150) COMMENT '原始名称',
 	`store_name` varchar(150) COMMENT '存储名称',
 	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
-	`etype` varchar(10) NOT NULL COMMENT '转换类型：1拆分;2合并',
+	`rtx_id` varchar(55) NOT NULL COMMENT '用户rtx-id',
+	`ftype` varchar(10) NOT NULL COMMENT '转换类型：1拆分;2合并',
 	`generate_time` datetime COMMENT '数据生成时间',
-	`url` varchar(200) COMMENT '文件资源路径',
+	`local_url` varchar(100) COMMENT '文件本地资源路径（绝对路径）',
+	`store_url` varchar(100) COMMENT '文件store对象存储资源路径（相对路径）',
 	`is_compress` bool DEFAULT False COMMENT '是否是压缩文件',
 	`nfile` int COMMENT '文件个数',
 	`nsheet` int COMMENT 'sheet总数',
@@ -266,8 +302,7 @@ CREATE TABLE `excel_result` (
 	`sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
 	`sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
 	`headers` text COMMENT 'excel的header信息，以json方式存储',
-	`operate_rtx` varchar(50) COMMENT '操作用户rtx',
-	`operate_time` datetime COMMENT '操作时间',
+	`create_time` datetime COMMENT '创建时间',
 	`delete_rtx` varchar(50) COMMENT '删除用户rtx',
 	`delete_time` datetime COMMENT '删除时间',
 	`is_del` bool DEFAULT False COMMENT '是否删除',
@@ -275,3 +310,9 @@ CREATE TABLE `excel_result` (
 ) COMMENT='excel转换结果记录表';
 
 CREATE UNIQUE INDEX excel_result_index ON excel_result (`md5_id`);
+
+
+
+
+
+

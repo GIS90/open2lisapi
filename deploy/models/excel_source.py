@@ -46,24 +46,23 @@ from deploy.models import base
 __all__ = ("ExcelSourceModel")
 
 
-class ExcelModel(base.ModelBase):
+class ExcelSourceModel(base.ModelBase):
     __tablename__ = 'excel_source'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100))
     store_name = Column(String(100))
     md5_id = Column(String(55))
-    etype = Column(String(10))
-    status = Column(Boolean())
-    operate_time = Column(TIMESTAMP)
-    url = Column(String(100))
+    rtx_id = Column(String(55))
+    ftype = Column(String(2))
+    local_url = Column(String(100))
+    store_url = Column(String(100))
     nsheet = Column(Integer)
     set_sheet = Column(String(55))
     sheet_names = Column(Text)
     sheet_columns = Column(Text)
     headers = Column(Text)
-    upload_rtx = Column(String(30))
-    upload_time = Column(TIMESTAMP)
+    create_time = Column(TIMESTAMP)
     delete_rtx = Column(String(30))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
