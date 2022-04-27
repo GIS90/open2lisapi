@@ -125,7 +125,9 @@ class WebFlaskServer(WebBaseClass):
                 user_model = SysUserService().\
                     get_user_by_token(request.headers.get('X-Token'))
                 if user_model:
-                    self.request_service.add_request(request)  # 加入请求API日志
+                    try:
+                        self.request_service.add_request(request)  # 加入请求API日志
+                    except: pass
                     return
 
             return Status(

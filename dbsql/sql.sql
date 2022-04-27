@@ -214,7 +214,10 @@ VALUES
 ('user', 'user.timeline', '/user/timeline', 'info', '访问日志', '请求用户操作系统日志信息'),
 ('user', 'user.update', '/user/update', 'success', '更新用户信息', '更新用户基础信息数据'),
 ('user', 'user.password', '/user/password', 'success', '更新用户密码', '更新用户密码信息'),
-('user', 'user.avatar', '/user/avatar', 'success', '更新用户头像', '更新用户头像信息');
+('user', 'user.avatar', '/user/avatar', 'success', '更新用户头像', '更新用户头像信息'),
+-- excel
+('excel', 'excel.upload', '/excel/upload', 'success', 'Excel上传文件', '上传单个Excel文件'),
+('excel', 'excel.upload', '/excel/upload', 'success', 'Excel上传文件', '上传多个Excel文件');
 
 
 -- create excel_source

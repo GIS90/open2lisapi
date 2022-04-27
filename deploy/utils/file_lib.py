@@ -18,11 +18,11 @@ base_info:
 # ------------------------------------------------------------
 import os
 from multiprocessing import cpu_count
-from pdf2docx import Converter
+# from pdf2docx import Converter
 
-from deploy.utils.utils import get_storefilename_by_md5, \
-    get_base_dir, get_now, mk_dirs
-from deploy.config import TRANSFER_BASE_DIR
+from deploy.utils.utils import filename2md5, \
+    get_now, mk_dirs, md5
+from deploy.config import STORE_CACHE
 
 
 class FileLib(object):
@@ -54,42 +54,47 @@ class FileLib(object):
     def store_file(self, file, compress=False, is_md5_store_name=True):
         """
         class main function
-        to store file at server
+        to store file at local
         :param file: file object
         :param compress: file is or not to use compress
         :param is_md5_store_name: store name
         :return: False or True, json object
+
         result is tuple
         use False or True to judge request api is or not success
-        if False, to print messgae
+        if False, to print message
         """
         if not file:
-            return False, {'message': '没有发现文件'}
-        try:
-            # 文件存储初始化
-            now_date = get_now(format="%Y-%m-%d")
-            real_store_dir = get_base_dir() + TRANSFER_BASE_DIR + now_date
-            store_dir = os.path.join(TRANSFER_BASE_DIR + now_date)
-            if not os.path.exists(real_store_dir):
-                mk_dirs(real_store_dir)
+            return False, {'message': 'Not found file'}
 
+        # 文件存储初始化
+        now_date = get_now(format="%Y%m%d")
+        real_store_dir = os.path.join(STORE_CACHE, now_date)
+        if not os.path.exists(real_store_dir):
+            mk_dirs(real_store_dir)
+        try:
             file_name = file.filename
-            md5_v, _ = get_storefilename_by_md5(file_name, ftype='file')
+            md5_v = None
+            if is_md5_store_name:
+                md5_v, store_name_md5 = filename2md5(file_name=file_name, _type='file')
+                file_name = store_name_md5
             _real_file = os.path.join(real_store_dir, file_name)
+            # 文件重新上传，加上时间戳
             if os.path.exists(_real_file):
-                file_name = '%s-%s%s' % (os.path.splitext(file_name)[0],
-                                        get_now(format="%Y-%m-%d-%H-%M-%S"),
-                                        os.path.splitext(file_name)[-1])
-                _real_file = os.path.join(real_store_dir, file_name)
+                file_names = os.path.splitext(file_name)
+                suffix = (file_names[1]).lower() if len(file_names) > 1 else ''
+                new_file_name = '%s-%s%s' % (file_names[0], get_now(format="%Y-%m-%d-%H-%M-%S"), suffix)
+                _real_file = os.path.join(real_store_dir, new_file_name)
             file.save(_real_file)
             return True, {'name': file_name,
-                          'store_name': file_name,
-                          'md5': md5_v,
-                          'path': os.path.join(store_dir, file_name),
+                          'md5': md5_v if md5_v else md5,
+                          'store_name': '%s/%s' % (now_date, file_name),
+                          'path': os.path.join(real_store_dir, file_name),
                           'message': 'success'}
         except:
             return False, {'message': '文件存储发生错误'}
 
+    '''
     def pdf_2_word(self, file_pdf: str, docx_name: str = None,
                    start: int = 0, end: int = None, pages: list = None,
                    is_multi_processing: bool = False, cpu_count: int = 1):
@@ -132,5 +137,5 @@ class FileLib(object):
             if is_multi_processing else cv.convert(docx_file)
         cv.close()
         return True, {'message': 'success', 'tar_file': tar_file}
-
+    '''
 

@@ -40,6 +40,7 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import timeer
+from deploy.services.excel import ExcelService
 
 
 excel = Blueprint('excel', __name__, url_prefix='/excel')
@@ -51,6 +52,7 @@ CORS(excel, supports_credentials=True)
 def upload():
     """
     excel file upload to server
+    one file
     :return: json data
     """
     if request.method == 'GET':
@@ -63,15 +65,43 @@ def upload():
         rtx_id = form.get('rtx_id')
         # 文件
         files = request.files
-
         if not files or (files and not files.get('files')):
             return Status(
                 216, 'failure', StatusMsgs.get(216), {}
             ).json()
-
-        # return SysUserService().update_avatar_by_rtx(rtx_id, files.get('avatar'))
+        return ExcelService().excel_upload(rtx_id, request.files.get('files'))
     except Exception as e:
-        LOG.error("user>avatar is error: %s" % e)
+        LOG.error("excel>upload is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@excel.route('/uploads/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def uploads():
+    """
+    excel file upload to server
+    many file
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        form = request.form
+        rtx_id = form.get('rtx_id')
+        # 文件
+        files = request.files
+        if not files:
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}
+            ).json()
+        return ExcelService().excel_upload_m(rtx_id, files)
+    except Exception as e:
+        LOG.error("excel>uploads is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 

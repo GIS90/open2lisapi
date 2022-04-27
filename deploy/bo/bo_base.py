@@ -49,7 +49,7 @@ class BOBase(object):
             self.session.merge(model)
 
     def add_model(self, model):
-        with self.session.begin():
+        with self.session.begin(subtransactions=True):
             self.session.add(model)
 
     def merge_model_no_trans(self, model):

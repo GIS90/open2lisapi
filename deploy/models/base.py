@@ -63,6 +63,7 @@ def get_session():
     if not DBSession:
         dbengine_databus = init_database_engine()
         DBSession = sessionmaker(bind=dbengine_databus,
-                                 autocommit=True)
+                                 autocommit=True
+                                 )
     return DBSession()
 
