@@ -68,6 +68,7 @@ class ExcelSourceBo(BOBase):
                                EnumModel.key,
                                EnumModel.value)
         q = q.filter(ExcelSourceModel.ftype == EnumModel.key)
+        q = q.filter(ExcelSourceModel.is_del != 1)
         if params.get('enum_name'):
             q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
         if params.get('type'):
@@ -82,3 +83,8 @@ class ExcelSourceBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all()
+
+    def get_model_by_md5(self, md5):
+        q = self.session.query(ExcelSourceModel)
+        q = q.filter(ExcelSourceModel.md5_id == str(md5))
+        return q.first() if q else None

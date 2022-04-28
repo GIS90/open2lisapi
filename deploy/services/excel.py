@@ -65,6 +65,20 @@ class ExcelService(object):
         'type'
     ]
 
+    req_update_attrs = [
+        'rtx_id',
+        'token',
+        'name',
+        'md5',
+        'set_sheet'
+    ]
+
+    req_delete_attrs = [
+        'rtx_id',
+        'token',
+        'md5'
+    ]
+
     excel_source_all_attrs = [
         'id',
         'name',
@@ -358,4 +372,81 @@ class ExcelService(object):
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
 
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_update_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'set_sheet':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                new_params[k] = ';'.join(v)
+            else:
+                new_params[k] = str(v)
+
+        model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}
+            ).json()
+        if new_params.get('name'):
+            model.name = new_params.get('name')
+        if new_params.get('set_sheet'):
+            model.set_sheet = new_params.get('set_sheet')
+        self.excel_source_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def excel_delete(self, params):
+        """
+        delete excel file by params
+        params is dict
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            new_params[k] = str(v)
+
+        model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        model.is_del = True
+        self.excel_source_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def excel_deletes(self, params):
+        """
+        delete many excel file by params
+        params is dict
+        """
         pass
