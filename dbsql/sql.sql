@@ -216,8 +216,9 @@ VALUES
 ('user', 'user.password', '/user/password', 'success', '更新用户密码', '更新用户密码信息'),
 ('user', 'user.avatar', '/user/avatar', 'success', '更新用户头像', '更新用户头像信息'),
 -- excel
+('excel', 'excel.list', '/excel/list', 'info', 'Excel文件列表', '获取Excel文件列表'),
 ('excel', 'excel.upload', '/excel/upload', 'success', 'Excel上传文件', '上传单个Excel文件'),
-('excel', 'excel.upload', '/excel/upload', 'success', 'Excel上传文件', '上传多个Excel文件');
+('excel', 'excel.uploads', '/excel/uploads', 'success', 'Excel上传文件', '上传多个Excel文件');
 
 
 
@@ -274,7 +275,7 @@ CREATE TABLE `excel_source` (
 	`delete_time` datetime COMMENT '删除时间',
 	`is_del` bool DEFAULT False COMMENT '是否删除',
 	PRIMARY KEY (`id`)
-) COMMENT='excel原始文件表';
+) COMMENT='Excel原始文件表';
 
 CREATE UNIQUE INDEX excel_source_index ON excel_source (`md5_id`);
 
@@ -291,7 +292,6 @@ CREATE TABLE `excel_result` (
 	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
 	`rtx_id` varchar(55) NOT NULL COMMENT '用户rtx-id',
 	`ftype` varchar(10) NOT NULL COMMENT '转换类型：1拆分;2合并',
-	`generate_time` datetime COMMENT '数据生成时间',
 	`local_url` varchar(100) COMMENT '文件本地资源路径（绝对路径）',
 	`store_url` varchar(100) COMMENT '文件store对象存储资源路径（相对路径）',
 	`is_compress` bool DEFAULT False COMMENT '是否是压缩文件',
@@ -307,7 +307,7 @@ CREATE TABLE `excel_result` (
 	`delete_time` datetime COMMENT '删除时间',
 	`is_del` bool DEFAULT False COMMENT '是否删除',
 	PRIMARY KEY (`id`)
-) COMMENT='excel转换结果记录表';
+) COMMENT='Excel转换成功记录表';
 
 CREATE UNIQUE INDEX excel_result_index ON excel_result (`md5_id`);
 

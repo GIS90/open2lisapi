@@ -43,15 +43,61 @@ from deploy.utils.store_lib import StoreLib
 from deploy.utils.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
 
-from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME
-from deploy.utils.utils import get_now
+from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, EXCEL_LIMIT, EXCEL_STORE_BK
+from deploy.utils.utils import get_now, d2s
 
 
 class ExcelService(object):
     """
     excel service
     """
-    upload_attrs = ['rtx_id', 'token', 'type']
+    req_list_attrs = [
+        'rtx_id',
+        'token',
+        'type',
+        'limit',
+        'offset'
+    ]
+
+    req_upload_attrs = [
+        'rtx_id',
+        'token',
+        'type'
+    ]
+
+    excel_source_all_attrs = [
+        'id',
+        'name',
+        'store_name',
+        'md5_id',
+        'rtx_id',
+        'ftype',
+        'local_url',
+        'store_url',
+        'nsheet',
+        'set_sheet',
+        'sheet_names',
+        'sheet_columns',
+        'headers',
+        'create_time',
+        'delete_rtx',
+        'delete_time',
+        'is_del'
+    ]
+
+    excel_source_show_attrs = [
+        'id',
+        'name',
+        'md5_id',
+        'rtx_id',
+        'ftypek',
+        'ftypev',
+        'url',
+        'nsheet',
+        'set_sheet',
+        'sheet_names',
+        'create_time'
+    ]
 
     def __init__(self):
         super(ExcelService, self).__init__()
@@ -107,12 +153,90 @@ class ExcelService(object):
         except:
             return False
 
+    def _model_to_dict(self, model):
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.excel_source_show_attrs:
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'name':
+                _res[attr] = model.name
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'ftypek':
+                _res[attr] = model.ftype
+            elif attr == 'ftypev':
+                _res[attr] = model.value
+            elif attr == 'url':
+                if model.store_url:
+                    resp = self.store_lib.open_download(store_name=model.store_url)
+                    _res['url'] = resp.get('data').get('url') if resp.get('status_id') == 100 else ''
+                else:
+                    _res['url'] = ''
+            elif attr == 'nsheet':
+                _res['nsheet'] = model.nsheet
+            elif attr == 'set_sheet':
+                if model.sheet_names:
+                    sheet_names = json.loads(model.sheet_names)
+                    _res['set_sheet'] = sheet_names.get(str(model.set_sheet))
+                else:
+                    _res['set_sheet'] = ''
+            elif attr == 'sheet_names':
+                _res['sheet_names'] = json.loads(model.sheet_names) if model.sheet_names else {}
+            elif attr == 'create_time':
+                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+        else:
+            return _res
+
+    def excel_list(self, params):
+        """
+        get excel list by type and (source or result)
+        params is dict
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if k == 'limit':
+                new_params[k] = int(v) if v else EXCEL_LIMIT
+            elif k == 'offset':
+                new_params[k] = int(v) if v else 0
+            else:
+                new_params[k] = v
+        new_params['enum_name'] = 'excel-type'
+        res = self.excel_source_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), []
+            ).json()
+
+        new_res = list()
+        for _d in res:
+            if not _d: continue
+            new_res.append(self._model_to_dict(_d))
+        return Status(
+            100, 'success', StatusMsgs.get(100), new_res
+        ).json()
+
     def excel_upload(self, params, upload_file, is_check_fmt: bool = True):
         """
         one file to upload
         params params: request params, rtx_id and excel type
         params upload_file: excel upload file
         params is_check_fmt: file is or not check format
+        params is_store_bk: file is or not upload to store server 对象存储备份
 
         excel upload to qiniu store server
         1.local store
@@ -124,7 +248,7 @@ class ExcelService(object):
             ).json()
         for k, v in params.items():
             if not k: continue
-            if k not in self.upload_attrs:
+            if k not in self.req_upload_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
@@ -149,22 +273,23 @@ class ExcelService(object):
             return Status(
                 220, 'failure', StatusMsgs.get(220), {}
             ).json()
-        # file upload to store object
-        store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
-                                          local_file=store_msg.get('path'))
-        if store_res.get('status_id') != 100:
-            return Status(store_res.get('status_id'),
-                          'failure',
-                          store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
-                          {}).json()
+        # file upload to store object, manual control
+        if EXCEL_STORE_BK:
+            store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
+                                              local_file=store_msg.get('path'))
+            if store_res.get('status_id') != 100:
+                return Status(store_res.get('status_id'),
+                              'failure',
+                              store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
+                              {}).json()
         # file to db
         store_msg['rtx_id'] = params.get('rtx_id')
         store_msg['type'] = params.get('type')
         is_to_db = self.store_file_to_db(store_msg)
-        # if not is_to_db:
-        #     return Status(
-        #         220, 'failure', StatusMsgs.get(220), {}
-        #     ).json()
+        if not is_to_db:
+            return Status(
+                225, 'failure', StatusMsgs.get(225), {}
+            ).json()
 
         return Status(
             100, 'success', StatusMsgs.get(100), {}
@@ -189,18 +314,17 @@ class ExcelService(object):
         success_list = list()
         failure_list = list()
         for uf in upload_files:
-            if not uf: continue
-            store_res = self.excel_upload(params=params, upload_file=upload_files.get(uf))
-            store_res_json = json.loads(store_res)
-            success_list.append(uf) if store_res_json.get('status_id') == 100 \
-                else failure_list.append(uf)
             try:
-                pass
+                if not uf: continue
+                store_res = self.excel_upload(params=params, upload_file=upload_files.get(uf))
+                store_res_json = json.loads(store_res)
+                success_list.append(uf) if store_res_json.get('status_id') == 100 \
+                    else failure_list.append(uf)
             except:
                 failure_list.append(uf)
         if upload_files and len(failure_list) == len(upload_files):
             return Status(
-                223, 'failure', '文件上传失败 --------' or StatusMsgs.get(223), {}
+                223, 'failure', '文件上传失败' or StatusMsgs.get(223), {}
             ).json()
         if failure_list:
             return Status(

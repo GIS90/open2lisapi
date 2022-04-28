@@ -35,6 +35,7 @@ Life is short, I use python.
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.excel_source import ExcelSourceModel
+from deploy.models.enum import EnumModel
 
 
 class ExcelSourceBo(BOBase):
@@ -44,3 +45,40 @@ class ExcelSourceBo(BOBase):
 
     def new_mode(self):
         return ExcelSourceModel()
+    
+    def get_all(self, params: dict):
+        q = self.session.query(ExcelSourceModel.id,
+                               ExcelSourceModel.name,
+                               ExcelSourceModel.store_name,
+                               ExcelSourceModel.md5_id,
+                               ExcelSourceModel.rtx_id,
+                               ExcelSourceModel.ftype,
+                               ExcelSourceModel.local_url,
+                               ExcelSourceModel.store_url,
+                               ExcelSourceModel.nsheet,
+                               ExcelSourceModel.set_sheet,
+                               ExcelSourceModel.sheet_names,
+                               ExcelSourceModel.sheet_columns,
+                               ExcelSourceModel.headers,
+                               ExcelSourceModel.create_time,
+                               ExcelSourceModel.delete_rtx,
+                               ExcelSourceModel.delete_time,
+                               ExcelSourceModel.is_del,
+                               EnumModel.name.label('enum_name'),
+                               EnumModel.key,
+                               EnumModel.value)
+        q = q.filter(ExcelSourceModel.ftype == EnumModel.key)
+        if params.get('enum_name'):
+            q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
+        if params.get('type'):
+            q = q.filter(ExcelSourceModel.ftype == str(params.get('type')))
+        if params.get('rtx_id'):
+            q = q.filter(ExcelSourceModel.rtx_id == str(params.get('rtx_id')))
+        q = q.order_by(ExcelSourceModel.create_time.desc())
+        if not q.all():
+            return []
+        if params.get('offset'):
+            q = q.offset(params.get('offset'))
+        if params.get('limit'):
+            q = q.limit(params.get('limit'))
+        return q.all()

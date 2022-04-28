@@ -53,5 +53,10 @@ ARTICLE:
   LIMIT: 10
 
 
+EXCEL:
+  STORE_BK: True
+  LIMIT: 25
+
+
 OTHERS:
   NOBN: NoNameBody

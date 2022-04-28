@@ -105,6 +105,10 @@ IMAGE_WIDTH = 1000
 # article
 ART_LIMIT = 10
 
+# excel
+EXCEL_LIMIT = 25
+EXCEL_STORE_BK = False
+
 # others
 NOBN = 'NoNameBody'
 
@@ -175,6 +179,10 @@ with open(_config_file) as f:
 
     # article
     ART_LIMIT = _config_info['ARTICLE']['LIMIT'] or ART_LIMIT
+
+    # excel
+    EXCEL_LIMIT = _config_info['EXCEL']['LIMIT'] or EXCEL_LIMIT
+    EXCEL_STORE_BK = _config_info['EXCEL']['STORE_BK'] or EXCEL_STORE_BK
 
     # options
     O_NOBN = _config_info['OTHERS']['NOBN'] or NOBN

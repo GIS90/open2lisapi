@@ -51,7 +51,7 @@ class FileLib(object):
         """
         return True if (os.path.splitext(fname)[1]).lower() in self.ALLOWED_EXTENSIONS else False
 
-    def store_file(self, file, compress=False, is_md5_store_name=True):
+    def store_file(self, file, compress=False, is_md5_store_name=False):
         """
         class main function
         to store file at local
@@ -85,9 +85,11 @@ class FileLib(object):
                 suffix = (file_names[1]).lower() if len(file_names) > 1 else ''
                 new_file_name = '%s-%s%s' % (file_names[0], get_now(format="%Y-%m-%d-%H-%M-%S"), suffix)
                 _real_file = os.path.join(real_store_dir, new_file_name)
+                md5_v = md5(new_file_name)
+                file_name = new_file_name
             file.save(_real_file)
             return True, {'name': file_name,
-                          'md5': md5_v if md5_v else md5(file_name),
+                          'md5': md5_v,
                           'store_name': '%s/%s' % (now_date, file_name),
                           'path': os.path.join(real_store_dir, file_name),
                           'message': 'success'}

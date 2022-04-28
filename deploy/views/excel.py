@@ -47,6 +47,29 @@ excel = Blueprint('excel', __name__, url_prefix='/excel')
 CORS(excel, supports_credentials=True)
 
 
+@excel.route('/list/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def list():
+    """
+    get excel list from db
+    many file
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return ExcelService().excel_list(params)
+    except Exception as e:
+        LOG.error("excel>list is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
 @excel.route('/upload/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def upload():
@@ -89,20 +112,20 @@ def uploads():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
 
-    # 参数
-    params = request.form
-    # 文件
-    files = request.files
-    if not files:
-        return Status(
-            216, 'failure', StatusMsgs.get(216), {}
-        ).json()
-
-    return ExcelService().excel_upload_m(params, files)
     try:
-        pass
+        # 参数
+        params = request.form
+        # 文件
+        files = request.files
+        if not files:
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}
+            ).json()
+
+        return ExcelService().excel_upload_m(params, files)
     except Exception as e:
         LOG.error("excel>uploads is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
 
