@@ -94,8 +94,8 @@ class ExcelService(object):
         'ftypev',
         'url',
         'nsheet',
-        'set_sheet',
-        'sheet_names',
+        'set_sheet',  # sheet_names, set_sheet_index, set_sheet_name
+        # 'sheet_names',
         'create_time'
     ]
 
@@ -141,7 +141,7 @@ class ExcelService(object):
             new_model.local_url = store.get('path')
             new_model.store_url = store.get('store_name')
             new_model.nsheet = excel_headers.get('nsheet')
-            # 设置默认第一个Sheet进行操作
+            # 设置默认第一个Sheet进行操作,初始化设置
             new_model.set_sheet = '0'
             new_model.sheet_names = json.dumps(excel_headers.get('names'))
             new_model.sheet_columns = json.dumps(excel_headers.get('columns'))
@@ -181,12 +181,20 @@ class ExcelService(object):
                 _res['nsheet'] = model.nsheet
             elif attr == 'set_sheet':
                 if model.sheet_names:
-                    sheet_names = json.loads(model.sheet_names)
-                    _res['set_sheet'] = sheet_names.get(str(model.set_sheet))
+                    new_res = list()
+                    set_sheet_name = list()
+                    set_sheet_index = [str(i) for i in str(model.set_sheet).split(';')] if model.set_sheet else []
+                    for k, v in json.loads(model.sheet_names).items():
+                        new_res.append({'key': k, 'value': v})
+                        if str(k) in set_sheet_index:
+                            set_sheet_name.append(v)
+                    _res['sheet_names'] = new_res
+                    _res['set_sheet_name'] = ';'.join(set_sheet_name)
+                    _res['set_sheet_index'] = set_sheet_index
                 else:
-                    _res['set_sheet'] = ''
-            elif attr == 'sheet_names':
-                _res['sheet_names'] = json.loads(model.sheet_names) if model.sheet_names else {}
+                    _res['sheet_names'] = []
+                    _res['set_sheet_index'] = []
+                    _res['set_sheet_name'] = ''
             elif attr == 'create_time':
                 _res['create_time'] = d2s(model.create_time) if model.create_time else ''
         else:
@@ -216,7 +224,12 @@ class ExcelService(object):
             else:
                 new_params[k] = v
         new_params['enum_name'] = 'excel-type'
+        import datetime
+        start = datetime.datetime.now()
         res = self.excel_source_bo.get_all(new_params)
+        end = datetime.datetime.now()
+        print('~'*100)
+        print((end-start).seconds)
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), []
@@ -334,3 +347,15 @@ class ExcelService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}
         ).json()
+
+    def excel_update(self, params):
+        """
+        get excel list by type and (source or result)
+        params is dict
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        pass
