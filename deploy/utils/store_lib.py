@@ -249,6 +249,11 @@ class StoreLib(object):
         except:
             return self.format_res(998, '方法异常，请检查', {})
 
+    def open_download_url(self, space_url: str = None, store_name: str = None) -> str:
+        bucket_url = space_url if space_url \
+            else self.space_url
+        return '%s/%s' % (bucket_url, store_name) if store_name else ''
+
     def open_download(self, space_url: str = None, store_name: str = None) -> dict:
         """
         公开空间下载文件/图片的方法

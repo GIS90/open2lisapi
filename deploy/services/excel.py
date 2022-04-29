@@ -151,28 +151,26 @@ class ExcelService(object):
         if not store:
             return False
 
-        print('/-' * 100)
-        print(store)
-        # 获取文件header
-        excel_headers = self.get_excel_headers(store.get('path'))
-        new_model = self.excel_source_bo.new_mode()
-        new_model.rtx_id = store.get('rtx_id')
-        new_model.name = store.get('name')
-        new_model.store_name = store.get('store_name')
-        new_model.md5_id = store.get('md5')
-        new_model.ftype = store.get('type')
-        new_model.local_url = store.get('path')
-        new_model.store_url = store.get('store_name')
-        new_model.nsheet = excel_headers.get('nsheet')
-        # 设置默认第一个Sheet进行操作,初始化设置
-        new_model.set_sheet = '0'
-        new_model.sheet_names = json.dumps(excel_headers.get('names'))
-        new_model.sheet_columns = json.dumps(excel_headers.get('columns'))
-        new_model.headers = json.dumps(excel_headers.get('sheets'))
-        new_model.create_time = get_now()
-        new_model.is_del = False
-        self.excel_source_bo.add_model(new_model)
         try:
+            # 获取文件header
+            excel_headers = self.get_excel_headers(store.get('path'))
+            new_model = self.excel_source_bo.new_mode()
+            new_model.rtx_id = store.get('rtx_id')
+            new_model.name = store.get('name')
+            new_model.store_name = store.get('store_name')
+            new_model.md5_id = store.get('md5')
+            new_model.ftype = store.get('type')
+            new_model.local_url = store.get('path')
+            new_model.store_url = store.get('store_name')
+            new_model.nsheet = excel_headers.get('nsheet')
+            # 设置默认第一个Sheet进行操作,初始化设置
+            new_model.set_sheet = '0'
+            new_model.sheet_names = json.dumps(excel_headers.get('names'))
+            new_model.sheet_columns = json.dumps(excel_headers.get('columns'))
+            new_model.headers = json.dumps(excel_headers.get('sheets'))
+            new_model.create_time = get_now()
+            new_model.is_del = False
+            self.excel_source_bo.add_model(new_model)
             return True
         except:
             return False
@@ -197,8 +195,11 @@ class ExcelService(object):
                 _res[attr] = model.value
             elif attr == 'url':
                 if model.store_url:
-                    resp = self.store_lib.open_download(store_name=model.store_url)
-                    _res['url'] = resp.get('data').get('url') if resp.get('status_id') == 100 else ''
+                    # url
+                    _res['url'] = self.store_lib.open_download_url(store_name=model.store_url)
+                    # url and check
+                    # resp = self.store_lib.open_download(store_name=model.store_url)
+                    # _res['url'] = resp.get('data').get('url') if resp.get('status_id') == 100 else ''
                 else:
                     _res['url'] = ''
             elif attr == 'nsheet':
@@ -248,12 +249,7 @@ class ExcelService(object):
             else:
                 new_params[k] = v
         new_params['enum_name'] = 'excel-type'
-        import datetime
-        start = datetime.datetime.now()
         res, total = self.excel_source_bo.get_all(new_params)
-        end = datetime.datetime.now()
-        print('~'*100)
-        print((end-start).seconds)
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
@@ -351,15 +347,12 @@ class ExcelService(object):
         success_list = list()
         failure_list = list()
         for uf in upload_files:
-            if not uf: continue
-            store_res = self.excel_upload(params=params, upload_file=upload_files.get(uf))
-            print('*' * 20)
-            print(json.loads(store_res))
-            store_res_json = json.loads(store_res)
-            success_list.append(uf) if store_res_json.get('status_id') == 100 \
-                else failure_list.append(uf)
             try:
-                pass
+                if not uf: continue
+                store_res = self.excel_upload(params=params, upload_file=upload_files.get(uf))
+                store_res_json = json.loads(store_res)
+                success_list.append(uf) if store_res_json.get('status_id') == 100 \
+                    else failure_list.append(uf)
             except:
                 failure_list.append(uf)
         if upload_files and len(failure_list) == len(upload_files):

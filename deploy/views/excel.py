@@ -112,18 +112,17 @@ def uploads():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
 
-    # 参数
-    params = request.form
-    # 文件
-    files = request.files
-    if not files:
-        return Status(
-            216, 'failure', StatusMsgs.get(216), {}
-        ).json()
-
-    return ExcelService().excel_upload_m(params, files)
     try:
-        pass
+        # 参数
+        params = request.form
+        # 文件
+        files = request.files
+        if not files:
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}
+            ).json()
+
+        return ExcelService().excel_upload_m(params, files)
     except Exception as e:
         LOG.error("excel>uploads is error: %s" % e)
         return Status(501, 'failure',
