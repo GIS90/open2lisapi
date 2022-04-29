@@ -74,9 +74,8 @@ class FileLib(object):
             mk_dirs(real_store_dir)
         try:
             file_name = file.filename
-            md5_v = None
             if is_md5_store_name:
-                md5_v, store_name_md5 = filename2md5(file_name=file_name, _type='file')
+                _, store_name_md5 = filename2md5(file_name=file_name, _type='file')
                 file_name = store_name_md5
             _real_file = os.path.join(real_store_dir, file_name)
             # 文件重新上传，加上时间戳
@@ -85,11 +84,10 @@ class FileLib(object):
                 suffix = (file_names[1]).lower() if len(file_names) > 1 else ''
                 new_file_name = '%s-%s%s' % (file_names[0], get_now(format="%Y-%m-%d-%H-%M-%S"), suffix)
                 _real_file = os.path.join(real_store_dir, new_file_name)
-                md5_v = md5(new_file_name)
                 file_name = new_file_name
             file.save(_real_file)
             return True, {'name': file_name,
-                          'md5': md5_v,
+                          'md5': md5(file_name + get_now()),
                           'store_name': '%s/%s' % (now_date, file_name),
                           'path': os.path.join(real_store_dir, file_name),
                           'message': 'success'}

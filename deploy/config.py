@@ -106,7 +106,7 @@ IMAGE_WIDTH = 1000
 ART_LIMIT = 10
 
 # excel
-EXCEL_LIMIT = 25
+EXCEL_LIMIT = 15
 EXCEL_STORE_BK = False
 
 # others

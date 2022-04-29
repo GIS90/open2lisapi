@@ -55,7 +55,7 @@ ARTICLE:
 
 EXCEL:
   STORE_BK: True
-  LIMIT: 25
+  LIMIT: 15
 
 
 OTHERS:

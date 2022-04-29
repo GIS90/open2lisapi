@@ -78,12 +78,13 @@ class ExcelSourceBo(BOBase):
             q = q.filter(ExcelSourceModel.rtx_id == str(params.get('rtx_id')))
         q = q.order_by(ExcelSourceModel.create_time.desc())
         if not q.all():
-            return []
+            return [], 0
+        total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))
         if params.get('limit'):
             q = q.limit(params.get('limit'))
-        return q.all()
+        return q.all(), total
 
     def get_model_by_md5(self, md5):
         q = self.session.query(ExcelSourceModel)
