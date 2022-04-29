@@ -36,6 +36,7 @@ Life is short, I use python.
 from deploy.bo.bo_base import BOBase
 from deploy.models.excel_source import ExcelSourceModel
 from deploy.models.enum import EnumModel
+from deploy.utils.utils import get_now
 
 
 class ExcelSourceBo(BOBase):
@@ -88,3 +89,20 @@ class ExcelSourceBo(BOBase):
         q = self.session.query(ExcelSourceModel)
         q = q.filter(ExcelSourceModel.md5_id == str(md5))
         return q.first() if q else None
+
+    def batch_delete_by_md5(self, params):
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(ExcelSourceModel)
+        q = q.filter(ExcelSourceModel.md5_id.in_(md5_list))
+        if rtx_id:
+            q = q.filter(ExcelSourceModel.rtx_id == rtx_id)
+        q = q.filter(ExcelSourceModel.is_del != 1)
+        q = q.update({ExcelSourceModel.is_del: True,
+                      ExcelSourceModel.delete_rtx: rtx_id,
+                      ExcelSourceModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q

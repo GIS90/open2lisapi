@@ -43,7 +43,9 @@ from deploy.utils.store_lib import StoreLib
 from deploy.utils.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
 
-from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, EXCEL_LIMIT, EXCEL_STORE_BK
+from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
+    EXCEL_LIMIT, EXCEL_STORE_BK, \
+    ADMIN
 from deploy.utils.utils import get_now, d2s
 
 
@@ -77,6 +79,12 @@ class ExcelService(object):
         'rtx_id',
         'token',
         'md5'
+    ]
+
+    req_deletes_attrs = [
+        'rtx_id',
+        'token',
+        'list'
     ]
 
     excel_source_all_attrs = [
@@ -401,6 +409,11 @@ class ExcelService(object):
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}
             ).json()
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}
+            ).json()
         if new_params.get('name'):
             model.name = new_params.get('name')
         if new_params.get('set_sheet'):
@@ -438,7 +451,18 @@ class ExcelService(object):
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}
             ).json()
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}
+            ).json()
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}
+            ).json()
         model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
         self.excel_source_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
@@ -449,4 +473,32 @@ class ExcelService(object):
         delete many excel file by params
         params is dict
         """
-        pass
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'list':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+
+        res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'success', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
