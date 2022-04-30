@@ -55,7 +55,6 @@ class ExcelService(object):
     """
     req_list_attrs = [
         'rtx_id',
-        'token',
         'type',
         'limit',
         'offset'
@@ -63,13 +62,11 @@ class ExcelService(object):
 
     req_upload_attrs = [
         'rtx_id',
-        'token',
         'type'
     ]
 
     req_update_attrs = [
         'rtx_id',
-        'token',
         'name',
         'md5',
         'set_sheet'
@@ -77,13 +74,16 @@ class ExcelService(object):
 
     req_delete_attrs = [
         'rtx_id',
-        'token',
         'md5'
     ]
 
     req_deletes_attrs = [
         'rtx_id',
-        'token',
+        'list'
+    ]
+
+    req_merge_attrs = [
+        'rtx_id',
         'list'
     ]
 
@@ -434,7 +434,7 @@ class ExcelService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_delete_attrs and v:
+            if k not in self.req_delete_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
@@ -479,7 +479,7 @@ class ExcelService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_deletes_attrs and v:
+            if k not in self.req_deletes_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
@@ -500,3 +500,39 @@ class ExcelService(object):
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'success', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def excel_merge(self, params):
+        """
+        many file to merge one file
+        params params: request params, rtx_id and excel md5 list
+        
+        return json result
+        """
+        if not params:
+            return Status(
+                212, 'failure', u'缺少请求参数', {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_merge_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'list':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+                
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}
+        ).json()

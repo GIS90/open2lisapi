@@ -218,8 +218,11 @@ VALUES
 -- excel
 ('excel', 'excel.list', '/excel/list', 'info', 'Excel文件列表', '获取Excel文件列表'),
 ('excel', 'excel.upload', '/excel/upload', 'success', 'Excel上传文件', '上传单个Excel文件'),
-('excel', 'excel.uploads', '/excel/uploads', 'success', 'Excel上传文件', '上传多个Excel文件');
-
+('excel', 'excel.uploads', '/excel/uploads', 'success', 'Excel上传文件', '上传多个Excel文件'),
+('excel', 'excel.update', '/excel/update', 'success', 'Excel更新数据', '更新Excel文件信息'),
+('excel', 'excel.delete', '/excel/delete', 'success', 'Excel删除文件', '删除单个Excel文件'),
+('excel', 'excel.deletes', '/excel/deletes', 'success', 'Excel批量文件', '批量删除多个Excel文件'),
+('excel', 'excel.merge', '/excel/merge', 'success', 'Excel数据合并', '多个Excel、Sheet文件合并');
 
 
 
