@@ -3,12 +3,14 @@ describe:
     database: twtoolbox
     user: twtoolbox
     tables:
-        sysuser: 用户基础信息表
-        role: 角色权限表
-        menu: 系统菜单表
-        request: 系统API请求记录表
-        api: API接口说明表
-
+        sysuser	用户	用户基础信息表
+        role	角色	用户角色权限表
+        menu	菜单	系统菜单表
+        request	请求记录	后台API请求记录表
+        api	api	后台API接口说明表
+        department	部门	部门架构信息表
+        excel_source	Excel源文件	Excel原始文件表
+        excel_result	Excel成果文件	Excel转换成果记录表
 
 
 usage:
@@ -63,9 +65,7 @@ insert into
 sysuser(rtx_id, md5_id, fullname, `password`, email , phone, avatar, introduction, role, create_operator, is_del)
 VALUES
 ('admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '123456', 'gaoming971366@163.com', '13051355646',
-'http://pygo2.top/images/article_github.jpg', '我是一名Python程序员', '21232f297a57a5a743894a0e4a801fc3', '第一用户', FALSE),
-('test', '098f6bcd4621d373cade4e832627b4f6', '测试号', '123456', 'gaoming971366@163.com', '13051355646',
-'http://pygo2.top/images/article_github.jpg', '我是一名Python程序员', '127870930d65c57ee65fcc47f2170d38', 'admin', FALSE);
+'http://pygo2.top/images/article_github.jpg', '我是一名Python程序员', '21232f297a57a5a743894a0e4a801fc3', '第一用户', FALSE);
 
 
 

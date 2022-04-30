@@ -45,8 +45,8 @@ class RequestBo(BOBase):
     def new_mode(self):
         return RequestModel()
 
-    def get_by_rtx(self, rtx_id, limit=10):
-        if not rtx_id:
+    def get_by_rtx(self, params):
+        if not params:
             return []
         q = self.session.query(RequestModel.id,
                                RequestModel.rtx_id,
@@ -65,9 +65,15 @@ class RequestBo(BOBase):
         q = q.filter(RequestModel.blueprint == ApiModel.blueprint)
         q = q.filter(RequestModel.endpoint == ApiModel.endpoint)
         # q = q.filter(RequestModel.path == ApiModel.path)
-        q = q.filter(RequestModel.rtx_id == rtx_id)
+        if params.get('rtx_id'):
+            q = q.filter(RequestModel.rtx_id == params.get('rtx_id'))
         q = q.order_by(RequestModel.create_time.desc())
-        if not q.all:
-            return []
-        q = q.limit(limit)
-        return q
+        if not q:
+            return [], 0
+        total = len(q.all())
+        if params.get('offset'):
+            q = q.offset(params.get('offset'))
+        if params.get('limit'):
+            q = q.limit(params.get('limit'))
+        print(q)
+        return q.all(), total

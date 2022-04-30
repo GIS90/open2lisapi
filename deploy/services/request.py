@@ -35,12 +35,19 @@ Life is short, I use python.
 from deploy.bo.request import RequestBo
 from deploy.utils.utils import get_now, get_real_ip, \
     get_rtx_id, d2s
-from deploy.config import USER_DEFAULT_TIMELINE
+from deploy.config import USER_DEFAULT_TIMELINE, EXCEL_LIMIT
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 
 
 class RequestService(object):
+
+    req_list_attrs = [
+        'rtx_id',
+        'limit',
+        'offset'
+    ]
+
     def __init__(self):
         super(RequestService, self).__init__()
         self.request_bo = RequestBo()
@@ -140,16 +147,38 @@ class RequestService(object):
         new_model.create_time = get_now()
         self.request_bo.add_model(new_model)
 
-    def get_by_rtx(self, rtx_id: str) -> dict:
-        if not rtx_id:
+    def get_by_rtx(self, params) -> dict:
+        if not params:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}
+                212, 'failure', u'缺少请求参数', {}
             ).json()
-        rtx_id = rtx_id.strip()  # 去空格
-        res = self.request_bo.get_by_rtx(rtx_id, limit=USER_DEFAULT_TIMELINE)
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if k == 'limit':
+                v = int(v) if v else EXCEL_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            elif k == 'rtx_id':
+                v = str(v).strip()
+            else:
+                v = str(v)
+            new_params[k] = v
+
+        import datetime
+        start = datetime.datetime.now()
+        res, total = self.request_bo.get_by_rtx(new_params)
+        end = datetime.datetime.now()
+        print((end-start).seconds)
+        print(total)
         if not res:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
+                101, 'failure', StatusMsgs.get(101), {'timeline': [], 'total': 0}
             ).json()
 
         data_list = list()
@@ -160,7 +189,7 @@ class RequestService(object):
 
         return Status(
             100, 'success',
-            StatusMsgs.get(100), {'timeline': data_list}
+            StatusMsgs.get(100), {'timeline': data_list, 'total': total}
         ).json()
 
 

@@ -251,6 +251,8 @@ class SysUserService(object):
                 ).json()
             if k == 'name':
                 new_data['fullname'] = v
+            elif k == 'rtx_id':
+                new_data[k] = str(v).strip()
             else:
                 new_data[k] = v
 
@@ -290,6 +292,10 @@ class SysUserService(object):
             if k not in self.password_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
                 ).json()
             new_data[k] = v
 

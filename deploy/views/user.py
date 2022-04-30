@@ -123,13 +123,15 @@ def timeline():
     login to system get user timeline
     :return: json data
     """
-    if request.method == 'POST':
+    if request.method == 'GET':
         return Status(
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
     try:
-        rtx_id = request.args.get('rtx_id')
-        return RequestService().get_by_rtx(rtx_id)
+        print('*' * 100)
+        print(request.get_json())
+        params = request.get_json() or {}
+        return RequestService().get_by_rtx(params)
     except Exception as e:
         LOG.error("user>timeline is error: %s" % e)
         return Status(501, 'failure',
