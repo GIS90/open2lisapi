@@ -78,7 +78,7 @@ class FileLib(object):
                 _, store_name_md5 = filename2md5(file_name=file_name, _type='file')
                 file_name = store_name_md5
             _real_file = os.path.join(real_store_dir, file_name)
-            # 文件重新上传，加上时间戳
+            # 文件已存在，加上时间戳
             if os.path.exists(_real_file):
                 file_names = os.path.splitext(file_name)
                 suffix = (file_names[1]).lower() if len(file_names) > 1 else ''

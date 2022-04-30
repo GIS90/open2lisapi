@@ -18,3 +18,6 @@ https://docs.qq.com/sheet/DZmJZUlBuS1dla0Vw?tab=BB08J2
 > 对象存储类型说明
 
 https://developer.qiniu.com/kodo/3956/kodo-category
+
+
+openpyxl: 不支持.xls（老版本excel）

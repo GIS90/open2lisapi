@@ -84,7 +84,9 @@ class ExcelService(object):
 
     req_merge_attrs = [
         'rtx_id',
-        'list'
+        'name',
+        'list',
+        'blank'
     ]
 
     excel_source_all_attrs = [
@@ -499,7 +501,7 @@ class ExcelService(object):
         res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'success', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+            else Status(303, 'failure', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def excel_merge(self, params):
         """
@@ -520,7 +522,7 @@ class ExcelService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-            if not v:
+            if not v and k != 'blank':
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}
                 ).json()
@@ -530,9 +532,35 @@ class ExcelService(object):
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}
                     ).json()
                 new_params[k] = [str(i) for i in v]
+            elif k == 'blank':
+                new_params[k] = int(v) if v else 0
             else:
                 new_params[k] = str(v)
-                
+
+        res = self.excel_source_bo.get_model_by_md5_list(md5_list=new_params.get('list'))
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {}
+            ).json()
+        all_merge_files = list()
+        # data structure: {'file': f, 'sheets': set_sheet, 'nsheet': n}
+        is_openpyxl = True
+        for _r in res:
+            if not _r or not _r.name or not _r.local_url: continue
+            if os.path.splitext(str(_r.name))[-1] == '.xls':
+                is_openpyxl = False
+            all_merge_files.append({
+                'file': _r.local_url,
+                'sheets': str(_r.set_sheet).split(';') if _r.set_sheet else [0],
+                'nsheet': int(_r.nsheet),
+            })
+        merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files) \
+            if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files)
+        if merge_res != 100:
+            return Status(
+                merge_res.get('status_id'), 'failure', merge_res.get('message'), {}
+            ).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {}
+            100, 'success', StatusMsgs.get(100), merge_res.get('data')
         ).json()

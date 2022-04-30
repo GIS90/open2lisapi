@@ -5,7 +5,7 @@
 ------------------------------------------------
 
 describe:
-    excel service
+    excel lib
 
 base_info:
     __author__ = "PyGo"
@@ -40,6 +40,7 @@ from deploy.utils.utils import filename2md5, \
     get_base_dir, get_now, mk_dirs
 from deploy.utils.utils import get_now
 from deploy.config import STORE_CACHE
+from deploy.utils.status_msg import StatusMsgs
 
 
 class ExcelLib(object):
@@ -56,6 +57,17 @@ class ExcelLib(object):
         self.prefix_list = ['.xlsx', '.xls']
         self.prefix_zip_list = ['.zip']
         self.blank = 0
+
+    @staticmethod
+    def format_res(status_id: int, message: str, data: dict) -> dict:
+        """
+        方法请求结果格式化
+        """
+        return {
+            'status_id': status_id,
+            'message': message if message else StatusMsgs.get(status_id),
+            'data': data
+        }
 
     @classmethod
     def font_content(self):
@@ -81,12 +93,12 @@ class ExcelLib(object):
 
     def read_headers(self, excel_file):
         """
-        get the header informations of excel file
-        :param excel_file: all path excel file
+        get the header information of excel file
+        :param excel_file: excel file real path
         :return: dict
         result content:
             sheets: dict sheet base info, contain something. such as row.col.index.name
-            nsheet: int sheet number
+            number sheet: int sheet number
             names: sheets name dict
             columns: sheet columns dict
         """
@@ -109,26 +121,31 @@ class ExcelLib(object):
                 pass
         return {'sheets': sheets_dict, 'nsheet': nsheets, 'names': names_dict, 'columns': columns_dict}
 
-    def get_store_path(self, file_name):
+    def get_real_file(self, file_name):
         """
-        生成存储excel文件的绝对路径、相对路径，
-        结果采用 路径 + 文件名称 格式
-        generate to store path of excel file
+        生成存储excel文件的绝对路径，以及新文件名称
+        加了文件已存在的check
+        结果采用绝对路径+新文件名称，新文件名称
+        generate to store real path of excel file
         if file exist dir, the file name rename file name + now(%Y-%m-%d-%H-%M-%S)
         the result is path file
         :param file_name: all path excel file
         :return: tuple
-        result is contain real path, relative path
+        result is contain real file, file name
         """
-        now_date = get_now(format="%Y-%m-%d")
-        real_store_dir = get_base_dir() + STORE_CACHE + now_date
-        store_dir = os.path.join(STORE_CACHE + now_date)
+        now_date = get_now(format="%Y%m%d")
+        real_store_dir = os.path.join(STORE_CACHE, now_date)
         if not os.path.exists(real_store_dir):
             mk_dirs(real_store_dir)
-        if os.path.exists(os.path.join(real_store_dir, file_name)):
-            file_name = '%s_%s%s' % \
-                        (os.path.splitext(file_name)[0], get_now(format="%Y-%m-%d-%H-%M-%S"), os.path.splitext(file_name)[-1])
-        return os.path.join(real_store_dir, file_name), os.path.join(store_dir, file_name)
+        _real_file = os.path.join(real_store_dir, file_name)
+        # 文件已存在，加上时间戳
+        if os.path.exists(_real_file):
+            file_names = os.path.splitext(file_name)
+            suffix = (file_names[1]).lower() if len(file_names) > 1 else ''
+            new_file_name = '%s-%s%s' % (file_names[0], get_now(format="%Y-%m-%d-%H-%M-%S"), suffix)
+            _real_file = os.path.join(real_store_dir, new_file_name)
+            file_name = new_file_name
+        return _real_file, file_name
 
     def get_split_store_dir(self, dir_name):
         """
@@ -154,47 +171,58 @@ class ExcelLib(object):
 
         return real_store_dir, relate_dir
 
-    def merge_openpyxl(self, file_list: list, **kwargs):
+    def merge_openpyxl(self, new_name, file_list: list, **kwargs):
         """
+        openpyxl: 不支持.xls（老版本excel）
+
         use openpyxl to merge excel, only it is to deal .xlsx formatter excel file
         the deal excel style is row values
-        file_list format: 'file': f, 'sheets': set_sheet, 'nsheet': n}
+        file_list format: {'file': f, 'sheets': set_sheet, 'nsheet': n}
             f: the all path excel file
             set_sheet: list, the select sheet list
-            nsheet: sheet sum number
+            number sheet: sheet sum number
         :param file_list: excel list
+        :param new_name: new excel name
         :param kwargs: multiple parameters, is dict type
+            - blank: excel file to merge add some blank
         :return: json object
             status_id: result id, except status_id is 1 is success, others is failure
             message: the result messgae
-            url: relative path file, to store db
-            store: the new excel path + name, real path
-            name: the new excel file name, not contain path
+            data:
+                path: the new excel path + name, real path
+                name: the new excel file name, not contain path
         """
-        new_name = kwargs.get('name')
-        if not file_list:
-            return {'status_id': 2, 'message': '文件列表不存在', 'url': '', 'store': '', 'name': new_name}
-        for _f in file_list:
-            if not _f: continue
-            if not os.path.exists(_f.get('file')):
-                return {'status_id': 3, 'message': '%s文件不存在' % _f.get('file'), 'url': '', 'store': '', 'name': new_name}
-            if os.path.splitext(_f.get('file'))[-1] == '.xls':
-                return {'status_id': 4, 'message': '不支持.xls格式', 'url': '', 'store': '', 'name': new_name}
-
         if not new_name:
-            new_name = '%s%s' % (get_now(format="MERGE-%Y-%m-%d-%H-%M-%S"), self.DEFAULT_PREFIX)
+            new_name = 'MERGE-%s%s' % (get_now(format="%Y-%m-%d-%H-%M-%S"), self.DEFAULT_PREFIX)
+        if not file_list:
+            return self.format_res(
+                212, '合并文件列表不存在', {}
+            )
+        # check merge excel file list
+        for _f in file_list:
+            if not _f or not _f.get('file'): continue
+            if not os.path.exists(_f.get('file')):
+                return self.format_res(
+                    302, '%s文件不存在，请重新上传' % _f.get('file'), {}
+                )
+            if os.path.splitext(_f.get('file'))[-1] == '.xls':
+                return self.format_res(
+                    312, '%s不支持.xls格式' % _f.get('file'), {}
+                )
         if os.path.splitext(new_name)[-1] not in self.prefix_list:
             new_name = '%s%s' % (new_name, self.DEFAULT_PREFIX)
+        # 分割行数,默认为0
+        blank = kwargs.get('blank') or self.blank
         try:
-            blank = kwargs.get('blank') or self.blank
             new_excel = openpyxl.Workbook()
             new_sheet = new_excel.active
             # new_sheet = new_excel.create_sheet(title='Sheet', index=0)
             # sum_row = 0
             for f in file_list:
-                if not f: continue
+                if not f or not f.get('file'): continue
                 f_path = f.get('file')
-                if not f_path or not os.path.exists(f_path): continue
+                if not os.path.exists(f_path): continue
+
                 sheet_index_list = f.get('sheets') if f.get('sheets') else [0]
                 reader_excel = openpyxl.load_workbook(f_path)
                 sheetnames = reader_excel.sheetnames
@@ -219,51 +247,63 @@ class ExcelLib(object):
                     #                        value=sheet.cell(row=row, column=col).value
                     #                        )
                     # sum_row += sheet_row + 1 + blank
-            real_store_file, db_file = self.get_store_path(new_name)
+            real_store_file, new_file_name = self.get_real_file(new_name)
             new_excel.save(real_store_file)
-            return {'status_id': 1, 'message': 'success', 'url': db_file,
-                    'store': real_store_file, 'name': os.path.split(real_store_file)[-1]}
+            return self.format_res(
+                100, '成功', {'name': new_file_name, 'path': real_store_file}
+            )
         except Exception as e:
-            return {'status_id': 5, 'message': str(e), 'url': '', 'store': '', 'name': new_name}
+            return self.format_res(
+                998, str(e), {}
+            )
 
-    def merge_xlrw(self, file_list: list, **kwargs):
+    def merge_xlrw(self, new_name, file_list: list, **kwargs):
         """
+        xlwt、xlrd: 表格行数限制65535
+
         use xlwt、xlrd to merge excel, it are to deal .xls、.xlsx formatter excel file
         the deal excel style is cell values(row + col)
         file_list format: 'file': f, 'sheets': set_sheet, 'nsheet': n}
             f: the all path excel file
             set_sheet: list, the select sheet list
-            nsheet: sheet sum number
+            number sheet: sheet sum number
         :param file_list: excel list
+        :param new_name: new excel file name
         :param kwargs: multiple parameters, is dict type
+            - blank: excel file to merge add some blank
         :return: json object
             status_id: result id, except status_id is 1 is success, others is failure
             message: the result messgae
-            url: relative path file, to store db
-            store: the new excel path + name, real path
-            name: the new excel file name, not contain path
+            data:
+                path: the new excel path + name, real path
+                name: the new excel file name, not contain path
         """
-        new_name = kwargs.get('name')
-        if not file_list:
-            return {'status_id': 2, 'message': '文件列表不存在', 'url': '', 'store': '', 'name': new_name}
-        for _f in file_list:
-            if not _f: continue
-            if not os.path.exists(_f.get('file')):
-                return {'status_id': 3, 'message': '%s文件不存在' % _f.get('file'), 'url': '', 'store': '', 'name': new_name}
         if not new_name:
-            new_name = '%s%s' % (get_now(format="MERGE-%Y-%m-%d-%H-%M-%S"), self.DEFAULT_PREFIX)
+            new_name = 'MERGE-%s%s' % (get_now(format="%Y-%m-%d-%H-%M-%S"), self.DEFAULT_PREFIX)
+        if not file_list:
+            return self.format_res(
+                212, '合并文件列表不存在', {}
+            )
+        # check merge excel file list
+        for _f in file_list:
+            if not _f or not _f.get('file'): continue
+            if not os.path.exists(_f.get('file')):
+                return self.format_res(
+                    302, '%s文件不存在，请重新上传' % _f.get('file'), {}
+                )
         if os.path.splitext(new_name)[-1] not in self.prefix_list:
             new_name = '%s%s' % (new_name, self.DEFAULT_PREFIX)
+        # 分割行数,默认为0
+        blank = kwargs.get('blank') if kwargs.get('blank') else self.blank
         try:
-            # 分割行数,默认为0
-            blank = kwargs.get('blank') if kwargs.get('blank') else self.blank
             new_excel = xlwt.Workbook(encoding='utf-8')
             new_sheet = new_excel.add_sheet('Sheet', cell_overwrite_ok=True)
             sum_row = 0
             for f in file_list:
-                if not f: continue
+                if not f or not f.get('file'): continue
                 f_path = f.get('file')
-                if not f_path or not os.path.exists(f_path): continue
+                if not os.path.exists(f_path): continue
+
                 sheet_index_list = f.get('sheets') if f.get('sheets') else [0]
                 reader_excel = xlrd.open_workbook(f_path)
                 max_nsheet = int(f.get('nsheet')) if f.get('nsheet') else len(reader_excel.sheet_names())
@@ -277,12 +317,15 @@ class ExcelLib(object):
                         for col in range(0, sheet_col, 1):
                             new_sheet.write((sum_row+row), col, label=sheet.cell_value(row, col))
                     sum_row += (sheet_row + blank)
-            real_store_file, db_file = self.get_store_path(new_name)
+            real_store_file, new_file_name = self.get_real_file(new_name)
             new_excel.save(real_store_file)
-            return {'status_id': 1, 'message': 'success', 'url': db_file,
-                    'store': real_store_file, 'name': os.path.split(real_store_file)[-1]}
+            return self.format_res(
+                100, '成功', {'name': new_file_name, 'path': real_store_file}
+            )
         except Exception as e:
-            return {'status_id': 4, 'message': str(e), 'url': '', 'store': '', 'name': new_name}
+            return self.format_res(
+                998, str(e), {}
+            )
 
     def compress_zip(self, files, zip_name):
         """
@@ -385,7 +428,7 @@ class ExcelLib(object):
                 new_excel_name = name
                 if os.path.splitext(new_excel_name)[-1] not in self.prefix_list:
                     new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_PREFIX)
-                real_store_file, db_file = self.get_store_path(new_excel_name)
+                real_store_file, db_file = self.get_real_file(new_excel_name)
                 write_excel.save(real_store_file)
                 gen_res = real_store_file, db_file
                 return {'status_id': 1, 'message': 'success', 'url': db_file, 'is_zip': False,
@@ -436,7 +479,7 @@ class ExcelLib(object):
                 new_excel_name = name
                 if os.path.splitext(new_excel_name)[-1] not in self.prefix_list:
                     new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_PREFIX)
-                real_store_file, db_file = self.get_store_path(new_excel_name)
+                real_store_file, db_file = self.get_real_file(new_excel_name)
                 write_excel.save(real_store_file)
                 gen_res = real_store_file, db_file
                 return {'status_id': 1, 'message': 'success', 'url': db_file, 'is_zip': False,

@@ -77,7 +77,7 @@ class ExcelSourceBo(BOBase):
         if params.get('rtx_id'):
             q = q.filter(ExcelSourceModel.rtx_id == str(params.get('rtx_id')))
         q = q.order_by(ExcelSourceModel.create_time.desc())
-        if not q.all():
+        if not q:
             return [], 0
         total = len(q.all())
         if params.get('offset'):
@@ -85,6 +85,11 @@ class ExcelSourceBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all(), total
+
+    def get_model_by_md5_list(self, md5_list):
+        q = self.session.query(ExcelSourceModel)
+        q = q.filter(ExcelSourceModel.md5_id.in_(md5_list))
+        return q.all() if q else []
 
     def get_model_by_md5(self, md5):
         q = self.session.query(ExcelSourceModel)
