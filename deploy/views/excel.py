@@ -63,7 +63,7 @@ def list():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().excel_list(params)
+        return ExcelService().excel_source_list(params)
     except Exception as e:
         LOG.error("excel>list is error: %s" % e)
         return Status(501, 'failure',

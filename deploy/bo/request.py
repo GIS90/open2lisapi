@@ -75,5 +75,4 @@ class RequestBo(BOBase):
             q = q.offset(params.get('offset'))
         if params.get('limit'):
             q = q.limit(params.get('limit'))
-        print(q)
         return q.all(), total

@@ -282,9 +282,9 @@ class ExcelService(object):
         else:
             return _res
 
-    def excel_list(self, params):
+    def excel_source_list(self, params):
         """
-        get excel list by type and (source or result)
+        get source excel list by type and (source or result)
         params is dict
         """
         if not params:
@@ -313,9 +313,14 @@ class ExcelService(object):
             ).json()
 
         new_res = list()
+        n = 1
         for _d in res:
             if not _d: continue
-            new_res.append(self._model_to_dict(_d))
+            _res_dict = self._model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
