@@ -55,7 +55,6 @@ class ExcelResultModel(base.ModelBase):
     md5_id = Column(String(55))
     ftype = Column(String(10))
     rtx_id = Column(String(55))
-    generate_time = Column(TIMESTAMP)
     local_url = Column(String(100))
     store_url = Column(String(100))
     is_compress = Column(Boolean())

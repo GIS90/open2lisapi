@@ -42,11 +42,16 @@ from deploy.utils.file_lib import FileLib
 from deploy.utils.store_lib import StoreLib
 from deploy.utils.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
+from deploy.bo.excel_result import ExcelResultBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     EXCEL_LIMIT, EXCEL_STORE_BK, \
     ADMIN
-from deploy.utils.utils import get_now, d2s
+from deploy.utils.utils import get_now, d2s, md5
+
+
+EXCEL_MERGE = 1
+EXCEL_SPLIT = 2
 
 
 class ExcelService(object):
@@ -129,6 +134,7 @@ class ExcelService(object):
         self.file_lib = FileLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.excel_source_bo = ExcelSourceBo()
+        self.excel_result_bo = ExcelResultBo()
 
     def get_excel_headers(self, excel_file):
         res = {'sheets': {}, 'nsheet': 0, 'names': {}, 'columns': {}}
@@ -137,9 +143,9 @@ class ExcelService(object):
         new_res = self.excel_lib.read_headers(excel_file)
         return new_res
 
-    def store_file_to_db(self, store):
+    def store_source_to_db(self, store):
         """
-        store file message to db
+        store source file message to db
         params store: store message
 
         rtx_id: rtx-id
@@ -173,6 +179,55 @@ class ExcelService(object):
             new_model.create_time = get_now()
             new_model.is_del = False
             self.excel_source_bo.add_model(new_model)
+            return True
+        except:
+            return False
+
+    def store_result_to_db(self, store):
+        """
+        store result file message to db
+        params store: store message
+
+        rtx_id: rtx-id
+        type: excel type
+        name: file name
+        md5: file md5
+        store_name: file store name
+        path: file store url, no have store base url
+        message: message
+        """
+        if not store:
+            return False
+
+        try:
+            # 获取文件header
+            excel_headers = self.get_excel_headers(store.get('path'))
+            new_model = self.excel_result_bo.new_mode()
+            new_model.rtx_id = store.get('rtx_id')
+            new_model.name = store.get('name')
+            new_model.store_name = store.get('store_name')
+            new_model.md5_id = store.get('md5')
+            new_model.ftype = store.get('type')
+            new_model.local_url = store.get('path')
+            new_model.store_url = store.get('store_name')
+            new_model.nfile = store.get('nfile') or 0
+            new_model.is_compress = False \
+                if int(store.get('type')) == int(EXCEL_MERGE) else True
+            new_model.row = excel_headers.get('sheets')[0].get('row') \
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
+            new_model.col = excel_headers.get('sheets')[0].get('col') \
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
+            new_model.nsheet = excel_headers.get('nsheet') \
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
+            new_model.sheet_names = json.dumps(excel_headers.get('names')) \
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else {}
+            new_model.sheet_columns = json.dumps(excel_headers.get('columns')) \
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else {}
+            new_model.headers = json.dumps(excel_headers.get('sheets')) \
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else {}
+            new_model.create_time = get_now()
+            new_model.is_del = False
+            self.excel_result_bo.add_model(new_model)
             return True
         except:
             return False
@@ -320,7 +375,7 @@ class ExcelService(object):
         # file to db
         store_msg['rtx_id'] = params.get('rtx_id')
         store_msg['type'] = params.get('type')
-        is_to_db = self.store_file_to_db(store_msg)
+        is_to_db = self.store_source_to_db(store_msg)
         if not is_to_db:
             return Status(
                 225, 'failure', StatusMsgs.get(225), {}
@@ -554,11 +609,35 @@ class ExcelService(object):
                 'sheets': str(_r.set_sheet).split(';') if _r.set_sheet else [0],
                 'nsheet': int(_r.nsheet),
             })
-        merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files) \
-            if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files)
-        if merge_res != 100:
+        # many file to merge
+        merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank')) \
+            if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank'))
+        if merge_res.get('status_id') != 100:
             return Status(
                 merge_res.get('status_id'), 'failure', merge_res.get('message'), {}
+            ).json()
+        store_msg = {
+            'name': merge_res.get('data').get('name'),
+            'store_name': '%s/%s' % (get_now(format='%Y%m%d'), merge_res.get('data').get('name')),
+            'path': merge_res.get('data').get('path')
+        }
+        # file upload to store object, manual control
+        if EXCEL_STORE_BK:
+            store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
+                                              local_file=store_msg.get('path'))
+            if store_res.get('status_id') != 100:
+                return Status(store_res.get('status_id'),
+                              'failure',
+                              store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
+                              {}).json()
+        # file to db
+        store_msg['rtx_id'] = new_params.get('rtx_id')
+        store_msg['type'] = EXCEL_MERGE
+        store_msg['md5'] = md5(store_msg.get('name'))
+        is_to_db = self.store_result_to_db(store_msg)
+        if not is_to_db:
+            return Status(
+                225, 'failure', StatusMsgs.get(225), {}
             ).json()
 
         return Status(
