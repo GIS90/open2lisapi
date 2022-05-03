@@ -40,7 +40,7 @@ echo "------------------------=====start=====------------------------"
 
 
 # base parameters
-log_dir='/home/mingliang.gao/projects/twtoolbox_isapi/log'
+log_dir='/home/mingliang.gao/projects/open2lisapi/log'
 keep_day=7
 if [ ! -e "$log_dir" ]; then
   echo -e "${FRED}Not found log fir, please to set.${NOC}"

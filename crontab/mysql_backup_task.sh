@@ -46,7 +46,7 @@ db_host="127.0.0.1"
 db_port=3306
 db_backup_dir="/home/mingliang.gao/db_backup/"
 db_names=""
-db_names=(elt twtoolbox_isapi ht etherpad)   # config dbs
+db_names=(twtoolbox_isapi)   # config dbs
 
 # base command
 rm=$(which rm)
