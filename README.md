@@ -1,6 +1,7 @@
 > ## 简介
 
 ![](https://img.shields.io/badge/Language-Python-red)
+![](https://img.shields.io/badge/WebStructure-Flask-0000FF)
 ![](https://img.shields.io/badge/DB-Mysql-green)
 ![](https://img.shields.io/badge/Tool-Gunicorn-FFFF00)
 ![](https://img.shields.io/badge/Tool-Supervisor-FFFF00)
