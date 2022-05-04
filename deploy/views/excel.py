@@ -129,11 +129,11 @@ def uploads():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/update/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/updates/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def update():
+def update_source():
     """
-    update excel file information
+    update source excel file information
     by excel file md5
     :return: json data
     """
@@ -145,16 +145,16 @@ def update():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().excel_update(params)
+        return ExcelService().update_source(params)
     except Exception as e:
-        LOG.error("excel>update is error: %s" % e)
+        LOG.error("excel>update source excel file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @excel.route('/delete/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def delete():
+def source_delete():
     """
     delete one excel file by md5
     :return: json data
@@ -167,9 +167,9 @@ def delete():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().excel_delete(params)
+        return ExcelService().source_delete(params)
     except Exception as e:
-        LOG.error("excel>delete is error: %s" % e)
+        LOG.error("excel>delete source file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -189,9 +189,9 @@ def deletes():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().excel_deletes(params)
+        return ExcelService().source_deletes(params)
     except Exception as e:
-        LOG.error("excel>deletes is error: %s" % e)
+        LOG.error("excel>batch deletes source file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -214,5 +214,51 @@ def merge():
         return ExcelService().excel_merge(params)
     except Exception as e:
         LOG.error("excel>merge is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@excel.route('/history/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def history():
+    """
+    get history excel list from db
+    many file
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return ExcelService().excel_history_list(params)
+    except Exception as e:
+        LOG.error("excel>history is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@excel.route('/updater/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def update_result():
+    """
+    update result excel file information
+    by excel file md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return ExcelService().update_result(params)
+    except Exception as e:
+        LOG.error("excel>update result excel file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

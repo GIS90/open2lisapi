@@ -47,7 +47,7 @@ from deploy.bo.excel_result import ExcelResultBo
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     EXCEL_LIMIT, EXCEL_STORE_BK, \
     ADMIN
-from deploy.utils.utils import get_now, d2s, md5
+from deploy.utils.utils import get_now, d2s, md5, s2d
 
 
 EXCEL_MERGE = 1
@@ -58,9 +58,19 @@ class ExcelService(object):
     """
     excel service
     """
-    req_list_attrs = [
+    req_source_list_attrs = [
         'rtx_id',
         'type',
+        'limit',
+        'offset'
+    ]
+
+    req_result_list_attrs = [
+        'rtx_id',
+        'name',
+        'type',
+        'start_time',
+        'end_time',
         'limit',
         'offset'
     ]
@@ -70,11 +80,20 @@ class ExcelService(object):
         'type'
     ]
 
-    req_update_attrs = [
+    req_source_update_attrs = [
         'rtx_id',
         'name',
         'md5',
-        'set_sheet'
+        'set_sheet',
+        'ftype'
+    ]
+
+    req_result_update_attrs = [
+        'rtx_id',
+        'name',
+        'md5',
+        'set_sheet',
+        'ftype'
     ]
 
     req_delete_attrs = [
@@ -127,6 +146,27 @@ class ExcelService(object):
         # 'sheet_names',
         'create_time'
     ]
+
+    excel_result_show_attrs = [
+        'id',
+        'name',
+        'md5_id',
+        'rtx_id',
+        'ftypek',
+        'ftypev',
+        'url',
+        'compress',
+        'nfile',
+        'nsheet',
+        'row',
+        'col',
+        'set_sheet',  # sheet_names, set_sheet_index, set_sheet_name
+        'create_time'
+    ]
+
+    EXCEL_FORMAT = ['.xls', '.xlsx']
+
+    DEFAULT_EXCEL_FORMAT = '.xlsx'
 
     def __init__(self):
         super(ExcelService, self).__init__()
@@ -210,9 +250,9 @@ class ExcelService(object):
             new_model.ftype = store.get('type')
             new_model.local_url = store.get('path')
             new_model.store_url = store.get('store_name')
-            new_model.nfile = store.get('nfile') or 0
-            new_model.is_compress = False \
-                if int(store.get('type')) == int(EXCEL_MERGE) else True
+            new_model.nfile = store.get('nfile') or 1
+            new_model.is_compress = store.get('compress') \
+                if store.get('compress') else False
             new_model.row = excel_headers.get('sheets')[0].get('row') \
                 if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
             new_model.col = excel_headers.get('sheets')[0].get('col') \
@@ -232,7 +272,7 @@ class ExcelService(object):
         except:
             return False
 
-    def _model_to_dict(self, model):
+    def _source_model_to_dict(self, model):
         _res = dict()
         if not model:
             return _res
@@ -252,7 +292,7 @@ class ExcelService(object):
                 _res[attr] = model.value
             elif attr == 'url':
                 if model.store_url:
-                    # url
+                    # 直接拼接的下载url，无check
                     _res['url'] = self.store_lib.open_download_url(store_name=model.store_url)
                     # url and check
                     # resp = self.store_lib.open_download(store_name=model.store_url)
@@ -260,7 +300,7 @@ class ExcelService(object):
                 else:
                     _res['url'] = ''
             elif attr == 'nsheet':
-                _res['nsheet'] = model.nsheet
+                _res['nsheet'] = model.nsheet if model.nsheet else 1
             elif attr == 'set_sheet':
                 if model.sheet_names:
                     new_res = list()
@@ -282,9 +322,67 @@ class ExcelService(object):
         else:
             return _res
 
+    def _result_model_to_dict(self, model):
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.excel_result_show_attrs:
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'name':
+                _res[attr] = model.name
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'ftypek':
+                _res[attr] = model.ftype
+            elif attr == 'ftypev':
+                _res[attr] = model.value
+            elif attr == 'compress':
+                _res[attr] = True if model.is_compress else False
+            elif attr == 'row':
+                _res[attr] = model.row if model.row else ''
+            elif attr == 'col':
+                _res[attr] = model.col if model.col else ''
+            elif attr == 'url':
+                if model.store_url:
+                    # 直接拼接的下载url，无check
+                    _res['url'] = self.store_lib.open_download_url(store_name=model.store_url)
+                    # url and check
+                    # resp = self.store_lib.open_download(store_name=model.store_url)
+                    # _res['url'] = resp.get('data').get('url') if resp.get('status_id') == 100 else ''
+                else:
+                    _res['url'] = ''
+            elif attr == 'nsheet':
+                _res['nsheet'] = model.nsheet if model.nsheet else 1
+            elif attr == 'nfile':
+                _res['nfile'] = model.nfile if model.nfile else 1
+            elif attr == 'set_sheet':
+                if model.sheet_names:
+                    new_res = list()
+                    set_sheet_name = list()
+                    set_sheet_index = ['0']
+                    for k, v in json.loads(model.sheet_names).items():
+                        new_res.append({'key': k, 'value': v})
+                        if str(k) in set_sheet_index:
+                            set_sheet_name.append(v)
+                    _res['sheet_names'] = new_res
+                    _res['set_sheet_name'] = ';'.join(set_sheet_name)
+                    _res['set_sheet_index'] = set_sheet_index
+                else:
+                    _res['sheet_names'] = []
+                    _res['set_sheet_index'] = []
+                    _res['set_sheet_name'] = ''
+            elif attr == 'create_time':
+                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+        else:
+            return _res
+
     def excel_source_list(self, params):
         """
-        get source excel list by type and (source or result)
+        get source excel list by params
         params is dict
         """
         if not params:
@@ -295,16 +393,21 @@ class ExcelService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_list_attrs and v:
+            if k not in self.req_source_list_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
             if k == 'limit':
-                new_params[k] = int(v) if v else EXCEL_LIMIT
+                v = int(v) if v else EXCEL_LIMIT
             elif k == 'offset':
-                new_params[k] = int(v) if v else 0
+                v = int(v) if v else 0
+            elif k == 'name' and v:
+                v = '%' + str(v) + '%'
+            elif k in ['start_time', 'end_time'] and v:
+                v = s2d(v)
             else:
-                new_params[k] = v
+                v = str(v) if v else ''
+            new_params[k] = v
         new_params['enum_name'] = 'excel-type'
         res, total = self.excel_source_bo.get_all(new_params)
         if not res:
@@ -316,7 +419,7 @@ class ExcelService(object):
         n = 1
         for _d in res:
             if not _d: continue
-            _res_dict = self._model_to_dict(_d)
+            _res_dict = self._source_model_to_dict(_d)
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
@@ -354,6 +457,10 @@ class ExcelService(object):
         if not params.get('type'):
             return Status(
                 212, 'failure', u'未指定type请求参数', {}
+            ).json()
+        if params.get('type') and int(params.get('type')) not in [EXCEL_MERGE, EXCEL_SPLIT]:
+            return Status(
+                213, 'failure', u'请求参数type值不合法', {}
             ).json()
 
         f_name = upload_file.filename
@@ -430,7 +537,49 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {}
         ).json()
 
-    def excel_update(self, params):
+    def _update_source_file_name(self, model, new_name):
+        """
+        get source file name store_name local_url store_url
+        """
+        _res = dict()
+        if not model or not new_name:
+            return _res
+        if not model.name or not model.store_name \
+                or not model.local_url or not model.store_url:
+            return _res
+
+        new_names = os.path.splitext(str(new_name))
+        # check format
+        if new_names[-1] not in self.EXCEL_FORMAT:
+            new_name = '%s%s' % (new_names[0], self.DEFAULT_EXCEL_FORMAT)
+        local_urls = str(model.local_url).split('/')
+        new_local_url = str(model.local_url).replace(local_urls[-1], new_name)
+        # check exist file
+        if os.path.exists(new_local_url):
+            new_names = os.path.splitext(str(new_name))
+            new_name = '%s-%s%s' % (new_names[0], get_now(format="%Y-%m-%d-%H-%M-%S"), new_names[-1])
+            new_local_url = str(model.local_url).replace(local_urls[-1], new_name)
+        # modify file name
+        if os.path.exists(model.local_url):
+            os.rename(model.local_url, new_local_url)
+        # store file rename
+        try:
+            store_urls = str(model.store_url).split('/')
+            new_store_url = str(model.store_url).replace(store_urls[-1], new_name)
+            _store_rename_res = self.store_lib.move(src_space_name=STORE_SPACE_NAME, src_store_name=model.store_name,
+                                                    tar_space_name=STORE_SPACE_NAME, tar_store_name=new_store_url)
+            if _store_rename_res.get('status_id') != 100:
+                new_store_url = model.store_name
+        except:
+            new_store_url = model.store_name
+        return {
+            'name': new_name,
+            'store_name': new_store_url,
+            'local_url': new_local_url,
+            'store_url': new_store_url
+        }
+
+    def update_source(self, params):
         """
         get excel list by type and (source or result)
         params is dict
@@ -443,13 +592,13 @@ class ExcelService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_update_attrs and v:
+            if k not in self.req_source_update_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}
                 ).json()
             if k == 'set_sheet':
                 if not isinstance(v, list):
@@ -457,25 +606,41 @@ class ExcelService(object):
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}
                     ).json()
                 new_params[k] = ';'.join(v)
+            elif k == 'name':
+                new_names = os.path.splitext(str(v))
+                if new_names[-1] not in self.EXCEL_FORMAT:
+                    return Status(
+                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}
+                    ).json()
+                new_params[k] = str(v)
             else:
                 new_params[k] = str(v)
 
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
         if not model:
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}
             ).json()
+        # delete
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}
             ).json()
+        # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}
             ).json()
+
         if new_params.get('name'):
-            model.name = new_params.get('name')
+            res = self._update_source_file_name(model, new_params.get('name'))
+            if res:
+                model.name = res.get('name')
+                model.store_name = res.get('store_name')
+                model.local_url = res.get('local_url')
+                model.store_url = res.get('store_url')
         if new_params.get('set_sheet'):
             model.set_sheet = new_params.get('set_sheet')
         self.excel_source_bo.merge_model(model)
@@ -483,9 +648,9 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def excel_delete(self, params):
+    def source_delete(self, params):
         """
-        delete excel file by params
+        delete source excel file by params
         params is dict
         """
         if not params:
@@ -528,7 +693,7 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def excel_deletes(self, params):
+    def source_deletes(self, params):
         """
         delete many excel file by params
         params is dict
@@ -648,3 +813,49 @@ class ExcelService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), merge_res.get('data')
         ).json()
+
+    def excel_history_list(self, params):
+        """
+        get result excel list by params
+        params is dict
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_result_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if k == 'limit':
+                new_params[k] = int(v) if v else EXCEL_LIMIT
+            elif k == 'offset':
+                new_params[k] = int(v) if v else 0
+            else:
+                new_params[k] = v
+        new_params['enum_name'] = 'excel-type'
+        res, total = self.excel_result_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
+            ).json()
+
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._result_model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def update_result(self, params):
+        pass

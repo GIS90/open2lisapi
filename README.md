@@ -134,7 +134,7 @@ crontab简单功能：
 
 ### qiniu对象存储
 
-官网开发手册：https://developer.qiniu.com/kodo/3956/kodo-category
+官网开发手册Python API：https://developer.qiniu.com/kodo/1242/python
 
 ### 其他
 

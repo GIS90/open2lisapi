@@ -35,6 +35,7 @@ Life is short, I use python.
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.excel_result import ExcelResultModel
+from deploy.models.enum import EnumModel
 
 
 class ExcelResultBo(BOBase):
@@ -44,3 +45,49 @@ class ExcelResultBo(BOBase):
 
     def new_mode(self):
         return ExcelResultModel()
+
+    def get_all(self, params: dict):
+        q = self.session.query(ExcelResultModel.id,
+                               ExcelResultModel.name,
+                               ExcelResultModel.store_name,
+                               ExcelResultModel.md5_id,
+                               ExcelResultModel.rtx_id,
+                               ExcelResultModel.ftype,
+                               ExcelResultModel.local_url,
+                               ExcelResultModel.store_url,
+                               ExcelResultModel.is_compress,
+                               ExcelResultModel.nfile,
+                               ExcelResultModel.nsheet,
+                               ExcelResultModel.row,
+                               ExcelResultModel.col,
+                               ExcelResultModel.sheet_names,
+                               ExcelResultModel.sheet_columns,
+                               ExcelResultModel.headers,
+                               ExcelResultModel.create_time,
+                               ExcelResultModel.delete_rtx,
+                               ExcelResultModel.delete_time,
+                               ExcelResultModel.is_del,
+                               EnumModel.name.label('enum_name'),
+                               EnumModel.key.label('key'),
+                               EnumModel.value.label('value'))
+        q = q.filter(ExcelResultModel.ftype == EnumModel.key)
+        q = q.filter(ExcelResultModel.is_del != 1)
+        if params.get('enum_name'):
+            q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
+        if params.get('type'):
+            q = q.filter(ExcelResultModel.ftype == str(params.get('type')))
+        if params.get('rtx_id'):
+            q = q.filter(ExcelResultModel.rtx_id == str(params.get('rtx_id')))
+        if params.get('start_time'):
+            q = q.filter(ExcelResultModel.create_time >= params.get('start_time'))
+        if params.get('end_time'):
+            q = q.filter(ExcelResultModel.create_time <= params.get('end_time'))
+        q = q.order_by(ExcelResultModel.create_time.desc())
+        if not q:
+            return [], 0
+        total = len(q.all())
+        if params.get('offset'):
+            q = q.offset(params.get('offset'))
+        if params.get('limit'):
+            q = q.limit(params.get('limit'))
+        return q.all(), total
