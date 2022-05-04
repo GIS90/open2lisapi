@@ -71,9 +71,10 @@ class ExcelResultBo(BOBase):
                                EnumModel.key.label('key'),
                                EnumModel.value.label('value'))
         q = q.filter(ExcelResultModel.ftype == EnumModel.key)
-        q = q.filter(ExcelResultModel.is_del != 1)
         if params.get('enum_name'):
             q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
+        if params.get('name'):
+            q = q.filter(ExcelResultModel.name.like(params.get('name')))
         if params.get('type'):
             q = q.filter(ExcelResultModel.ftype == str(params.get('type')))
         if params.get('rtx_id'):
@@ -82,6 +83,7 @@ class ExcelResultBo(BOBase):
             q = q.filter(ExcelResultModel.create_time >= params.get('start_time'))
         if params.get('end_time'):
             q = q.filter(ExcelResultModel.create_time <= params.get('end_time'))
+        q = q.filter(ExcelResultModel.is_del != 1)
         q = q.order_by(ExcelResultModel.create_time.desc())
         if not q:
             return [], 0
@@ -91,3 +93,8 @@ class ExcelResultBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all(), total
+
+    def get_model_by_md5(self, md5):
+        q = self.session.query(ExcelResultModel)
+        q = q.filter(ExcelResultModel.md5_id == str(md5))
+        return q.first() if q else None

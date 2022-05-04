@@ -9,7 +9,7 @@
 项目简称：**_open2lisapi_**  
 Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 
-前端**_open2lbox_**：https://github.com/GIS90/open2lbox.git
+前端 **_open2lbox_**：https://github.com/GIS90/open2lbox.git
 
 
 ### 项目架构
