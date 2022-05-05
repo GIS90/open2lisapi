@@ -36,6 +36,7 @@ Life is short, I use python.
 from deploy.bo.bo_base import BOBase
 from deploy.models.excel_result import ExcelResultModel
 from deploy.models.enum import EnumModel
+from deploy.utils.utils import get_now
 
 
 class ExcelResultBo(BOBase):
@@ -47,6 +48,7 @@ class ExcelResultBo(BOBase):
         return ExcelResultModel()
 
     def get_all(self, params: dict):
+        print(params)
         q = self.session.query(ExcelResultModel.id,
                                ExcelResultModel.name,
                                ExcelResultModel.store_name,
@@ -76,7 +78,7 @@ class ExcelResultBo(BOBase):
         if params.get('name'):
             q = q.filter(ExcelResultModel.name.like(params.get('name')))
         if params.get('type'):
-            q = q.filter(ExcelResultModel.ftype == str(params.get('type')))
+            q = q.filter(ExcelResultModel.ftype.in_(params.get('type')))
         if params.get('rtx_id'):
             q = q.filter(ExcelResultModel.rtx_id == str(params.get('rtx_id')))
         if params.get('start_time'):
@@ -98,3 +100,20 @@ class ExcelResultBo(BOBase):
         q = self.session.query(ExcelResultModel)
         q = q.filter(ExcelResultModel.md5_id == str(md5))
         return q.first() if q else None
+
+    def batch_delete_by_md5(self, params):
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(ExcelResultModel)
+        q = q.filter(ExcelResultModel.md5_id.in_(md5_list))
+        if rtx_id:
+            q = q.filter(ExcelResultModel.rtx_id == rtx_id)
+        q = q.filter(ExcelResultModel.is_del != 1)
+        q = q.update({ExcelResultModel.is_del: True,
+                      ExcelResultModel.delete_rtx: rtx_id,
+                      ExcelResultModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q

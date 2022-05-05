@@ -49,7 +49,7 @@ CORS(excel, supports_credentials=True)
 
 @excel.route('/list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def list():
+def source_list():
     """
     get excel list from db
     many file
@@ -176,7 +176,7 @@ def source_delete():
 
 @excel.route('/deletes/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def deletes():
+def source_deletes():
     """
     delete many source excel file by md5 list
     :return: json data
@@ -220,7 +220,7 @@ def merge():
 
 @excel.route('/history/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def history():
+def history_list():
     """
     get history excel list from db
     many file
@@ -231,10 +231,11 @@ def history():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
 
+    # 参数
+    params = request.get_json() or {}
+    return ExcelService().excel_history_list(params)
     try:
-        # 参数
-        params = request.get_json() or {}
-        return ExcelService().excel_history_list(params)
+        pass
     except Exception as e:
         LOG.error("excel>history is error: %s" % e)
         return Status(501, 'failure',

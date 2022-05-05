@@ -35,6 +35,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 import os
 import json
+import datetime
 
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
@@ -790,6 +791,8 @@ class ExcelService(object):
                 'nsheet': int(_r.nsheet),
             })
         # many file to merge
+        # extend parameter:
+        #   - blank: 文件合并之间的空格数
         merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank')) \
             if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank'))
         if merge_res.get('status_id') != 100:
@@ -835,6 +838,8 @@ class ExcelService(object):
             ).json()
 
         new_params = dict()
+        print('*' * 100)
+        print(params)
         for k, v in params.items():
             if not k: continue
             if k not in self.req_result_list_attrs and v:
@@ -845,10 +850,20 @@ class ExcelService(object):
                 v = int(v) if v else EXCEL_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
+            elif k == 'type':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s必须为list类型' % k, {}
+                    ).json()
+                v = [str(i) for i in v] if v else []
             elif k == 'name' and v:
                 v = '%' + str(v) + '%'
-            elif k in ['start_time', 'end_time'] and v:
-                v = s2d(v)
+            elif k == 'start_time' and v:
+                v = d2s(v) if isinstance(v, datetime.datetime) \
+                    else '%s 00:00:00' % v
+            elif k == 'end_time' and v:
+                v = d2s(v) if isinstance(v, datetime.datetime) \
+                    else '%s 23:59:59' % v
             else:
                 v = str(v) if v else ''
             new_params[k] = v
@@ -1015,7 +1030,7 @@ class ExcelService(object):
             else:
                 new_params[k] = str(v)
 
-        res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
+        res = self.excel_result_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
