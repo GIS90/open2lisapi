@@ -36,6 +36,8 @@ Life is short, I use python.
 import os
 import json
 import datetime
+from operator import itemgetter
+from itertools import groupby
 
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
@@ -44,6 +46,7 @@ from deploy.utils.store_lib import StoreLib
 from deploy.utils.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
 from deploy.bo.excel_result import ExcelResultBo
+from deploy.bo.enum import EnumBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     EXCEL_LIMIT, EXCEL_STORE_BK, \
@@ -111,6 +114,17 @@ class ExcelService(object):
         'blank'
     ]
 
+    req_init_split_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
+    req_sheet_header_attrs = [
+        'rtx_id',
+        'md5',
+        'sheet'
+    ]
+
     excel_source_all_attrs = [
         'id',
         'name',
@@ -141,7 +155,6 @@ class ExcelService(object):
         'url',
         'nsheet',
         'set_sheet',  # sheet_names, set_sheet_index, set_sheet_name
-        # 'sheet_names',
         'create_time'
     ]
 
@@ -173,6 +186,7 @@ class ExcelService(object):
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.excel_source_bo = ExcelSourceBo()
         self.excel_result_bo = ExcelResultBo()
+        self.enum_bo = EnumBo()
 
     def get_excel_headers(self, excel_file):
         res = {'sheets': {}, 'nsheet': 0, 'names': {}, 'columns': {}}
@@ -367,7 +381,7 @@ class ExcelService(object):
                 if model.sheet_names:
                     new_res = list()
                     set_sheet_name = list()
-                    set_sheet_index = ['0']
+                    set_sheet_index = ['0']     # excel_result 默认索引为0
                     for k, v in json.loads(model.sheet_names).items():
                         new_res.append({'key': k, 'value': v})
                         if str(k) in set_sheet_index:
@@ -376,9 +390,9 @@ class ExcelService(object):
                     _res['set_sheet_name'] = ';'.join(set_sheet_name)
                     _res['set_sheet_index'] = set_sheet_index
                 else:
-                    _res['sheet_names'] = []
-                    _res['set_sheet_index'] = []
-                    _res['set_sheet_name'] = ''
+                    _res['sheet_names'] = [{'key': 0, 'value': 'Sheet'}]
+                    _res['set_sheet_index'] = [0]
+                    _res['set_sheet_name'] = 'Sheet'
             elif attr == 'create_time':
                 _res['create_time'] = d2s(model.create_time) if model.create_time else ''
         else:
@@ -838,8 +852,6 @@ class ExcelService(object):
             ).json()
 
         new_params = dict()
-        print('*' * 100)
-        print(params)
         for k, v in params.items():
             if not k: continue
             if k not in self.req_result_list_attrs and v:
@@ -1034,3 +1046,141 @@ class ExcelService(object):
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def init_split_params(self, params):
+        """
+        initialize the result excel file split parameter
+        params is dict
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_init_split_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            new_params[k] = str(v)
+
+        model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}
+            ).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}
+            ).json()
+
+        # data info
+        sheet_names = list()
+        sheet_index = str(model.set_sheet) if model.set_sheet else '0'
+        if model.sheet_names:
+            for k, v in json.loads(model.sheet_names).items():
+                sheet_names.append({'label': str(v), 'value': str(k)})
+        column_names = list()
+        # 添加默认ID
+        column_names.append({'label': '序号自增', 'value': '9999'})
+        sheet_columns_json = json.loads(model.sheet_columns)
+        if sheet_columns_json and sheet_columns_json.get(str(sheet_index)):
+            for k, v in enumerate(sheet_columns_json.get(str(sheet_index))):
+                column_names.append({'label': str(v) if v else '/', 'value': str(k)})
+        # enum info
+        names = ['excel-split-store', 'excel-num', 'bool-type']
+        enums_models = self.enum_bo.get_model_by_names(names)
+        template_list = list()
+        for e in enums_models:
+            template_list.append({'name': str(e.name), 'label': str(e.value), 'value': str(e.key)})
+        enums_models_dict = dict()
+        template_list.sort(key=itemgetter('name'))
+        for key, group in groupby(template_list, key=itemgetter('name')):
+            enums_models_dict[key] = list(group)
+        data = {
+            'sheet_index': sheet_index,
+            'sheet_names': sheet_names,
+            'column_names': column_names,
+            'excel_split_store': enums_models_dict.get('excel-split-store'),
+            'split_type': enums_models_dict.get('excel-num'),
+            'bool_type': enums_models_dict.get('bool-type')
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), data
+        ).json()
+
+    def get_sheet_header(self, params):
+        """
+        get sheet headers by sheet index
+        params is dict
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_sheet_header_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            v = str(v)
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            new_params[k] = v
+
+        model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}
+            ).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}
+            ).json()
+        headers = list()
+        headers.append({'label': '序号自增', 'value': '9999'})
+        sheet_columns_json = json.loads(model.sheet_columns)
+        if sheet_columns_json and sheet_columns_json.get(str(new_params.get('sheet'))):
+            for k, v in enumerate(sheet_columns_json.get(str(new_params.get('sheet')))):
+                headers.append({'label': str(v) if v else '/', 'value': str(k)})
+        data = {
+            'headers': headers,
+            'md5': new_params.get('md5')
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), data
+        ).json()
+
+    def excel_split(self, params):
+        """
+        split method
+        """
+        print('*' * 100)
+        print(params)

@@ -48,7 +48,6 @@ class ExcelResultBo(BOBase):
         return ExcelResultModel()
 
     def get_all(self, params: dict):
-        print(params)
         q = self.session.query(ExcelResultModel.id,
                                ExcelResultModel.name,
                                ExcelResultModel.store_name,

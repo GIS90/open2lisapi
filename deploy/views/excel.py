@@ -231,11 +231,10 @@ def history_list():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
 
-    # 参数
-    params = request.get_json() or {}
-    return ExcelService().excel_history_list(params)
     try:
-        pass
+        # 参数
+        params = request.get_json() or {}
+        return ExcelService().excel_history_list(params)
     except Exception as e:
         LOG.error("excel>history is error: %s" % e)
         return Status(501, 'failure',
@@ -305,5 +304,71 @@ def result_deletes():
         return ExcelService().result_deletes(params)
     except Exception as e:
         LOG.error("excel>batch deletes result file is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@excel.route('/initsplit/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def init_split_params():
+    """
+    initialize the result excel file split parameter
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return ExcelService().init_split_params(params)
+    except Exception as e:
+        LOG.error("excel>initialize split parameter is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@excel.route('/sheetheader/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def get_sheet_header():
+    """
+    get sheet headers by sheet index
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return ExcelService().get_sheet_header(params)
+    except Exception as e:
+        LOG.error("excel>get sheet headers  is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@excel.route('/split/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def split():
+    """
+    split method
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return ExcelService().excel_split(params)
+    except Exception as e:
+        LOG.error("excel>split is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

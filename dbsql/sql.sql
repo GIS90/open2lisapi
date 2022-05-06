@@ -249,11 +249,18 @@ delete from enum;
 insert into
 enum(`name`, `md5_id`, `key`, `value`, `description`, `create_rtx`, `create_time`)
 VALUES
--- manage
+-- bool
+('bool-type', '5886ecb16dfd303f97ef685f943f4735', '1', '是', '是', 'admin', '2022-04-27 00:00:00'),
+('bool-type', '5886ecb16dfd303f97ef685f943f4735', '0', '否', '否', 'admin', '2022-04-27 00:00:00'),
+-- excel-type
 ('excel-type', '3a4048a9372203790ebfc88337f38981', '1', '合并', '表格处理方式合并', 'admin', '2022-04-27 00:00:00'),
-('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', 'admin', '2022-04-27 00:00:00');
-
-
+('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', 'admin', '2022-04-27 00:00:00'),
+-- excel-split-store
+('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '1', '一表多Sheet', '表格拆分一表多Sheet存储方式', 'admin', '2022-04-27 00:00:00'),
+('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '2', '多表一Sheet', '表格拆分多表一Sheet存储方式', 'admin', '2022-04-27 00:00:00'),
+-- excel-num
+('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '1', '行', '行', 'admin', '2022-04-27 00:00:00'),
+('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', 'admin', '2022-04-27 00:00:00');
 
 
 -- create excel_source
