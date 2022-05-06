@@ -41,13 +41,14 @@ from deploy.utils.utils import filename2md5, \
 from deploy.utils.utils import get_now
 from deploy.config import STORE_CACHE
 from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.enums import *
 
 
 class ExcelLib(object):
 
     DEFAULT_PREFIX = '.xlsx'
     DEFAULT_ZIP_PREFIX = '.zip'
-    DEFAULT_AUTO_ID = '999'
+    DEFAULT_AUTO_ID = '9999'
 
     def __init__(self, blank=0):
         """
@@ -156,20 +157,18 @@ class ExcelLib(object):
         :return: tuple
         result is contain real path, relative path
         """
-        now_date_str = get_now(format="%Y-%m-%d")
+        now_date_str = get_now(format="%Y%m%d")
         split_dir = '%s/%s' % (now_date_str, dir_name)
-        real_store_dir = get_base_dir() + STORE_CACHE + split_dir
-        relate_dir = os.path.join(STORE_CACHE + split_dir)
+        real_store_dir = os.path.join(STORE_CACHE, split_dir)
         if os.path.exists(real_store_dir):
             split_dir = '%s/%s_%s' % (now_date_str, dir_name, get_now(format="%Y-%m-%d-%H-%M-%S"))
-            real_store_dir = get_base_dir() + STORE_CACHE + split_dir
-            relate_dir = os.path.join(STORE_CACHE + split_dir)
+            real_store_dir = os.path.join(STORE_CACHE, split_dir)
             if not os.path.exists(real_store_dir):
                 mk_dirs(real_store_dir)
         else:
             mk_dirs(real_store_dir)
 
-        return real_store_dir, relate_dir
+        return real_store_dir
 
     def merge_openpyxl(self, new_name, file_list: list, **kwargs):
         """
@@ -250,7 +249,7 @@ class ExcelLib(object):
             real_store_file, new_file_name = self.get_real_file(new_name)
             new_excel.save(real_store_file)
             return self.format_res(
-                100, '成功', {'name': new_file_name, 'path': real_store_file}
+                100, 'success', {'name': new_file_name, 'path': real_store_file}
             )
         except Exception as e:
             return self.format_res(
@@ -320,7 +319,7 @@ class ExcelLib(object):
             real_store_file, new_file_name = self.get_real_file(new_name)
             new_excel.save(real_store_file)
             return self.format_res(
-                100, '成功', {'name': new_file_name, 'path': real_store_file}
+                100, 'success', {'name': new_file_name, 'path': real_store_file}
             )
         except Exception as e:
             return self.format_res(
@@ -358,24 +357,43 @@ class ExcelLib(object):
             rule: list formatter default 999 if not exist, 文件命名方式采用自增数字序列
             title: 新文件是否有标题，default is 1 有标题
         :return: json return
+
+        type: 1行 2列
+        store: 1多表一Sheet 2一表多Sheet
+        999: 自增
+        title: 1有标题 0无标题
         """
         if not file or not os.path.exists(file):
-            return {'status_id': 2, 'message': '文件不存在', 'url': '', 'store': '', 'name': ''}
+            return self.format_res(
+                302, '文件不存在', {}
+            )
         name = kwargs.get('name')
-        sheet = kwargs.get('sheet') or 0    # default is 0
-        rc = kwargs.get('type') or '1'  # default is 1 行拆分
-        store = kwargs.get('store') or '1'  # default is 1 多表一Sheet
-        rule = kwargs.get('rule') or self.DEFAULT_AUTO_ID    # list formatter default is 999 自增数字序列
-        rule = [str(x) for x in rule]
-        title = kwargs.get('title') or '1'  # default is 1 有标题
-        if str(rc) not in ['1', '2']:
-            return {'status_id': 3, 'message': 'type参数不合法', 'url': '', 'store': '', 'name': ''}
-        if str(store) not in ['1', '2']:
-            return {'status_id': 3, 'message': 'store参数不合法', 'url': '', 'store': '', 'name': ''}
-        if str(title) not in ['1', '0']:
-            return {'status_id': 3, 'message': 'title参数不合法', 'url': '', 'store': '', 'name': ''}
         if not name:
             name = 'SPLIT-%s' % get_now(format="%Y-%m-%d-%H-%M-%S")
+        sheet = int(kwargs.get('sheet')) \
+            if kwargs.get('sheet') else 0    # default is 0
+        rc = str(kwargs.get('type')) \
+            if kwargs.get('type') else '1'  # default is 1 行拆分 2列拆分
+        store = str(kwargs.get('store')) \
+            if kwargs.get('store') else '1'  # default is 1 多表一Sheet 2 一表多Sheet
+        rule = kwargs.get('rule') \
+            if kwargs.get('rule') else [self.DEFAULT_AUTO_ID]    # list formatter default is 9999 自增数字序列
+        rule = [str(x) for x in rule]
+        title = str(kwargs.get('title')) \
+            if kwargs.get('title') else '1'  # default is 1 有标题
+        if str(rc) not in EXCEL_NUM:
+            return self.format_res(
+                213, '请求参数split不合法', {}
+            )
+        if str(store) not in EXCEL_SPLIT_STORE:
+            return self.format_res(
+                213, '请求参数store不合法', {}
+            )
+        if str(title) not in BOOL:
+            return self.format_res(
+                213, '请求参数header不合法', {}
+            )
+
         compress_name = name
         if os.path.splitext(compress_name)[-1] not in self.prefix_zip_list:
             compress_name = '%s%s' % (compress_name, self.DEFAULT_ZIP_PREFIX)
@@ -383,16 +401,21 @@ class ExcelLib(object):
         max_nsheet = len(reader_excel.sheet_names())
         index_int = int(sheet)
         if index_int >= max_nsheet:
-            return {'status_id': 3, 'message': '超出操作的sheet索引', 'url': '', 'store': '', 'name': ''}
+            return self.format_res(
+                229, '超出操作的sheet索引', {}
+            )
+        # 压缩 文件目录参数
         is_compress = False
-        gen_res = tuple()
+        real_dir = ''
+
+        # ======== start operation
         sheet = reader_excel.sheet_by_index(index_int)
         sheet_row = sheet.nrows
         sheet_col = sheet.ncols
         # type : 1 row 行拆分
-        if str(rc) == '1':
-            if str(store) == '1':    # store: 1 多表一Sheet
-                real_dir, relate_dir = self.get_split_store_dir(name)
+        if rc == '1':
+            if store == '1':    # store: 1 多表一Sheet
+                real_dir = self.get_split_store_dir(name)
                 for row in range(1, sheet_row, 1):
                     select_col = list()
                     # judge is or not 999 自增数字序列
@@ -403,13 +426,13 @@ class ExcelLib(object):
                     for col in range(0, sheet_col, 1):
                         if title == '1':    # is or not write title
                             new_sheet.write(0, col, label=sheet.cell_value(0, col))
-                        if str(col) in rule: select_col.append(str(sheet.cell_value(row, col)))
+                        if str(col) in rule:
+                            select_col.append(str(sheet.cell_value(row, col)))
                         new_sheet.write(1 if title == '1' else 0, col, label=sheet.cell_value(row, col))
                     new_excel_name = '%s%s' % ('_'.join(select_col), self.DEFAULT_PREFIX)
                     write_excel.save(os.path.join(real_dir, new_excel_name))
                 is_compress = True
-                gen_res = real_dir, relate_dir
-            elif str(store) == '2':     # store: 2 一表多Sheet
+            elif store == '2':     # store: 2 一表多Sheet
                 write_excel = xlwt.Workbook(encoding='utf-8')
                 for row in range(1, sheet_row, 1):
                     select_col = list()
@@ -428,17 +451,19 @@ class ExcelLib(object):
                 new_excel_name = name
                 if os.path.splitext(new_excel_name)[-1] not in self.prefix_list:
                     new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_PREFIX)
-                real_store_file, db_file = self.get_real_file(new_excel_name)
+                real_store_file, new_excel_name = self.get_real_file(new_excel_name)
                 write_excel.save(real_store_file)
-                gen_res = real_store_file, db_file
-                return {'status_id': 1, 'message': 'success', 'url': db_file, 'is_zip': False,
-                        'store': real_store_file, 'name': os.path.split(real_store_file)[-1]}
+                return self.format_res(
+                    100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False}
+                )
             else:
-                return {'status_id': 3, 'message': 'store参数不合法', 'url': '', 'store': '', 'name': ''}
+                return self.format_res(
+                    213, '请求参数store不合法', {}
+                )
         # type 2 col 列拆分
-        elif str(rc) == '2':
-            if str(store) == '1':    # store: 1 多表一Sheet
-                real_dir, relate_dir = self.get_split_store_dir(name)
+        elif rc == '2':
+            if store == '1':    # store: 1 多表一Sheet
+                real_dir = self.get_split_store_dir(name)
                 for col in range(0, sheet_col, 1):
                     select_col = list()
                     # judge is or not 999 自增数字序列
@@ -446,9 +471,8 @@ class ExcelLib(object):
                         select_col.append(str(col))
                     write_excel = xlwt.Workbook(encoding='utf-8')
                     new_sheet = write_excel.add_sheet('Sheet', cell_overwrite_ok=True)
-                    # TODO 目前设置列拆分自动加上列标题
                     select_col.append(str(sheet.cell_value(0, col)))
-                    if title == '1':  # is or not write title
+                    if title == '1':   # is or not write title
                         new_sheet.write(0, 0, label=sheet.cell_value(0, col))
                     start_row = 1 if title == '1' else 0
                     for row in range(1, sheet_row, 1):
@@ -457,15 +481,13 @@ class ExcelLib(object):
                     new_excel_name = '%s%s' % ('_'.join(select_col), self.DEFAULT_PREFIX)
                     write_excel.save(os.path.join(real_dir, new_excel_name))
                 is_compress = True
-                gen_res = real_dir, relate_dir
-            elif str(store) == '2':     # store: 2 一表多Sheet
+            elif store == '2':     # store: 2 一表多Sheet
                 write_excel = xlwt.Workbook(encoding='utf-8')
                 for col in range(0, sheet_col, 1):
                     select_col = list()
                     # judge is or not 999 自增数字序列
                     if self.DEFAULT_AUTO_ID in rule:
                         select_col.append(str(col))
-                    # TODO 目前设置列拆分自动加上列标题
                     select_col.append(str(sheet.cell_value(0, col)))
                     new_sheet_name = '_'.join(select_col)
                     new_sheet = write_excel.add_sheet(new_sheet_name, cell_overwrite_ok=True)
@@ -479,28 +501,38 @@ class ExcelLib(object):
                 new_excel_name = name
                 if os.path.splitext(new_excel_name)[-1] not in self.prefix_list:
                     new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_PREFIX)
-                real_store_file, db_file = self.get_real_file(new_excel_name)
+                real_store_file, new_excel_name = self.get_real_file(new_excel_name)
                 write_excel.save(real_store_file)
-                gen_res = real_store_file, db_file
-                return {'status_id': 1, 'message': 'success', 'url': db_file, 'is_zip': False,
-                        'store': real_store_file, 'name': os.path.split(real_store_file)[-1]}
+                return self.format_res(
+                    100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False}
+                )
         else:
-            return {'status_id': 3, 'message': 'type参数不合法', 'url': '', 'store': '', 'name': ''}
+            return self.format_res(
+                213, '请求参数store不合法', {}
+            )
 
         # start compress
         if is_compress:
-            real_dir, relate_dir = gen_res
             if not os.path.exists(real_dir) or not os.path.isdir(real_dir):
-                return {'status_id': 4, 'message': '文件路径不存在', 'url': '', 'store': '', 'name': ''}
+                return self.format_res(
+                    230, '文件存储目录不存在', {}
+                )
             try:
                 zip_files = [os.path.join(real_dir, x) for x in os.listdir(real_dir)]
                 is_ok = self.compress_zip(files=zip_files,
                                           zip_name=os.path.join(real_dir, compress_name))
                 if is_ok:
-                    return {'status_id': 1, 'message': 'success', 'url': os.path.join(relate_dir, compress_name),
-                            'is_zip': True, 'nfile': len(zip_files), 'store': os.path.join(real_dir, compress_name), 'name': compress_name}
+                    return self.format_res(
+                        100,
+                        'success',
+                        {'name': compress_name, 'path': os.path.join(real_dir, compress_name), 'nfile': len(zip_files), 'compress': True}
+                    )
             except:
-                return {'status_id': 5, 'message': '压缩文件发生问题', 'url': '', 'store': '', 'name': ''}
+                return self.format_res(
+                    234, '压缩文件有误', {}
+                )
 
-        return {'status_id': 5, 'message': '暂无其他处理方式', 'url': '', 'store': '', 'name': ''}
+        return self.format_res(
+            999, '暂无其他处理方式', {}
+        )
 

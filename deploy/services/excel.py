@@ -52,10 +52,7 @@ from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     EXCEL_LIMIT, EXCEL_STORE_BK, \
     ADMIN
 from deploy.utils.utils import get_now, d2s, md5, s2d
-
-
-EXCEL_MERGE = 1
-EXCEL_SPLIT = 2
+from deploy.utils.enums import *
 
 
 class ExcelService(object):
@@ -123,6 +120,17 @@ class ExcelService(object):
         'rtx_id',
         'md5',
         'sheet'
+    ]
+
+    req_split_attrs = [
+        'rtx_id',
+        'md5',
+        'name',
+        'sheet',
+        'store',
+        'split',
+        'columns',
+        'header'
     ]
 
     excel_source_all_attrs = [
@@ -253,7 +261,8 @@ class ExcelService(object):
 
         try:
             # 获取文件header
-            excel_headers = self.get_excel_headers(store.get('path'))
+            excel_headers = self.get_excel_headers(store.get('path')) \
+                if not store.get('compress') else {}
             new_model = self.excel_result_bo.new_mode()
             new_model.rtx_id = store.get('rtx_id')
             new_model.name = store.get('name')
@@ -272,11 +281,11 @@ class ExcelService(object):
             new_model.nsheet = excel_headers.get('nsheet') \
                 if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
             new_model.sheet_names = json.dumps(excel_headers.get('names')) \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else {}
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else '{}'
             new_model.sheet_columns = json.dumps(excel_headers.get('columns')) \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else {}
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else '{}'
             new_model.headers = json.dumps(excel_headers.get('sheets')) \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else {}
+                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else '{}'
             new_model.create_time = get_now()
             new_model.is_del = False
             self.excel_result_bo.add_model(new_model)
@@ -1076,17 +1085,6 @@ class ExcelService(object):
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}
             ).json()
-        # data is deleted
-        if model and model.is_del:
-            return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
-        # authority
-        rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
-            return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
 
         # data info
         sheet_names = list()
@@ -1153,17 +1151,6 @@ class ExcelService(object):
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}
             ).json()
-        # data is deleted
-        if model and model.is_del:
-            return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
-        # authority
-        rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
-            return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
         headers = list()
         headers.append({'label': '序号自增', 'value': '9999'})
         sheet_columns_json = json.loads(model.sheet_columns)
@@ -1181,6 +1168,165 @@ class ExcelService(object):
     def excel_split(self, params):
         """
         split method
+        one excel file to split many file
         """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        # init enums info
+        names = ['excel-split-store', 'excel-num', 'bool-type']
+        excel_split_store = list()
+        excel_num = list()
+        bool_type = list()
+        enums_models = self.enum_bo.get_model_by_names(names)
+        if enums_models:
+            for e in enums_models:
+                if e.name == 'bool-type':
+                    bool_type.append(str(e.key))
+                elif e.name == 'excel-split-store':
+                    excel_split_store.append(str(e.key))
+                elif e.name == 'excel-num':
+                    excel_num.append(str(e.key))
+        excel_split_store = excel_split_store \
+            if excel_split_store else EXCEL_SPLIT_STORE
+        excel_num = excel_num \
+            if excel_num else EXCEL_NUM
+        bool_type = bool_type \
+            if bool_type else BOOL
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_split_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if k == 'columns':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+            if k != 'name' and not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'store' and v not in excel_split_store:
+                return Status(
+                    213, 'failure', u'请求参数%s值不合法' % k, {}
+                ).json()
+            elif k == 'split' and v not in excel_num:
+                return Status(
+                    213, 'failure', u'请求参数%s值不合法' % k, {}
+                ).json()
+            elif k == 'header' and v not in bool_type:
+                return Status(
+                    213, 'failure', u'请求参数%s值不合法' % k, {}
+                ).json()
+
+            new_params[k] = str(v) if k != 'columns' else v
+        if not new_params.get('sheet'):
+            new_params['sheet'] = '0'
+
+        model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}
+            ).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}
+            ).json()
+        # file not exist
+        if not model.local_url or \
+                not os.path.exists(model.local_url):
+            return Status(
+                226, 'failure', StatusMsgs.get(226), {}
+            ).json()
+
+        # 无新文件名称，以原始文件为名称
+        if not new_params.get('name'):
+            new_params['name'] = model.name
+        # 无sheet，默认index为0
+        sheet = new_params.get('sheet') or '0'
+        headers = model.headers
+        row = 0
+        if headers:  # db get row
+            sheet_header = json.loads(headers).get(str(sheet))
+            if sheet_header:
+                row = sheet_header.get('row') or 0
+        if row == 0:   # file get row
+            sheets = self.excel_lib.read_headers(model.local_url).get('sheets')
+            if sheets:
+                sheet_header = sheets.get(int(sheet))
+                if sheet_header:
+                    row = sheet_header.get('row')
+        if row == 0:
+            return Status(
+                227, 'failure', StatusMsgs.get(227), {}
+            ).json()
+        if row >= 65535:
+            return Status(
+                228, 'failure', StatusMsgs.get(228), {}
+            ).json()
+
+        try:    # main method
+            resp_json = self.excel_lib.split_xlrw(file=model.local_url,
+                                                  name=new_params.get('name'),
+                                                  sheet=new_params.get('sheet'),
+                                                  type=new_params.get('split'),
+                                                  store=new_params.get('store'),
+                                                  rule=new_params.get('columns'),
+                                                  title=new_params.get('header'))
+        except Exception as e:
+            print('ExcelLib split excel error: %s' % e)
+            return Status(
+                307, 'failure', 'Excel处理split失败', {}
+            ).json()
+
+        # failure
+        if resp_json.get('status_id') != 100:
+            return Status(
+                307, 'failure', resp_json.get('message'), {}
+            ).json()
+        data = resp_json.get('data')
+        # file upload to store object, manual control
+        store_name = '%s/%s' % (get_now('%Y%m%d'), data.get('name'))
+        if EXCEL_STORE_BK:
+            store_res = self.store_lib.upload(store_name=store_name, local_file=data.get('path'))
+            if store_res.get('status_id') != 100:
+                return Status(store_res.get('status_id'),
+                              'failure',
+                              store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
+                              {}).json()
+        # file to db
+        new_data = {
+            'name': data.get('name'),
+            'rtx_id': new_params.get('rtx_id'),
+            'store_name': store_name,
+            'type': EXCEL_SPLIT,
+            'md5': md5(data.get('name')),
+            'path': data.get('path'),
+            'compress': True if data.get('compress') else False,
+            'nfile': data.get('nfile') or 1
+        }
         print('*' * 100)
-        print(params)
+        print(new_params)
+        print(new_data)
+        is_to_db = self.store_result_to_db(new_data)
+        if not is_to_db:
+            return Status(
+                225, 'failure', StatusMsgs.get(225), {}
+            ).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}
+        ).json()
