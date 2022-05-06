@@ -471,7 +471,9 @@ class ExcelLib(object):
                         select_col.append(str(col))
                     write_excel = xlwt.Workbook(encoding='utf-8')
                     new_sheet = write_excel.add_sheet('Sheet', cell_overwrite_ok=True)
-                    select_col.append(str(sheet.cell_value(0, col)))
+                    for k, v in enumerate(sheet.row_values(0), 0):
+                        if str(k) in rule: select_col.append(str(v))
+                    # select_col.append(str(sheet.cell_value(0, col)))
                     if title == '1':   # is or not write title
                         new_sheet.write(0, 0, label=sheet.cell_value(0, col))
                     start_row = 1 if title == '1' else 0
@@ -488,7 +490,9 @@ class ExcelLib(object):
                     # judge is or not 999 自增数字序列
                     if self.DEFAULT_AUTO_ID in rule:
                         select_col.append(str(col))
-                    select_col.append(str(sheet.cell_value(0, col)))
+                    for k, v in enumerate(sheet.row_values(0), 0):
+                        if str(k) in rule: select_col.append(str(v))
+                    # select_col.append(str(sheet.cell_value(0, col)))
                     new_sheet_name = '_'.join(select_col)
                     new_sheet = write_excel.add_sheet(new_sheet_name, cell_overwrite_ok=True)
                     if title == '1':    # is or not write title
