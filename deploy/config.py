@@ -108,6 +108,8 @@ ART_LIMIT = 10
 # excel
 EXCEL_LIMIT = 15
 EXCEL_STORE_BK = False
+SHEET_NUM_LIMIT = 20
+SHEET_NAME_LIMIT = 85
 
 # others
 NOBN = 'NoNameBody'
@@ -183,6 +185,8 @@ with open(_config_file) as f:
     # excel
     EXCEL_LIMIT = _config_info['EXCEL']['LIMIT'] or EXCEL_LIMIT
     EXCEL_STORE_BK = _config_info['EXCEL']['STORE_BK'] or EXCEL_STORE_BK
+    SHEET_NUM_LIMIT = _config_info['EXCEL']['SHEET_NUM_LIMIT'] or SHEET_NUM_LIMIT
+    SHEET_NAME_LIMIT = _config_info['EXCEL']['SHEET_NAME_LIMIT'] or SHEET_NAME_LIMIT
 
     # options
     O_NOBN = _config_info['OTHERS']['NOBN'] or NOBN

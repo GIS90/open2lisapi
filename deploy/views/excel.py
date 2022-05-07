@@ -51,7 +51,7 @@ CORS(excel, supports_credentials=True)
 @timeer
 def source_list():
     """
-    get excel list from db
+    get excel list from db table excel_source
     many file
     :return: json data
     """
@@ -222,7 +222,7 @@ def merge():
 @timeer
 def history_list():
     """
-    get history excel list from db
+    get history excel list from db table excel_result
     many file
     :return: json data
     """
@@ -335,6 +335,7 @@ def init_split_params():
 def get_sheet_header():
     """
     get sheet headers by sheet index
+    excel_source table
     :return: json data
     """
     if request.method == 'GET':
@@ -357,6 +358,7 @@ def get_sheet_header():
 def split():
     """
     split method
+    one file to split many file
     :return: json data
     """
     if request.method == 'GET':

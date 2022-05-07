@@ -50,7 +50,7 @@ from deploy.bo.enum import EnumBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     EXCEL_LIMIT, EXCEL_STORE_BK, \
-    ADMIN
+    ADMIN, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
 from deploy.utils.utils import get_now, d2s, md5, s2d
 from deploy.utils.enums import *
 
@@ -59,6 +59,8 @@ class ExcelService(object):
     """
     excel service
     """
+
+    # define many request api parameters
     req_source_list_attrs = [
         'rtx_id',
         'type',
@@ -162,7 +164,9 @@ class ExcelService(object):
         'ftypev',
         'url',
         'nsheet',
-        'set_sheet',  # sheet_names, set_sheet_index, set_sheet_name
+        'set_sheet',  # sheet_names Sheet名称列表（key value格式）
+                      # set_sheet_index 选择的Sheet索引，List类型
+                      # set_sheet_name 选择的Sheet名称，string类型（；分割）
         'create_time'
     ]
 
@@ -179,7 +183,8 @@ class ExcelService(object):
         'nsheet',
         'row',
         'col',
-        'set_sheet',  # sheet_names, set_sheet_index, set_sheet_name
+        'set_sheet',  # sheet_names Sheet名称列表（key value格式）
+                      # set_sheet_name 全部的Sheet名称，string类型（；分割）
         'create_time'
     ]
 
@@ -188,6 +193,9 @@ class ExcelService(object):
     DEFAULT_EXCEL_FORMAT = '.xlsx'
 
     def __init__(self):
+        """
+        excel service class initialize
+        """
         super(ExcelService, self).__init__()
         self.excel_lib = ExcelLib()
         self.file_lib = FileLib()
@@ -197,6 +205,15 @@ class ExcelService(object):
         self.enum_bo = EnumBo()
 
     def get_excel_headers(self, excel_file):
+        """
+        get excel base information
+        contain:
+            - sheet names
+            - number sheet
+            - sheet columns
+
+        get information from excel lib(deploy/utils/excel_lib.py)
+        """
         res = {'sheets': {}, 'nsheet': 0, 'names': {}, 'columns': {}}
         if not excel_file or not os.path.exists(excel_file):
             return res
@@ -207,14 +224,13 @@ class ExcelService(object):
         """
         store source file message to db
         params store: store message
-
-        rtx_id: rtx-id
-        type: excel type
-        name: file name
-        md5: file md5
-        store_name: file store name
-        path: file store url, no have store base url
-        message: message
+            - rtx_id: rtx-id
+            - type: excel opr type
+            - name: file name
+            - md5: file md5
+            - store_name: file store name
+            - path: file store url, no have store base url
+            - message: message
         """
         if not store:
             return False
@@ -247,22 +263,26 @@ class ExcelService(object):
         """
         store result file message to db
         params store: store message
-
-        rtx_id: rtx-id
-        type: excel type
-        name: file name
-        md5: file md5
-        store_name: file store name
-        path: file store url, no have store base url
-        message: message
+            - rtx_id: rtx-id
+            - type: excel opr type
+            - name: file name
+            - md5: file md5
+            - store_name: file store name
+            - path: file store url, no have store base url
+            - message: message
+            - compress: is or not compress file format
+            - nfile: number file
         """
         if not store:
             return False
 
         try:
+            is_compress = store.get('compress') or False
             # 获取文件header
             excel_headers = self.get_excel_headers(store.get('path')) \
-                if not store.get('compress') else {}
+                if not is_compress else {}
+            print('=' * 20)
+            print(excel_headers)
             new_model = self.excel_result_bo.new_mode()
             new_model.rtx_id = store.get('rtx_id')
             new_model.name = store.get('name')
@@ -272,20 +292,19 @@ class ExcelService(object):
             new_model.local_url = store.get('path')
             new_model.store_url = store.get('store_name')
             new_model.nfile = store.get('nfile') or 1
-            new_model.is_compress = store.get('compress') \
-                if store.get('compress') else False
+            new_model.is_compress = is_compress
             new_model.row = excel_headers.get('sheets')[0].get('row') \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
+                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else 0
             new_model.col = excel_headers.get('sheets')[0].get('col') \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
+                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else 0
             new_model.nsheet = excel_headers.get('nsheet') \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else 0
+                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else 0
             new_model.sheet_names = json.dumps(excel_headers.get('names')) \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else '{}'
+                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else '{}'
             new_model.sheet_columns = json.dumps(excel_headers.get('columns')) \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else '{}'
+                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else '{}'
             new_model.headers = json.dumps(excel_headers.get('sheets')) \
-                if int(store.get('type')) == int(EXCEL_MERGE) and excel_headers else '{}'
+                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else '{}'
             new_model.create_time = get_now()
             new_model.is_del = False
             self.excel_result_bo.add_model(new_model)
@@ -295,7 +314,7 @@ class ExcelService(object):
 
     def _source_model_to_dict(self, model):
         """
-        source model to dict
+        excel source model to dict
         """
         _res = dict()
         if not model:
@@ -324,18 +343,24 @@ class ExcelService(object):
                 else:
                     _res['url'] = ''
             elif attr == 'nsheet':
-                _res['nsheet'] = model.nsheet if model.nsheet else 1
+                _res['nsheet'] = model.nsheet if model.nsheet else 1    # 无值，默认为1个SHEET
             elif attr == 'set_sheet':
                 if model.sheet_names:
                     new_res = list()
                     set_sheet_name = list()
-                    set_sheet_index = [str(i) for i in str(model.set_sheet).split(';')] if model.set_sheet else []
+                    set_sheet_index = [str(i) for i in str(model.set_sheet).split(';')] if model.set_sheet else ['0']   # 默认index为0
                     for k, v in json.loads(model.sheet_names).items():
                         new_res.append({'key': k, 'value': v})
                         if str(k) in set_sheet_index:
                             set_sheet_name.append(v)
+                        if int(k) >= SHEET_NUM_LIMIT:   # 加了展示条数的限制，否则页面展示太多
+                            new_res.append({'key': '...N', 'value': '（具体查看请下载）'})
+                            break
                     _res['sheet_names'] = new_res
-                    _res['set_sheet_name'] = ';'.join(set_sheet_name)
+                    set_sheet_name = ';'.join(set_sheet_name)
+                    if len(set_sheet_name) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
+                        set_sheet_name = '%s...（选择Sheet过多，省略部分）' % set_sheet_name[0:SHEET_NAME_LIMIT]
+                    _res['set_sheet_name'] = set_sheet_name
                     _res['set_sheet_index'] = set_sheet_index
                 else:
                     _res['sheet_names'] = []
@@ -348,7 +373,7 @@ class ExcelService(object):
 
     def _result_model_to_dict(self, model):
         """
-        result model to dict
+        excel result model to dict
         """
         _res = dict()
         if not model:
@@ -390,18 +415,20 @@ class ExcelService(object):
                 if model.sheet_names:
                     new_res = list()
                     set_sheet_name = list()
-                    set_sheet_index = ['0']     # excel_result 默认索引为0
                     for k, v in json.loads(model.sheet_names).items():
                         new_res.append({'key': k, 'value': v})
-                        if str(k) in set_sheet_index:
-                            set_sheet_name.append(v)
+                        set_sheet_name.append(v)
+                        if int(k) >= SHEET_NUM_LIMIT:
+                            new_res.append({'key': '...N', 'value': '（具体查看请下载）'})
+                            break
                     _res['sheet_names'] = new_res
-                    _res['set_sheet_name'] = ';'.join(set_sheet_name)
-                    _res['set_sheet_index'] = set_sheet_index
+                    set_sheet_name = ';'.join(set_sheet_name)
+                    if len(set_sheet_name) > SHEET_NAME_LIMIT:
+                        set_sheet_name = '%s...（具体查看请下载）' % set_sheet_name[0:SHEET_NAME_LIMIT]
+                    _res['set_sheet_name'] = set_sheet_name
                 else:
-                    _res['sheet_names'] = [{'key': 0, 'value': 'Sheet'}]
-                    _res['set_sheet_index'] = [0]
-                    _res['set_sheet_name'] = 'Sheet'
+                    _res['sheet_names'] = []
+                    _res['set_sheet_name'] = ''
             elif attr == 'create_time':
                 _res['create_time'] = d2s(model.create_time) if model.create_time else ''
         else:
@@ -411,6 +438,7 @@ class ExcelService(object):
         """
         get source excel list by params
         params is dict
+        return json data
         """
         if not params:
             return Status(
@@ -466,6 +494,8 @@ class ExcelService(object):
         excel upload to qiniu store server
         1.local store
         2.upload to qiniu store server
+
+        return json data
         """
         if not params:
             return Status(
@@ -566,7 +596,11 @@ class ExcelService(object):
 
     def _update_file_name(self, model, new_name):
         """
+        build in method, not allow outer to use
         get source/result file name store_name local_url store_url
+        return json data
+
+        update real file name and store file name
         """
         _res = dict()
         if not model or not new_name:
@@ -854,6 +888,8 @@ class ExcelService(object):
         """
         get result excel list by params
         params is dict
+
+        return json data
         """
         if not params:
             return Status(
@@ -1315,12 +1351,9 @@ class ExcelService(object):
             'type': EXCEL_SPLIT,
             'md5': md5(data.get('name')),
             'path': data.get('path'),
-            'compress': True if data.get('compress') else False,
+            'compress': data.get('compress') or False,
             'nfile': data.get('nfile') or 1
         }
-        print('*' * 100)
-        print(new_params)
-        print(new_data)
         is_to_db = self.store_result_to_db(new_data)
         if not is_to_db:
             return Status(

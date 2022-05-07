@@ -155,7 +155,7 @@ class ExcelLib(object):
         return real dir, relative dir
         :param dir_name: the store dir name
         :return: tuple
-        result is contain real path, relative path
+        result is contain real path
         """
         now_date_str = get_now(format="%Y%m%d")
         split_dir = '%s/%s' % (now_date_str, dir_name)
@@ -471,7 +471,7 @@ class ExcelLib(object):
                         select_col.append(str(col))
                     write_excel = xlwt.Workbook(encoding='utf-8')
                     new_sheet = write_excel.add_sheet('Sheet', cell_overwrite_ok=True)
-                    for k, v in enumerate(sheet.row_values(0), 0):
+                    for k, v in enumerate(sheet.row_values(0), 0):      # 列拆分获取0行title内容
                         if str(k) in rule: select_col.append(str(v))
                     # select_col.append(str(sheet.cell_value(0, col)))
                     if title == '1':   # is or not write title
@@ -490,7 +490,7 @@ class ExcelLib(object):
                     # judge is or not 999 自增数字序列
                     if self.DEFAULT_AUTO_ID in rule:
                         select_col.append(str(col))
-                    for k, v in enumerate(sheet.row_values(0), 0):
+                    for k, v in enumerate(sheet.row_values(0), 0):      # 列拆分获取0行title内容
                         if str(k) in rule: select_col.append(str(v))
                     # select_col.append(str(sheet.cell_value(0, col)))
                     new_sheet_name = '_'.join(select_col)
