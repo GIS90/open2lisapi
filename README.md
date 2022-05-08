@@ -1,7 +1,7 @@
 > ## 简介
 
 ![](https://img.shields.io/badge/Language-Python-red)
-![](https://img.shields.io/badge/WebStructure-Flask-0000FF)
+![](https://img.shields.io/badge/DevStructure-Flask-0000FF)
 ![](https://img.shields.io/badge/DB-Mysql-green)
 ![](https://img.shields.io/badge/Tool-Gunicorn-FFFF00)
 ![](https://img.shields.io/badge/Tool-Supervisor-FFFF00)
@@ -11,6 +11,13 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 
 前端 **_open2lbox_**：https://github.com/GIS90/open2lbox.git
 
+### 平台地址
+
+```
+线上地址：http://tool.pygo2.top/  
+测试账号：test  
+密码：123456
+```
 
 ### 项目架构
 
