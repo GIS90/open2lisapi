@@ -3,7 +3,8 @@
 """
 ------------------------------------------------
 
-describe: 
+describe:
+    status message
 
 base_info:
     __author__ = "PyGo"

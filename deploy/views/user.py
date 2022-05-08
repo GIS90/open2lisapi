@@ -67,6 +67,7 @@ def info():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
     try:
+        # 参数
         token = request.args.get('token')
         return SysUserService().get_login_by_token(token)
     except Exception as e:
@@ -87,6 +88,7 @@ def auth():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
     try:
+        # 参数
         data_json = request.get_json() or {}
         rtx_id = data_json.get('rtx_id')
         return SysUserService().get_login_auth_by_rtx(rtx_id)
@@ -108,6 +110,7 @@ def update():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
     try:
+        # 参数
         data_json = request.get_json() or {}
         return SysUserService().update_user_by_rtx(data_json)
     except Exception as e:
@@ -128,8 +131,7 @@ def timeline():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
     try:
-        print('*' * 100)
-        print(request.get_json())
+        # 参数
         params = request.get_json() or {}
         return RequestService().get_by_rtx(params)
     except Exception as e:
@@ -150,6 +152,7 @@ def password():
             211, 'failure', StatusMsgs.get(211), {}
         ).json()
     try:
+        # 参数
         data_json = request.get_json() or {}
         return SysUserService().update_password_by_rtx(data_json)
     except Exception as e:
@@ -163,6 +166,7 @@ def password():
 def avatar():
     """
     update user avatar
+    this avatar store to yun store object
     :return: json data
     """
     if request.method == 'GET':

@@ -1,5 +1,5 @@
 SERVER:
-  NAME: twtoolbox_isapi
+  NAME: open2lisapi
   VERSION: v1.0.1
   DEBUG: True
   SECRET_KEY: IbelivemeIcanfly
@@ -10,7 +10,7 @@ LOG:
   LOG_DIR: log
   LOG_LEVEL: debug
   LOG_FORMATTER: '%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s - %(message)s'
-  LOG_FILENAME_PREFIX: twtoolbox_isapi
+  LOG_FILENAME_PREFIX: open2lisapi
 
 
 DB:

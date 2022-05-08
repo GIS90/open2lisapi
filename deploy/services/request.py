@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    request service
 
 base_info:
     __author__ = "PyGo"
@@ -49,6 +50,9 @@ class RequestService(object):
     ]
 
     def __init__(self):
+        """
+        initialize
+        """
         super(RequestService, self).__init__()
         self.request_bo = RequestBo()
         self.all_attrs = [
@@ -75,6 +79,9 @@ class RequestService(object):
         ]
 
     def _model_to_dict(self, model, _type='timeline'):
+        """
+        request model to dict data
+        """
         if not model:
             return None
 
@@ -125,6 +132,9 @@ class RequestService(object):
             return _res
 
     def add_request(self, request, rtx=None) -> bool:
+        """
+        add request data to db
+        """
         if not request:
             return False
         rtx_id = get_rtx_id(request) or rtx
@@ -148,6 +158,12 @@ class RequestService(object):
         self.request_bo.add_model(new_model)
 
     def get_by_rtx(self, params) -> dict:
+        """
+        git request list by rtx_id
+        many request dict data
+
+        return json data
+        """
         if not params:
             return Status(
                 212, 'failure', u'缺少请求参数', {}
@@ -170,12 +186,13 @@ class RequestService(object):
                 v = str(v)
             new_params[k] = v
 
-        import datetime
-        start = datetime.datetime.now()
+        # 加上计算时间
+        # import datetime
+        # start = datetime.datetime.now()
         res, total = self.request_bo.get_by_rtx(new_params)
-        end = datetime.datetime.now()
-        print((end-start).seconds)
-        print(total)
+        # end = datetime.datetime.now()
+        # print((end-start).seconds)
+        # print(total)
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'timeline': [], 'total': 0}
