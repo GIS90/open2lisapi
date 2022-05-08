@@ -69,7 +69,7 @@ fi
 start_time="$(date +"%Y-%m-%d %H:%M:%S")"
 cur_time="$(date +"%Y%m%d")"
 
-$find $log_dir -type f -name "*.log" -mtime +$keep_day -exec $rm -rf {} \;
+$find $log_dir -type f -name "*.log" -atime +$keep_day -exec $rm -rf {} \;
 
 end_time="$(date +"%Y-%m-%d %H:%M:%S")"
 start_seconds=$(date --date="$start_time" +%s)

@@ -45,8 +45,7 @@ db_passwd="910809ecb44c92db12ad5fa369375d00"
 db_host="127.0.0.1"
 db_port=3306
 db_backup_dir="/home/mingliang.gao/db_backup/"
-db_names=""
-db_names=(twtoolbox_isapi)   # config dbs
+db_names=(twtoolbox)   # config dbs
 
 # base command
 rm=$(which rm)
