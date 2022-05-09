@@ -60,5 +60,10 @@ EXCEL:
   SHEET_NAME_LIMIT: 65
 
 
+AUTH:
+  LIMIT: 15
+  NUM: 65
+
+
 OTHERS:
   NOBN: NoNameBody

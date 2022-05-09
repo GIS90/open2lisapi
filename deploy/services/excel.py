@@ -168,6 +168,7 @@ class ExcelService(object):
         'set_sheet',  # sheet_names Sheet名称列表（key value格式）
                       # set_sheet_index 选择的Sheet索引，List类型
                       # set_sheet_name 选择的Sheet名称，string类型（；分割）
+        # 'sheet_columns',
         'create_time'
     ]
 
