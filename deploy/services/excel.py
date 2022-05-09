@@ -163,6 +163,7 @@ class ExcelService(object):
         'ftypek',
         'ftypev',
         'url',
+        'numopr',
         'nsheet',
         'set_sheet',  # sheet_names Sheet名称列表（key value格式）
                       # set_sheet_index 选择的Sheet索引，List类型
@@ -246,6 +247,7 @@ class ExcelService(object):
             new_model.ftype = store.get('type')
             new_model.local_url = store.get('path')
             new_model.store_url = store.get('store_name')
+            new_model.numopr = 0
             new_model.nsheet = excel_headers.get('nsheet')
             # 设置默认第一个Sheet进行操作,初始化设置
             new_model.set_sheet = '0'
@@ -333,6 +335,8 @@ class ExcelService(object):
                 _res[attr] = model.ftype
             elif attr == 'ftypev':
                 _res[attr] = model.value
+            elif attr == 'numopr':
+                _res[attr] = model.numopr or 0
             elif attr == 'url':
                 if model.store_url:
                     # 直接拼接的下载url，无check
@@ -880,6 +884,12 @@ class ExcelService(object):
                 225, 'failure', StatusMsgs.get(225), {}
             ).json()
 
+        # add source file number operation
+        for _r in res:
+            if not _r: continue
+            _r.numopr = _r.numopr + 1
+            self.excel_source_bo.merge_model(_r)
+
         return Status(
             100, 'success', StatusMsgs.get(100), merge_res.get('data')
         ).json()
@@ -1359,6 +1369,10 @@ class ExcelService(object):
             return Status(
                 225, 'failure', StatusMsgs.get(225), {}
             ).json()
+
+        # update excel result number operation
+        model.numopr = model.numopr + 1
+        self.excel_result_bo.merge_model(model)
 
         return Status(
             100, 'success', StatusMsgs.get(100), {}

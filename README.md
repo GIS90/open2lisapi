@@ -9,7 +9,9 @@
 项目简称：**_open2lisapi_**  
 Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 
-前端 **_open2lbox_**：https://github.com/GIS90/open2lbox.git
+前端 **_open2lbox_**：https://github.com/GIS90/open2lui.git
+
+WIKI：https://github.com/GIS90/open2lisapi/wiki
 
 ### 平台地址
 
@@ -100,6 +102,10 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 - openpyxl: 不支持.xls（老版本excel）
 - xlwt、xlrd: 表格行数限制65535
 只好，根据操作Excel数据文件的格式进行判断，去执行指定的方法，如果操作的数据文件包含一个.xls文件，就用xlwt、xlrd去处理，否则就用openpyxl。
+
+### Github Issues
+
+https://github.com/GIS90/open2lui/issues
 
 > ## 其他
 

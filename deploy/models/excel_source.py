@@ -57,6 +57,7 @@ class ExcelSourceModel(base.ModelBase):
     ftype = Column(String(2))
     local_url = Column(String(100))
     store_url = Column(String(100))
+    numopr = Column(Integer)
     nsheet = Column(Integer)
     set_sheet = Column(String(55))
     sheet_names = Column(Text)

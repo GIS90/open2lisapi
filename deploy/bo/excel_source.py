@@ -56,6 +56,7 @@ class ExcelSourceBo(BOBase):
                                ExcelSourceModel.ftype,
                                ExcelSourceModel.local_url,
                                ExcelSourceModel.store_url,
+                               ExcelSourceModel.numopr,
                                ExcelSourceModel.nsheet,
                                ExcelSourceModel.set_sheet,
                                ExcelSourceModel.sheet_names,

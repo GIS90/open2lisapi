@@ -275,6 +275,7 @@ CREATE TABLE `excel_source` (
 	`ftype` varchar(2) NOT NULL COMMENT '文件上传类型：1拆分;2合并',
 	`local_url` varchar(100) COMMENT '文件本地资源路径（绝对路径）',
 	`store_url` varchar(100) COMMENT '文件store对象存储资源路径（相对路径）',
+	`numopr` int COMMENT '操作次数',
 	`nsheet` int COMMENT 'sheet数',
 	`set_sheet` varchar(55) COMMENT '当前设置的sheet选择索引，列表格式',
 	`sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
