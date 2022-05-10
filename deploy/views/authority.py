@@ -62,6 +62,8 @@ def role_list():
 
     try:
         # 参数
+        print('*' * 100)
+        print(request.get_json())
         params = request.get_json() or {}
         return AuthorityService().role_list(params)
     except Exception as e:

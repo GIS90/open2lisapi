@@ -92,9 +92,7 @@ CREATE TABLE `role`  (
 insert into
 role(engname, chnname, md5_id,  authority, introduction, create_operator, is_del)
 VALUES
-('admin', '管理员', '21232f297a57a5a743894a0e4a801fc3', '', '系统管理员总权限', 'admin', True),
-('operator', '普通用户', '4b583376b2767b923c3e1da60d10de59', '1;2;3;4;5;6;11;12;13', '普通用户', 'admin', True),
-('visitor', '参观用户', '127870930d65c57ee65fcc47f2170d38', '11;12;13', '参观用户', 'admin', True);
+('admin', '管理员', '21232f297a57a5a743894a0e4a801fc3', '', '系统管理员总权限', 'admin', FALSE);
 
 
 

@@ -56,6 +56,7 @@ from deploy.utils.status_msg import StatusMsgs
 from deploy.views.manage import manage
 from deploy.views.user import user
 from deploy.views.excel import excel
+from deploy.views.authority import auth
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
 
@@ -182,6 +183,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('manage', manage)
         self.register_blueprint('user', user)
         self.register_blueprint('excel', excel)
+        self.register_blueprint('auth', auth)
 
     def init_run(self):
         LOG.debug('Server is initializing......')

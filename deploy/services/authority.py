@@ -33,11 +33,14 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python authority.py
 # ------------------------------------------------------------
+import datetime
+
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM
+from deploy.utils.utils import d2s
 
 
 class AuthorityService(object):
@@ -94,11 +97,21 @@ class AuthorityService(object):
             elif attr == 'introduction':
                 res[attr] = model.introduction
             elif attr == 'create_time':
-                res[attr] = model.create_time
+                if model.create_time and isinstance(model.create_time, str):
+                    res[attr] = model.create_time
+                elif model.create_time and isinstance(model.create_time, datetime.datetime):
+                    res[attr] = d2s(model.create_time)
+                else:
+                    res[attr] = ''
             elif attr == 'create_operator':
                 res[attr] = model.create_operator
             elif attr == 'del_time':
-                res[attr] = model.del_time
+                if model.del_time and isinstance(model.del_time, str):
+                    res[attr] = model.del_time
+                elif model.del_time and isinstance(model.del_time, datetime.datetime):
+                    res[attr] = d2s(model.del_time)
+                else:
+                    res[attr] = ''
             elif attr == 'del_operator':
                 res[attr] = model.del_operator
             elif attr == 'is_del':
@@ -125,7 +138,7 @@ class AuthorityService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-            if not v:
+            if not v and k != 'offset':
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}
                 ).json()
@@ -138,6 +151,8 @@ class AuthorityService(object):
             new_params[k] = v
 
         res, total = self.role_bo.get_all(new_params)
+        print(total)
+        print(res)
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
