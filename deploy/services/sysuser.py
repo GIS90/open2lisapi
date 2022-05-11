@@ -53,7 +53,7 @@ class SysUserService(object):
         self.image_lib = ImageLib()
         self.base_attrs = ['id', 'rtx_id', 'md5_id', 'fullname', 'password',
                            'email', 'phone', 'avatar', 'introduction', 'department', 'role']
-        self.extend_attrs = ['create_time', 'create_operator', 'is_del', 'del_time', 'del_operator']
+        self.extend_attrs = ['create_time', 'create_rtx', 'is_del', 'delete_time', 'delete_rtx']
         self.auth_attrs = ['authority', 'role_eng', 'role_chn']
         self.update_attrs = ['name', 'email', 'phone', 'avatar',
                              'introduction', 'department', 'role']
@@ -106,14 +106,14 @@ class SysUserService(object):
                 _res[attr] = model.authority or ""
             elif attr == 'create_time':
                 _res[attr] = d2s(model.create_time) if not isinstance(model.create_time, str) else model.create_time or ''
-            elif attr == 'create_operator':
-                _res[attr] = model.create_operator or ''
+            elif attr == 'create_rtx':
+                _res[attr] = model.create_rtx or ''
             elif attr == 'is_del':
                 _res[attr] = True if model.is_del else False
-            elif attr == 'del_time':
-                _res[attr] = d2s(model.del_time) if not isinstance(model.del_time, str) else model.del_time or ''
-            elif attr == 'del_operator':
-                _res[attr] = model.del_operator or ""
+            elif attr == 'delete_time':
+                _res[attr] = d2s(model.delete_time) if not isinstance(model.delete_time, str) else model.delete_time or ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx or ""
         else:
             return _res
 

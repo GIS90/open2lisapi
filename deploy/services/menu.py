@@ -49,7 +49,7 @@ class MenuService(object):
         self.all_attrs = [
             'id', 'name', 'path', 'title', 'pid', 'level', 'md5_id', 'component',
             'hidden', 'redirect', 'icon', 'noCache', 'affix', 'breadcrumb',
-            'create_time', 'create_operator', 'is_del', 'del_time', 'del_operator'
+            'create_time', 'create_rtx', 'is_del', 'delete_time', 'delete_rtx'
         ]
         self.menu_attrs = [
             'id', 'name', 'path', 'pid', 'level', 'md5_id',
@@ -139,14 +139,14 @@ class MenuService(object):
                 _res[attr] = True if model.breadcrumb else False
             elif attr == 'create_time':
                 _res[attr] = d2s(model.create_time) if model.create_time else ''
-            elif attr == 'create_operator':
-                _res[attr] = d2s(model.create_operator) or ''
+            elif attr == 'create_rtx':
+                _res[attr] = d2s(model.create_rtx) or ''
             elif attr == 'is_del':
                 _res[attr] = True if model.is_del else False
-            elif attr == 'del_time':
-                _res[attr] = d2s(model.del_time) if model.del_time else ''
-            elif attr == 'del_operator':
-                _res[attr] = model.del_operator or ""
+            elif attr == 'delete_time':
+                _res[attr] = d2s(model.delete_time) if model.delete_time else ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx or ""
         else:
             return _res
 

@@ -56,8 +56,8 @@ class SysUserModel(base.ModelBase):
     department = Column(String(55))
     role = Column(String(55))
     create_time = Column(TIMESTAMP())
-    create_operator = Column(String(25))
+    create_rtx = Column(String(25))
     is_del = Column(Boolean())
-    del_time = Column(TIMESTAMP())
-    del_operator = Column(String(25))
+    delete_time = Column(TIMESTAMP())
+    delete_rtx = Column(String(25))
 

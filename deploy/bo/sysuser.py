@@ -81,8 +81,8 @@ class SysUserBo(BOBase):
                                SysUserModel.role,
                                SysUserModel.create_time,
                                SysUserModel.is_del,
-                               SysUserModel.del_time,
-                               SysUserModel.del_operator,
+                               SysUserModel.delete_time,
+                               SysUserModel.delete_rtx,
                                RoleModel.engname.label('role_eng'),
                                RoleModel.chnname.label('role_chn'),
                                RoleModel.authority)
@@ -106,8 +106,8 @@ class SysUserBo(BOBase):
                                SysUserModel.role,
                                SysUserModel.create_time,
                                SysUserModel.is_del,
-                               SysUserModel.del_time,
-                               SysUserModel.del_operator,
+                               SysUserModel.delete_time,
+                               SysUserModel.delete_rtx,
                                RoleModel.engname.label('role_eng'),
                                RoleModel.chnname.label('role_chn'),
                                RoleModel.authority)

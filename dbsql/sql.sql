@@ -48,10 +48,10 @@ CREATE TABLE `sysuser` (
 	`role` varchar(55) not null COMMENT '用户角色md5值，关联role表',
 	`department` varchar(55) not null COMMENT '用户部门md5值，关联department表',
 	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`create_operator` varchar(25) COMMENT '创建人',
+	`create_rtx` varchar(25) COMMENT '创建人',
 	`is_del` bool  COMMENT '是否已删除',
 	`del_time` timestamp COMMENT '删除时间',
-	`del_operator` varchar(25) COMMENT '删除操作人',
+	`del_rtx` varchar(25) COMMENT '删除操作人',
 
 	PRIMARY KEY (`id`),
 	UNIQUE INDEX rtx_id(id ASC)
@@ -62,7 +62,7 @@ CREATE UNIQUE INDEX sysuser_index ON sysuser (`rtx_id`);
 
 -- insert default admin
 insert into
-sysuser(rtx_id, md5_id, fullname, `password`, email , phone, avatar, introduction, role, create_operator, is_del)
+sysuser(rtx_id, md5_id, fullname, `password`, email , phone, avatar, introduction, role, create_rtx, is_del)
 VALUES
 ('admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '123456', 'gaoming971366@163.com', '13051355646',
 'http://pygo2.top/images/article_github.jpg', '我是一名Python程序员', '21232f297a57a5a743894a0e4a801fc3', '第一用户', FALSE);
@@ -80,17 +80,17 @@ CREATE TABLE `role`  (
     `authority` varchar(255) NULL COMMENT '角色权限，用英文；分割',
     `introduction` text NULL COMMENT '角色描述',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_operator` varchar(25) COMMENT '创建人',
+    `create_rtx` varchar(25) COMMENT '创建人',
 	`is_del` bool  COMMENT '是否已删除',
 	`del_time` timestamp COMMENT '删除时间',
-	`del_operator` varchar(25) COMMENT '删除操作人',
+	`del_rtx` varchar(25) COMMENT '删除操作人',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `role_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
   UNIQUE INDEX `role_name_index`(`engname`) USING HASH COMMENT 'engname唯一索引'
 ) COMMENT='角色权限表';
 -- insert default role
 insert into
-role(engname, chnname, md5_id,  authority, introduction, create_operator, is_del)
+role(engname, chnname, md5_id,  authority, introduction, create_rtx, is_del)
 VALUES
 ('admin', '管理员', '21232f297a57a5a743894a0e4a801fc3', '', '系统管理员总权限', 'admin', FALSE);
 
@@ -115,10 +115,10 @@ CREATE TABLE `menu`  (
 	`affix` bool default false  COMMENT '是否在tags-view固定，默认false',
 	`breadcrumb` bool default true COMMENT '是否breadcrumb中显示，默认true',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_operator` varchar(25) COMMENT '创建人',
+    `create_rtx` varchar(25) COMMENT '创建人',
 	`is_del` bool  COMMENT '是否已删除',
 	`del_time` timestamp COMMENT '删除时间',
-	`del_operator` varchar(25) COMMENT '删除操作人',
+	`del_rtx` varchar(25) COMMENT '删除操作人',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `menu_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
   UNIQUE INDEX `menu_name_index`(`name`) USING HASH COMMENT 'name唯一索引'
@@ -127,7 +127,7 @@ CREATE TABLE `menu`  (
 -- insert default menu
 delete from menu;
 insert into
-menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `noCache`, `affix`, `breadcrumb`, `create_operator`, `is_del`)
+menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `noCache`, `affix`, `breadcrumb`, `create_rtx`, `is_del`)
 VALUES
 -- 问题检索
 (1, '问题检索', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'i_search', FALSE, FALSE, TRUE, 'admin', FALSE),

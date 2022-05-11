@@ -62,9 +62,9 @@ class AuthorityService(object):
         'authority',
         'introduction',
         'create_time',
-        'create_operator',
-        'del_time',
-        'del_operator',
+        'create_rtx',
+        'delete_time',
+        'delete_rtx',
         'is_del'
     ]
 
@@ -103,17 +103,17 @@ class AuthorityService(object):
                     res[attr] = d2s(model.create_time)
                 else:
                     res[attr] = ''
-            elif attr == 'create_operator':
-                res[attr] = model.create_operator
-            elif attr == 'del_time':
-                if model.del_time and isinstance(model.del_time, str):
-                    res[attr] = model.del_time
-                elif model.del_time and isinstance(model.del_time, datetime.datetime):
-                    res[attr] = d2s(model.del_time)
+            elif attr == 'create_rtx':
+                res[attr] = model.create_rtx
+            elif attr == 'delete_time':
+                if model.delete_time and isinstance(model.delete_time, str):
+                    res[attr] = model.delete_time
+                elif model.delete_time and isinstance(model.delete_time, datetime.datetime):
+                    res[attr] = d2s(model.delete_time)
                 else:
                     res[attr] = ''
-            elif attr == 'del_operator':
-                res[attr] = model.del_operator
+            elif attr == 'delete_rtx':
+                res[attr] = model.delete_rtx
             elif attr == 'is_del':
                 res[attr] = model.is_del
         else:
