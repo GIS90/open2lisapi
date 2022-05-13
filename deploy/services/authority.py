@@ -40,7 +40,7 @@ from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM
-from deploy.utils.utils import d2s
+from deploy.utils.utils import d2s, get_now, md5
 
 
 class AuthorityService(object):
@@ -52,6 +52,13 @@ class AuthorityService(object):
         'rtx_id',
         'limit',
         'offset'
+    ]
+
+    req_role_add_attrs = [
+        'rtx_id',
+        'engname',
+        'chnname',
+        'introduction'
     ]
 
     list_attrs = [
@@ -151,8 +158,6 @@ class AuthorityService(object):
             new_params[k] = v
 
         res, total = self.role_bo.get_all(new_params)
-        print(total)
-        print(res)
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
@@ -168,4 +173,66 @@ class AuthorityService(object):
                 n += 1
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def role_add(self, params):
+        """
+        add new role, information contain english name, chinese name, introduction
+        :return: json data
+
+        new data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_role_add_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}
+                ).json()
+            # check: length
+            if k == 'engname' and len(v) > 25:
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'engname' and len(v) > 25:
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'introduction' and len(v) > 25:
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            new_params[k] = str(v)
+
+        # check engname is or not repeat
+        model = self.role_bo.get_model_by_engname(new_params.get('engname'))
+        if model:
+            return Status(
+                213, 'failure', '角色RTX已存在，请重新输入', {}
+            ).json()
+
+        new_model = self.role_bo.new_mode()
+        new_model.engname = new_params.get('engname')
+        new_model.chnname = new_params.get('chnname')
+        md5_id = md5(new_params.get('engname'))
+        new_model.md5_id = md5_id
+        new_model.authority = ''
+        new_model.introduction = new_params.get('introduction')
+        new_model.create_time = get_now()
+        new_model.create_rtx = new_params.get('rtx_id')
+        new_model.is_del = False
+        self.role_bo.add_model(new_model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()

@@ -58,3 +58,11 @@ class RoleBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all(), total
+
+    def get_model_by_engname(self, engname):
+        if not engname:
+            return None
+        q = self.session.query(RoleModel)
+        q = q.filter(RoleModel.engname == engname)
+        q = q.filter(RoleModel.is_del != True)
+        return q.first()
