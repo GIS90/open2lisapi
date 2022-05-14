@@ -90,3 +90,72 @@ def role_add():
         LOG.error("excel>role add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/updaterole/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def role_update():
+    """
+    update exist role by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().role_update(params)
+    except Exception as e:
+        LOG.error("excel>role update is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/mdelrole/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def role_batch_delete():
+    """
+    batch delete many role data, from role table
+    post request and json parameters
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().role_batch_delete(params)
+    except Exception as e:
+        LOG.error("excel>role batch delete is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/delrole/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def role_delete():
+    """
+    one delete many role data
+    from role table
+    post request and json parameters
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().role_delete(params)
+    except Exception as e:
+        LOG.error("excel>role delete is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

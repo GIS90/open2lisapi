@@ -105,13 +105,15 @@ class SysUserService(object):
             elif attr == 'authority':
                 _res[attr] = model.authority or ""
             elif attr == 'create_time':
-                _res[attr] = d2s(model.create_time) if not isinstance(model.create_time, str) else model.create_time or ''
+                _res[attr] = d2s(model.create_time) \
+                    if not isinstance(model.create_time, str) else model.create_time or ''
             elif attr == 'create_rtx':
                 _res[attr] = model.create_rtx or ''
             elif attr == 'is_del':
                 _res[attr] = True if model.is_del else False
             elif attr == 'delete_time':
-                _res[attr] = d2s(model.delete_time) if not isinstance(model.delete_time, str) else model.delete_time or ''
+                _res[attr] = d2s(model.delete_time) \
+                    if not isinstance(model.delete_time, str) else model.delete_time or ''
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx or ""
         else:

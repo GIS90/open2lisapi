@@ -53,6 +53,7 @@ class RoleBo(BOBase):
         if not q:
             return [], 0
         total = len(q.all())
+        q = q.order_by(RoleModel.create_time.desc())
         if params.get('offset'):
             q = q.offset(params.get('offset'))
         if params.get('limit'):
@@ -65,4 +66,18 @@ class RoleBo(BOBase):
         q = self.session.query(RoleModel)
         q = q.filter(RoleModel.engname == engname)
         q = q.filter(RoleModel.is_del != True)
+        return q.first()
+
+    def get_model_by_engname_nodel(self, engname):
+        if not engname:
+            return None
+        q = self.session.query(RoleModel)
+        q = q.filter(RoleModel.engname == engname)
+        return q.first()
+
+    def get_model_by_md5(self, md5):
+        if not md5:
+            return None
+        q = self.session.query(RoleModel)
+        q = q.filter(RoleModel.md5_id == md5)
         return q.first()

@@ -39,7 +39,7 @@ from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
 
-from deploy.config import AUTH_LIMIT, AUTH_NUM
+from deploy.config import AUTH_LIMIT, AUTH_NUM, ADMIN
 from deploy.utils.utils import d2s, get_now, md5
 
 
@@ -56,6 +56,14 @@ class AuthorityService(object):
 
     req_role_add_attrs = [
         'rtx_id',
+        'engname',
+        'chnname',
+        'introduction'
+    ]
+
+    req_role_update_attrs = [
+        'rtx_id',
+        'md5',
         'engname',
         'chnname',
         'introduction'
@@ -177,7 +185,7 @@ class AuthorityService(object):
 
     def role_add(self, params):
         """
-        add new role, information contain english name, chinese name, introduction
+        add new role, information contain: english name, chinese name, introduction
         :return: json data
 
         new data
@@ -209,7 +217,7 @@ class AuthorityService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
-            elif k == 'introduction' and len(v) > 25:
+            elif k == 'introduction' and len(v) > 55:
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
@@ -236,3 +244,84 @@ class AuthorityService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
+
+    def role_update(self, params):
+        """
+        update role, information contain: chinese name, introduction
+        by role md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_role_update_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}
+                ).json()
+            # check: length
+            if k == 'engname' and len(v) > 25:
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'engname' and len(v) > 25:
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'introduction' and len(v) > 55:
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            new_params[k] = str(v)
+
+        if new_params.get('engname') == ADMIN:
+            return Status(
+                213, 'failure', u'AMDIN角色为系统默认角色，不允许操作', {}
+            ).json()
+
+        # check engname is or not repeat
+        model = self.role_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在', {}
+            ).json()
+        # data is delete
+        if model and model.is_del:
+            return Status(
+                304, 'failure', '数据已删除，不允许更新', {}
+            ).json()
+
+        model.chnname = new_params.get('chnname')
+        model.introduction = new_params.get('introduction')
+        self.role_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def role_batch_delete(self, params):
+        """
+        batch delete many role data, from role table
+        post request and json parameters
+        :return: json data
+        """
+        pass
+
+    def role_delete(self, params):
+        """
+        one delete many role data
+        from role table
+        post request and json parameters
+        :return: json data
+        """
+        pass
