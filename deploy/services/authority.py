@@ -40,7 +40,7 @@ from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM, ADMIN
-from deploy.utils.utils import d2s, get_now, md5
+from deploy.utils.utils import d2s, get_now, md5, check_length
 
 
 class AuthorityService(object):
@@ -110,7 +110,8 @@ class AuthorityService(object):
             elif attr == 'authority':
                 res[attr] = model.authority
             elif attr == 'introduction':
-                res[attr] = model.introduction
+                res[attr] = model.introduction or '' \
+                    if len(model.introduction) < AUTH_NUM else '%s...查看详情' % str(model.introduction)[:AUTH_NUM-1]
             elif attr == 'create_time':
                 if model.create_time and isinstance(model.create_time, str):
                     res[attr] = model.create_time
@@ -209,15 +210,15 @@ class AuthorityService(object):
                     214, 'failure', u'请求参数%s为必须信息' % k, {}
                 ).json()
             # check: length
-            if k == 'engname' and len(v) > 25:
+            if k == 'engname' and not check_length(v, 25):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
-            elif k == 'engname' and len(v) > 25:
+            elif k == 'engname' and not check_length(v, 35):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
-            elif k == 'introduction' and len(v) > 55:
+            elif k == 'introduction' and not check_length(v, 55):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
@@ -270,15 +271,15 @@ class AuthorityService(object):
                     214, 'failure', u'请求参数%s为必须信息' % k, {}
                 ).json()
             # check: length
-            if k == 'engname' and len(v) > 25:
+            if k == 'engname' and not check_length(v, 25):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
-            elif k == 'engname' and len(v) > 25:
+            elif k == 'engname' and not check_length(v, 35):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
-            elif k == 'introduction' and len(v) > 55:
+            elif k == 'introduction' and not check_length(v, 55):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()

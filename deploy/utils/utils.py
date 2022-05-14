@@ -252,3 +252,16 @@ def filename2md5(rtx_id: str = None, file_name: str = None, _type: str = 'file')
         else file_name + get_now() + _type
     md5_v = md5(_v)
     return md5_v, md5_v + suffix if suffix else md5_v
+
+
+def check_length(data, limit=10):
+    """
+    check data length
+    :param data: check data
+    :param limit: length limit
+
+    return True or False
+    """
+    if not data:
+        return True
+    return True if len(data) <= limit else False

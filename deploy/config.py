@@ -113,7 +113,7 @@ SHEET_NAME_LIMIT = 85
 
 # authority
 AUTH_LIMIT = 15
-AUTH_NUM = 65
+AUTH_NUM = 45
 
 
 # others

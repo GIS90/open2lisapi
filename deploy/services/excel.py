@@ -51,7 +51,7 @@ from deploy.bo.enum import EnumBo
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     EXCEL_LIMIT, EXCEL_STORE_BK, \
     ADMIN, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
-from deploy.utils.utils import get_now, d2s, md5, s2d
+from deploy.utils.utils import get_now, d2s, md5, s2d, check_length
 from deploy.utils.enums import *
 
 
@@ -233,6 +233,12 @@ class ExcelService(object):
             - store_name: file store name
             - path: file store url, no have store base url
             - message: message
+
+        default value:
+            - numopr: number operation, default value is 0
+            - set_sheet: operation sheet index, default value is 0
+
+        excel headers from excel_lib get_headers methods
         """
         if not store:
             return False
@@ -275,6 +281,8 @@ class ExcelService(object):
             - message: message
             - compress: is or not compress file format
             - nfile: number file
+
+        excel headers from excel_lib get_headers methods
         """
         if not store:
             return False
@@ -318,6 +326,9 @@ class ExcelService(object):
     def _source_model_to_dict(self, model):
         """
         excel source model to dict
+        params model: source model object
+        attrs from class define attrs
+        return dict data
         """
         _res = dict()
         if not model:
@@ -379,6 +390,9 @@ class ExcelService(object):
     def _result_model_to_dict(self, model):
         """
         excel result model to dict
+        params model: result model object
+        attrs from class define attrs
+        return dict data
         """
         _res = dict()
         if not model:
@@ -457,7 +471,7 @@ class ExcelService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-            if k == 'type' and int(v) not in [EXCEL_MERGE, EXCEL_SPLIT]:
+            if k == 'type' and int(v) not in [int(EXCEL_MERGE), int(EXCEL_SPLIT)]:
                 return Status(
                     213, 'failure', u'请求参数type值不合法', {}
                 ).json()
@@ -662,6 +676,7 @@ class ExcelService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
+            # check: value is not null
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}
@@ -677,6 +692,10 @@ class ExcelService(object):
                 if new_names[-1] not in self.EXCEL_FORMAT:
                     return Status(
                         217, 'failure', u'文件格式只支持.xls、.xlsx', {}
+                    ).json()
+                if not check_length(v, 80):  # check: length
+                    return Status(
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}
                     ).json()
                 new_params[k] = str(v)
             else:
@@ -820,10 +839,17 @@ class ExcelService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
+            # check: value is not null
             if not v and k != 'blank':
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}
                 ).json()
+            # check: length
+            if k == 'name' and not check_length(v, 80):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+
             if k == 'list':
                 if not isinstance(v, list):
                     return Status(
@@ -981,6 +1007,10 @@ class ExcelService(object):
                 if new_names[-1] not in self.EXCEL_FORMAT:
                     return Status(
                         217, 'failure', u'文件格式只支持.xls、.xlsx', {}
+                    ).json()
+                if not check_length(v, 80):  # check: length
+                    return Status(
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}
                     ).json()
                 v = str(v)
             else:

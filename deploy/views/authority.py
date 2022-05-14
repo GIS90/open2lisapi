@@ -65,7 +65,7 @@ def role_list():
         params = request.get_json() or {}
         return AuthorityService().role_list(params)
     except Exception as e:
-        LOG.error("excel>role list is error: %s" % e)
+        LOG.error("authority>role list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -87,7 +87,7 @@ def role_add():
         params = request.get_json() or {}
         return AuthorityService().role_add(params)
     except Exception as e:
-        LOG.error("excel>role add is error: %s" % e)
+        LOG.error("authority>role add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -109,7 +109,7 @@ def role_update():
         params = request.get_json() or {}
         return AuthorityService().role_update(params)
     except Exception as e:
-        LOG.error("excel>role update is error: %s" % e)
+        LOG.error("authority>role update is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -132,7 +132,7 @@ def role_batch_delete():
         params = request.get_json() or {}
         return AuthorityService().role_batch_delete(params)
     except Exception as e:
-        LOG.error("excel>role batch delete is error: %s" % e)
+        LOG.error("authority>role batch delete is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -156,6 +156,6 @@ def role_delete():
         params = request.get_json() or {}
         return AuthorityService().role_delete(params)
     except Exception as e:
-        LOG.error("excel>role delete is error: %s" % e)
+        LOG.error("authority>role delete is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
