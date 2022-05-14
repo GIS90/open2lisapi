@@ -69,6 +69,16 @@ class AuthorityService(object):
         'introduction'
     ]
 
+    req_role_delete_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
+    req_role_deletes_attrs = [
+        'rtx_id',
+        'list'
+    ]
+
     list_attrs = [
         'id',
         'engname',
@@ -316,13 +326,96 @@ class AuthorityService(object):
         post request and json parameters
         :return: json data
         """
-        pass
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
 
-    def role_delete(self, params):
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_role_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'list':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+
+        all_data = self.role_bo.get_models_by_md5list(new_params.get('list'))
+        if not all_data:
+            return Status(
+                302, 'failure', u'请求删除数据不存在', {}
+            ).json()
+        for _d in all_data:
+            print(_d)
+            if not _d: continue
+            if _d.engname == ADMIN:
+                return Status(
+                    302, 'failure', u'Admin角色不允许操作，请重新选择', {}
+                ).json()
+
+        res = self.role_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
+
+
+def role_delete(self, params):
         """
         one delete many role data
         from role table
         post request and json parameters
         :return: json data
         """
-        pass
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_role_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            new_params[k] = str(v)
+
+        model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}
+            ).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}
+            ).json()
+        model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
+        self.role_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()

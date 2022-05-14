@@ -38,6 +38,8 @@ from sqlalchemy import or_
 from deploy.bo.bo_base import BOBase
 from deploy.models.role import RoleModel
 
+from deploy.utils.utils import get_now
+
 
 class RoleBo(BOBase):
 
@@ -81,3 +83,28 @@ class RoleBo(BOBase):
         q = self.session.query(RoleModel)
         q = q.filter(RoleModel.md5_id == md5)
         return q.first()
+
+    def get_models_by_md5list(self, md5_list):
+        if not md5_list:
+            return []
+        q = self.session.query(RoleModel)
+        q = q.filter(RoleModel.md5_id.in_(md5_list))
+        q = q.filter(RoleModel.is_del != 1)
+        return q.all()
+
+    def batch_delete_by_md5(self, params):
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(RoleModel)
+        q = q.filter(RoleModel.md5_id.in_(md5_list))
+        if rtx_id:
+            q = q.filter(RoleModel.create_rtx == rtx_id)
+        q = q.filter(RoleModel.is_del != 1)
+        q = q.update({RoleModel.is_del: True,
+                      RoleModel.delete_rtx: rtx_id,
+                      RoleModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q
