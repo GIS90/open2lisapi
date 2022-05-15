@@ -159,3 +159,49 @@ def role_delete():
         LOG.error("authority>role delete is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/tree/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def role_auth():
+    """
+    get the role authority list
+    :return: json data, authority is tree
+    get method
+    """
+    if request.method == 'POST':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.args or {}
+        return AuthorityService().role_auth_tere(params)
+    except Exception as e:
+        LOG.error("authority>role auth is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/savetree/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def role_save_tree():
+    """
+    save role authority from db table role
+    authority is list type, data is keys
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().role_save_tree(params)
+    except Exception as e:
+        LOG.error("authority>role save auth is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

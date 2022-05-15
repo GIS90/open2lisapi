@@ -34,12 +34,15 @@ Life is short, I use python.
 # usage: /usr/bin/python authority.py
 # ------------------------------------------------------------
 import datetime
+from operator import itemgetter
+from itertools import groupby
 
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
+from deploy.bo.menu import MenuBo
 
-from deploy.config import AUTH_LIMIT, AUTH_NUM, ADMIN
+from deploy.config import AUTH_LIMIT, AUTH_NUM, ADMIN, MENU_ONE_LEVEL
 from deploy.utils.utils import d2s, get_now, md5, check_length
 
 
@@ -79,12 +82,18 @@ class AuthorityService(object):
         'list'
     ]
 
-    list_attrs = [
+    req_role_auth_attrs = [
+        'rtx_id',
+        'md5',
+        'keys'
+    ]
+
+    role_list_attrs = [
         'id',
         'engname',
         'chnname',
         'md5_id',
-        'authority',
+        # 'authority', # 先不展示，因为是一个menu字符串
         'introduction',
         'create_time',
         'create_rtx',
@@ -99,6 +108,7 @@ class AuthorityService(object):
         """
         super(AuthorityService, self).__init__()
         self.role_bo = RoleBo()
+        self.menu_bo = MenuBo()
 
     def _role_model_to_dict(self, model):
         """
@@ -109,7 +119,7 @@ class AuthorityService(object):
             return {}
 
         res = dict()
-        for attr in self.list_attrs:
+        for attr in self.role_list_attrs:
             if not attr:continue
             if attr == 'engname':
                 res[attr] = model.engname
@@ -357,7 +367,6 @@ class AuthorityService(object):
                 302, 'failure', u'请求删除数据不存在', {}
             ).json()
         for _d in all_data:
-            print(_d)
             if not _d: continue
             if _d.engname == ADMIN:
                 return Status(
@@ -369,12 +378,126 @@ class AuthorityService(object):
             if res == len(new_params.get('list')) \
             else Status(303, 'failure', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
+    def role_delete(self, params):
+            """
+            one delete many role data
+            from role table
+            post request and json parameters
+            :return: json data
+            """
+            if not params:
+                return Status(
+                    212, 'failure', StatusMsgs.get(212), {}
+                ).json()
 
-def role_delete(self, params):
+            new_params = dict()
+            for k, v in params.items():
+                if not k: continue
+                if k not in self.req_role_delete_attrs:
+                    return Status(
+                        213, 'failure', u'请求参数%s不合法' % k, {}
+                    ).json()
+                if not v:
+                    return Status(
+                        214, 'failure', u'请求参数%s不允许为空' % k, {}
+                    ).json()
+                new_params[k] = str(v)
+
+            model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
+            # not exist
+            if not model:
+                return Status(
+                    302, 'failure', StatusMsgs.get(302), {}
+                ).json()
+            # data is deleted
+            if model and model.is_del:
+                return Status(
+                    306, 'failure', StatusMsgs.get(306), {}
+                ).json()
+            # authority
+            rtx_id = new_params.get('rtx_id')
+            if rtx_id != ADMIN and model.rtx_id != rtx_id:
+                return Status(
+                    311, 'failure', StatusMsgs.get(311), {}
+                ).json()
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.role_bo.merge_model(model)
+            return Status(
+                100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            ).json()
+
+    def role_auth_tere(self, params):
         """
-        one delete many role data
-        from role table
-        post request and json parameters
+        get the role authority list
+        :return: json data
+        authority is tree
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+        if not params.get('md5'):
+            return Status(
+                214, 'failure', '缺少md5请求参数', {}
+            ).json()
+
+        role_model = self.role_bo.get_model_by_md5(
+            md5=params.get('md5'))
+        # not exist
+        if not role_model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        # data is deleted
+        if role_model and role_model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}
+            ).json()
+        # authority
+        auths = str(role_model.authority).split(';') \
+            if role_model.authority else []
+        auth_list = [int(x) for x in auths if x]
+        all_menus = self.menu_bo.get_all(root=False)
+        # not menu data
+        if not all_menus:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {}
+            ).json()
+
+        _res = list()
+        template_list = list()
+        one_menus = dict()
+        one_menu_keys = list()  # 默认展开一级菜单，后续改成展开权限菜单
+        for menu in all_menus:
+            if not menu or menu.is_del \
+                    or not menu.id or not menu.title or not menu.level:
+                continue
+            _d = {'id': int(menu.id), 'pid': int(menu.pid), 'label': str(menu.title), 'disabled': False}
+            if int(menu.level) == MENU_ONE_LEVEL:
+                one_menus[menu.id] = _d
+            else:
+                template_list.append(_d)
+            if int(menu.level) == MENU_ONE_LEVEL:
+                one_menu_keys.append(int(menu.id))
+        template_list.sort(key=itemgetter('pid'))
+        for key, group in groupby(template_list, key=itemgetter('pid')):
+            if key in one_menus.keys():
+                _d = one_menus.get(key)
+                _d['children'] = list(group)
+                _res.append(_d)
+
+        del template_list
+        return Status(
+            100, 'success', StatusMsgs.get(100),
+            {"menus": _res, "auths": auth_list, "expand": auth_list}
+        ).json()
+
+    def role_save_tree(self, params):
+        """
+        save role authority from db table role
+        authority is list type, data is keys
         :return: json data
         """
         if not params:
@@ -385,7 +508,7 @@ def role_delete(self, params):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_role_delete_attrs:
+            if k not in self.req_role_auth_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
@@ -393,6 +516,13 @@ def role_delete(self, params):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}
                 ).json()
+            if k == 'keys':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                new_v = [str(i) for i in v]
+                v = ';'.join(new_v)
             new_params[k] = str(v)
 
         model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
@@ -407,14 +537,7 @@ def role_delete(self, params):
                 306, 'failure', StatusMsgs.get(306), {}
             ).json()
         # authority
-        rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
-            return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
+        model.authority = new_params.get('keys')
         self.role_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}

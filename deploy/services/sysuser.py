@@ -152,26 +152,6 @@ class SysUserService(object):
         user = self.sysuser_bo.get_user_by_token(token)
         return self._model_to_dict(user, _type='base') if user else user_res
 
-    def get_auth_by_rtx(self, rtx: str) -> dict:
-        """
-        get user auth by rtx id
-        获取用户前端sidebar菜单权限
-        """
-        user_res = dict()
-        if not rtx:
-            return user_res
-
-        user = self.sysuser_bo.get_auth_by_rtx(rtx)
-        if not user:
-            return user_res
-        user_res = self._model_to_dict(user, _type='auth')
-        # TODO
-        # 构思权限树
-        auth_list = [int(x) for x in user_res.get('authority').split(';') if x]
-        is_admin = True if user_res.get('rtx_id') == ADMIN else False
-        user_res['auth'] = self.menu_service.get_tree(auth_list, is_admin) or []
-        return user_res
-
     def get_login_by_token(self, token: str) -> dict:
         """
         get login user model by token
@@ -223,7 +203,7 @@ class SysUserService(object):
         auth_list = [int(x) for x in user_res.get('authority').split(';') if x]
         is_admin = True if user_res.get('rtx_id') == ADMIN \
             else False
-        user_auth = self.menu_service.get_tree(auth_list, is_admin) or []
+        user_auth = self.menu_service.get_routes(auth_list, is_admin) or []
         LOG.info('%s login auth rtx_id ==========' % user_res.get('rtx_id') or O_NOBN)
         return Status(
             100, 'success', StatusMsgs.get(100),

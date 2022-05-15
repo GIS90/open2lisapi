@@ -117,8 +117,8 @@ CREATE TABLE `menu`  (
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_rtx` varchar(25) COMMENT '创建人',
 	`is_del` bool  COMMENT '是否已删除',
-	`del_time` timestamp COMMENT '删除时间',
-	`del_rtx` varchar(25) COMMENT '删除操作人',
+	`delete_time` timestamp COMMENT '删除时间',
+	`delete_rtx` varchar(25) COMMENT '删除操作人',
   PRIMARY KEY (`id`),
   UNIQUE INDEX `menu_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
   UNIQUE INDEX `menu_name_index`(`name`) USING HASH COMMENT 'name唯一索引'
@@ -129,6 +129,8 @@ delete from menu;
 insert into
 menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `noCache`, `affix`, `breadcrumb`, `create_rtx`, `is_del`)
 VALUES
+-- root
+(0, '首页', 'Home', '/', 0, 0, '5ecb64c5576af2642f7eacb4679c8fda', 'layout', FALSE, '/', '', FALSE, FALSE, TRUE, 'admin', FALSE),
 -- 问题检索
 (1, '问题检索', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'i_search', FALSE, FALSE, TRUE, 'admin', FALSE),
 (2, '问题仓库', 'SearchProbase', 'probase', 1, 2, 'c97d41080c06a689936f1c665ea334b5', 'search_probase', FALSE, '', 'i_problem', FALSE, FALSE, TRUE, 'admin', FALSE),

@@ -37,8 +37,6 @@ from itertools import groupby
 
 from deploy.bo.menu import MenuBo
 from deploy.utils.utils import d2s
-from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
 from deploy.config import MENU_ROOT_ID, MENU_ONE_LEVEL
 
 
@@ -158,8 +156,10 @@ class MenuService(object):
         else:
             return menu
 
-    def get_tree(self, auth_list: list, is_admin: bool = False) -> list:
+    def get_routes(self, auth_list: list, is_admin: bool = False) -> list:
         """
+        get user routers by authority list
+        get_login_auth_by_rtx to use
         思路：
             1.依据role中的authority值获取菜单数据
             2.每一条菜单数据转为字段类型数据的菜单
@@ -199,5 +199,3 @@ class MenuService(object):
 
         del template_list
         return _res
-
-
