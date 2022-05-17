@@ -29,12 +29,15 @@ Life is short, I use python.
 """
 from deploy.bo.sysuser import SysUserBo
 from deploy.bo.menu import MenuBo
+from deploy.bo.role import RoleBo
 from deploy.services.menu import MenuService
 from deploy.utils.utils import d2s, get_now
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.logger import logger as LOG
-from deploy.config import ADMIN, O_NOBN, STORE_SPACE_NAME, STORE_BASE_URL
+from deploy.config import ADMIN, O_NOBN, \
+    STORE_SPACE_NAME, STORE_BASE_URL, \
+    USER_DEFAULT_AVATAR
 from deploy.utils.store_lib import StoreLib
 from deploy.utils.image_lib import ImageLib
 
@@ -48,13 +51,13 @@ class SysUserService(object):
         super(SysUserService, self).__init__()
         self.sysuser_bo = SysUserBo()
         self.menu_bo = MenuBo()
+        self.role_bo = RoleBo()
         self.menu_service = MenuService()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.image_lib = ImageLib()
         self.base_attrs = ['id', 'rtx_id', 'md5_id', 'fullname', 'password',
                            'email', 'phone', 'avatar', 'introduction', 'department', 'role']
         self.extend_attrs = ['create_time', 'create_rtx', 'is_del', 'delete_time', 'delete_rtx']
-        self.auth_attrs = ['authority', 'role_eng', 'role_chn']
         self.update_attrs = ['name', 'email', 'phone', 'avatar',
                              'introduction', 'department', 'role']
         self.password_attrs = ['old_password', 'new_password', 'con_password']
@@ -68,42 +71,34 @@ class SysUserService(object):
             return {}
         if _type == 'base':
             attrs = self.base_attrs
-        elif _type == 'auth':
-            attrs = self.base_attrs + self.auth_attrs
         elif _type == 'all':
-            attrs = self.base_attrs + self.auth_attrs + self.extend_attrs
+            attrs = self.base_attrs + self.extend_attrs
         else:
             attrs = self.base_attrs
         _res = dict()
         for attr in attrs:
             if attr == 'id':
-                _res[attr] = model.id or ""
+                _res[attr] = model.id
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id or ""
+                _res[attr] = model.rtx_id
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id or ""
+                _res[attr] = model.md5_id
             elif attr == 'fullname':
-                _res['name'] = model.fullname or ""
+                _res['name'] = model.fullname
             elif attr == 'password':
-                _res[attr] = model.password or ""
+                _res[attr] = model.password
             elif attr == 'email':
                 _res[attr] = model.email or ""
             elif attr == 'phone':
                 _res[attr] = model.phone or ""
             elif attr == 'avatar':
-                _res[attr] = model.avatar or ""
+                _res[attr] = model.avatar or USER_DEFAULT_AVATAR
             elif attr == 'introduction':
                 _res[attr] = model.introduction or ""
             elif attr == 'department':
                 _res[attr] = model.department or ""
-            elif attr == 'role':
-                _res[attr] = model.role or ""
-            elif attr == 'role_eng':
-                _res[attr] = model.role_eng or ""
-            elif attr == 'role_chn':
-                _res[attr] = model.role_chn or ""
-            elif attr == 'authority':
-                _res[attr] = model.authority or ""
+            elif attr == 'role':    # 多角色，存储role的engname，也就是role的rtx_id
+                _res[attr] = str(model.role).split(';') if model.role else []
             elif attr == 'create_time':
                 _res[attr] = d2s(model.create_time) \
                     if not isinstance(model.create_time, str) else model.create_time or ''
@@ -157,21 +152,25 @@ class SysUserService(object):
         get login user model by token
         token: user token
         """
+        # no token
         if not token:
             return Status(
                 200, 'failure', StatusMsgs.get(200) or u'用户未登录', {}
             ).json()
         user_model = self.get_user_by_token(token, is_vue=True)
+        # user model is not exist
         if not user_model:
             return Status(
                 302, 'failure', StatusMsgs.get(202) or u'用户未注册', {}
             ).json()
+        # user model is deleted
         if user_model.get('is_del'):
             return Status(
                 302, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
             ).json()
 
         LOG.info('%s login info rtx_id ==========' % user_model.get('rtx_id') or O_NOBN)
+        # delete password information
         if user_model.get('password'):
             del user_model['password']
         return Status(
@@ -184,25 +183,39 @@ class SysUserService(object):
         get login auth model by rtx
         rtx_id: user rtx id
         """
+        # not rtx_id parameter, return
         if not rtx_id:
             return Status(
                 212, 'failure', u'缺少rtx_id请求参数', {}
             ).json()
         rtx_id = rtx_id.strip()  # 去空格
+        # get user by rtx
         user = self.sysuser_bo.get_auth_by_rtx(rtx_id)
+        # user model is not exist
         if not user:
             return Status(
                 202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}
             ).json()
-        user_res = self._model_to_dict(user, _type='auth')
+        # user model is deleted
+        user_res = self._model_to_dict(user, _type='base')
         if user_res.get('is_del'):
             return Status(
                 203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
             ).json()
-
-        auth_list = [int(x) for x in user_res.get('authority').split(';') if x]
+        # 判断是否管理员，如果是管理员是全部菜单权限
         is_admin = True if user_res.get('rtx_id') == ADMIN \
             else False
+        auth_list = list()
+        if not is_admin:
+            # get authority by role list
+            # user is admin, not get role, all authority menu
+            role_models = self.role_bo.get_models_by_engnames(user_res.get('role'))
+            auth_list_str = ''
+            for _r in role_models:
+                if not _r or not _r.authority: continue
+                auth_list_str += _r.authority
+            auth_list = [int(x) for x in auth_list_str.split(';') if x]
+        # get authority menu tree
         user_auth = self.menu_service.get_routes(auth_list, is_admin) or []
         LOG.info('%s login auth rtx_id ==========' % user_res.get('rtx_id') or O_NOBN)
         return Status(
@@ -215,6 +228,7 @@ class SysUserService(object):
         update user info by rtx id
         data: user info data
         """
+        # check parameters
         if not data:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
@@ -239,6 +253,7 @@ class SysUserService(object):
                 new_data[k] = v
 
         user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
+        # user model is not exist
         if not user_model:
             return Status(
                 302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}
@@ -248,6 +263,7 @@ class SysUserService(object):
             setattr(user_model, _k, _v)
         self.sysuser_bo.merge_model_no_trans(user_model)
         new_user_model = self._model_to_dict(user_model) or {}
+        # delete password information
         if new_user_model.get('password'):
             del new_user_model['password']
         return Status(
@@ -259,6 +275,7 @@ class SysUserService(object):
         update user password by rtx id
         data: user password data
         """
+        # check parameters
         if not data:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
@@ -286,6 +303,7 @@ class SysUserService(object):
             return Status(
                 302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}
             ).json()
+        # 老密码、新密码、确认密码进行验证
         old_password = new_data.get('old_password')
         new_password = new_data.get('new_password')
         con_password = new_data.get('con_password')
@@ -312,6 +330,7 @@ class SysUserService(object):
         rtx_id: user rtx id
         avatar: user avatar
         """
+        # check parameters
         if not rtx_id:
             return Status(
                 212, 'failure', u'缺少rtx_id请求参数', {}

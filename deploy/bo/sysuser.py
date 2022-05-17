@@ -65,52 +65,22 @@ class SysUserBo(BOBase):
         q = q.filter(SysUserModel.md5_id == token)
         return q.first() if q.first() else None
 
-    def get_auth_by_token(self, token):
-        if not token:
-            return None
-        q = self.session.query(SysUserModel.id,
-                               SysUserModel.rtx_id,
-                               SysUserModel.md5_id,
-                               SysUserModel.fullname,
-                               SysUserModel.password,
-                               SysUserModel.email,
-                               SysUserModel.phone,
-                               SysUserModel.avatar,
-                               SysUserModel.introduction,
-                               SysUserModel.department,
-                               SysUserModel.role,
-                               SysUserModel.create_time,
-                               SysUserModel.is_del,
-                               SysUserModel.delete_time,
-                               SysUserModel.delete_rtx,
-                               RoleModel.engname.label('role_eng'),
-                               RoleModel.chnname.label('role_chn'),
-                               RoleModel.authority)
-        q = q.filter(SysUserModel.role == RoleModel.md5_id)
-        q = q.filter(SysUserModel.md5_id == token)
-        return q.first() if q.first() else None
-
     def get_auth_by_rtx(self, rtx_id):
         if not rtx_id:
             return None
-        q = self.session.query(SysUserModel.id,
-                               SysUserModel.rtx_id,
-                               SysUserModel.md5_id,
-                               SysUserModel.fullname,
-                               SysUserModel.password,
-                               SysUserModel.email,
-                               SysUserModel.phone,
-                               SysUserModel.avatar,
-                               SysUserModel.introduction,
-                               SysUserModel.department,
-                               SysUserModel.role,
-                               SysUserModel.create_time,
-                               SysUserModel.is_del,
-                               SysUserModel.delete_time,
-                               SysUserModel.delete_rtx,
-                               RoleModel.engname.label('role_eng'),
-                               RoleModel.chnname.label('role_chn'),
-                               RoleModel.authority)
-        q = q.filter(SysUserModel.role == RoleModel.md5_id)
+        q = self.session.query(SysUserModel)
         q = q.filter(SysUserModel.rtx_id == rtx_id)
         return q.first() if q.first() else None
+
+    def get_all(self, params):
+        q = self.session.query(SysUserModel)
+        q = q.filter(SysUserModel.is_del != True)
+        if not q:
+            return [], 0
+        total = len(q.all())
+        q = q.order_by(SysUserModel.create_time.desc())
+        if params.get('offset'):
+            q = q.offset(params.get('offset'))
+        if params.get('limit'):
+            q = q.limit(params.get('limit'))
+        return q.all(), total

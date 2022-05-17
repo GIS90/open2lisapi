@@ -108,3 +108,11 @@ class RoleBo(BOBase):
                       RoleModel.delete_time: get_now()},
                      synchronize_session=False)
         return q
+
+    def get_models_by_engnames(self, engname_list):
+        if not engname_list:
+            return []
+        q = self.session.query(RoleModel)
+        q = q.filter(RoleModel.engname.in_(engname_list))
+        q = q.filter(RoleModel.is_del != True)
+        return q.all()

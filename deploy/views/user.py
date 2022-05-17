@@ -4,8 +4,21 @@
 ------------------------------------------------
 
 describe:
-    user views
-    用户API
+    login user views
+    登录用户相关的API
+    主要有：
+        info: 用户基础信息
+        auth: 用户权限
+        update: 更新用户信息
+        timeline: 用户操作信息
+        password: 更新密码
+        avatar: 更新用户头像
+
+    权限初始化过程：
+        info -> auth
+        登录的时候先请求manage(login)获取用户token
+        通过token获取用户信息，前端存储role
+        用过rtx_id获取菜单权限
 
 base_info:
     __author__ = "PyGo"
@@ -95,7 +108,7 @@ def auth():
     except Exception as e:
         LOG.error("user>auth is error: %s" % e)
         return Status(501, 'failure',
-            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @user.route('/update/', methods=['GET', 'POST'], strict_slashes=False)

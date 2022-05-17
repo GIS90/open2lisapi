@@ -41,6 +41,7 @@ from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
 from deploy.bo.menu import MenuBo
+from deploy.bo.sysuser import SysUserBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM, ADMIN, MENU_ONE_LEVEL
 from deploy.utils.utils import d2s, get_now, md5, check_length
@@ -102,6 +103,12 @@ class AuthorityService(object):
         'is_del'
     ]
 
+    req_user_list_attrs = [
+        'rtx_id',
+        'limit',
+        'offset'
+    ]
+
     def __init__(self):
         """
         authority service class initialize
@@ -109,6 +116,7 @@ class AuthorityService(object):
         super(AuthorityService, self).__init__()
         self.role_bo = RoleBo()
         self.menu_bo = MenuBo()
+        self.sysuser_bo = SysUserBo()
 
     def _role_model_to_dict(self, model):
         """
@@ -541,4 +549,53 @@ class AuthorityService(object):
         self.role_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def user_list(self, params):
+        """
+        get user list, many parameters: limit, offset
+        return json data
+
+        default get user is no delete
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_user_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v and k != 'offset':
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}
+                ).json()
+            if k == 'limit':
+                v = int(v) if v else AUTH_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            else:
+                v = str(v)
+            new_params[k] = v
+
+        res, total = self.sysuser_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
+            ).json()
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._role_model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
