@@ -43,7 +43,9 @@ from deploy.bo.role import RoleBo
 from deploy.bo.menu import MenuBo
 from deploy.bo.sysuser import SysUserBo
 
-from deploy.config import AUTH_LIMIT, AUTH_NUM, ADMIN, MENU_ONE_LEVEL
+from deploy.config import AUTH_LIMIT, AUTH_NUM, \
+    ADMIN, MENU_ONE_LEVEL, \
+    USER_DEFAULT_AVATAR, USER_DEFAULT_PASSWORD
 from deploy.utils.utils import d2s, get_now, md5, check_length
 
 
@@ -109,6 +111,36 @@ class AuthorityService(object):
         'offset'
     ]
 
+    user_list_attrs = [
+        'id',
+        'rtx_id',
+        'md5_id',
+        'fullname',
+        'password',
+        'email',
+        'phone',
+        'avatar',
+        'introduction',
+        'department',
+        'role',
+        'create_time',
+        'create_rtx',
+        'delete_time',
+        'delete_rtx',
+        'is_del'
+    ]
+
+    req_user_add_attrs = [
+        'add_rtx_id',
+        'rtx_id',
+        'name',
+        'phone',
+        'password',
+        'email',
+        'role',
+        'introduction'
+    ]
+
     def __init__(self):
         """
         authority service class initialize
@@ -139,7 +171,8 @@ class AuthorityService(object):
                 res[attr] = model.authority
             elif attr == 'introduction':
                 res[attr] = model.introduction or '' \
-                    if len(model.introduction) < AUTH_NUM else '%s...查看详情' % str(model.introduction)[:AUTH_NUM-1]
+                    if len(model.introduction) < AUTH_NUM \
+                    else '%s...查看详情' % str(model.introduction)[:AUTH_NUM-1]
             elif attr == 'create_time':
                 if model.create_time and isinstance(model.create_time, str):
                     res[attr] = model.create_time
@@ -162,6 +195,62 @@ class AuthorityService(object):
                 res[attr] = model.is_del
         else:
             return res
+
+    def _user_model_to_dict(self, model, is_pass=False):
+        """
+        role model to dict data
+        return json data
+
+        is_pass: is or not need password
+        """
+        if not model:
+            return {}
+
+        _res = dict()
+        for attr in self.user_list_attrs:
+            if not attr: continue
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'fullname':
+                _res['name'] = model.fullname
+            elif attr == 'password' and is_pass:
+                _res[attr] = model.password
+            elif attr == 'email':
+                _res[attr] = model.email or ""
+            elif attr == 'phone':
+                _res[attr] = model.phone or ""
+            elif attr == 'avatar':
+                _res[attr] = model.avatar or USER_DEFAULT_AVATAR
+            elif attr == 'introduction':
+                _res[attr] = '%s...查看详情' % str(model.introduction)[0: AUTH_NUM-1] \
+                    if model.introduction and len(model.introduction) > AUTH_NUM \
+                    else model.introduction or ""
+            elif attr == 'department':
+                _res[attr] = model.department or ""
+            elif attr == 'role':  # 多角色，存储role的engname，也就是role的rtx_id
+                _res[attr] = str(model.role).split(';') if model.role else []
+            elif attr == 'create_time':
+                _res[attr] = d2s(model.create_time) \
+                    if not isinstance(model.create_time, str) else model.create_time or ''
+            elif attr == 'create_rtx':
+                _res[attr] = model.create_rtx or ''
+            elif attr == 'is_del':
+                _res[attr] = True if model.is_del else False
+            elif attr == 'delete_time':
+                if not isinstance(model.delete_time, str):
+                    _res[attr] = d2s(model.delete_time)
+                elif isinstance(model.delete_time, str) and model.delete_time == '0000-00-00 00:00:00':
+                    _res[attr] = ''
+                else:
+                    _res[attr] = model.delete_time or ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx or ""
+        else:
+            return _res
 
     def role_list(self, params):
         """
@@ -551,6 +640,25 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
+    def role_select_list(self):
+        """
+        get role list select, no parameters
+        data type: [{key, value}]
+        :return: json data
+        """
+        res = self.role_bo.get_select_all()
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
+            ).json()
+        new_res = list()
+        for _d in res:
+            if not _d or not _d.engname or not _d.chnname: continue
+            new_res.append({'key': _d.engname, 'value': _d.chnname})
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': len(new_res)}
+        ).json()
+
     def user_list(self, params):
         """
         get user list, many parameters: limit, offset
@@ -582,20 +690,105 @@ class AuthorityService(object):
                 v = str(v)
             new_params[k] = v
 
-        res, total = self.sysuser_bo.get_all(new_params)
+        res, total = self.sysuser_bo.get_all(new_params, is_admin=False)
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
             ).json()
         new_res = list()
-        n = 1
         for _d in res:
             if not _d: continue
-            _res_dict = self._role_model_to_dict(_d)
+            _res_dict = self._user_model_to_dict(_d)
             if _res_dict:
-                _res_dict['id'] = n
                 new_res.append(_res_dict)
-                n += 1
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def user_add(self, params):
+        """
+        add new user, information contain: rtx_id, name, phone,
+        email, password, role, introduction
+        add_rtx_id: 添加用户的账号rtx
+        :return: json data
+
+        new data:
+        头像采用随机头像
+        密码有个默认密码，在config中配置
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_user_add_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            # check: value is not null
+            if not v and k not in ['password', 'email', 'introduction']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}
+                ).json()
+            # check: length
+            if k == 'rtx_id' and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'name' and not check_length(v, 30):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'phone' and len(v) != 11:
+                return Status(
+                    213, 'failure', u'正确电话为11位' % k, {}
+                ).json()
+            elif k == 'email' and not check_length(v, 35):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'introduction' and not check_length(v, 255):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            # check: role
+            if k == 'role':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                # TODO 可以加上role验证
+                new_params[k] = ';'.join(v)
+            else:
+                new_params[k] = str(v)
+
+        # check rtx_id is or not exist
+        model = self.sysuser_bo.get_user_by_rtx_id(new_params.get('rtx_id'))
+        if model:
+            return Status(
+                213, 'failure', '用户RTX已存在，请重新输入', {}
+            ).json()
+
+        new_model = self.sysuser_bo.new_mode()
+        new_model.rtx_id = new_params.get('rtx_id')
+        new_model.fullname = new_params.get('name')
+        md5_id = md5(new_params.get('rtx_id'))
+        new_model.md5_id = md5_id
+        new_model.password = new_params.get('password') or USER_DEFAULT_PASSWORD
+        new_model.phone = new_params.get('phone') or ""
+        new_model.email = new_params.get('email') or ""
+        new_model.avatar = USER_DEFAULT_AVATAR
+        new_model.department = ""
+        new_model.role = new_params.get('role') or ""
+        new_model.introduction = new_params.get('introduction') or ""
+        new_model.create_time = get_now()
+        new_model.create_rtx = new_params.get('add_rtx_id')
+        new_model.is_del = False
+        self.role_bo.add_model(new_model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()

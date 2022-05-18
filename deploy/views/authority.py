@@ -207,6 +207,28 @@ def role_save_tree():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
+@auth.route('/roleselect/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def role_select_list():
+    """
+    get role list select, no parameters
+    data type: [{key, value}]
+    :return: json data
+    """
+    if request.method == 'POST':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 无参数
+        return AuthorityService().role_select_list()
+    except Exception as e:
+        LOG.error("authority>role select list is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
 @auth.route('/user/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_list():
@@ -226,5 +248,27 @@ def user_list():
         return AuthorityService().user_list(params)
     except Exception as e:
         LOG.error("authority>user list is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/adduser/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def user_add():
+    """
+    add new user
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().user_add(params)
+    except Exception as e:
+        LOG.error("authority>user add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

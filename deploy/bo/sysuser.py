@@ -31,7 +31,8 @@ from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.sysuser import SysUserModel
-from deploy.models.role import RoleModel
+
+from deploy.config import ADMIN
 
 
 class SysUserBo(BOBase):
@@ -72,9 +73,10 @@ class SysUserBo(BOBase):
         q = q.filter(SysUserModel.rtx_id == rtx_id)
         return q.first() if q.first() else None
 
-    def get_all(self, params):
+    def get_all(self, params, is_admin=False):
         q = self.session.query(SysUserModel)
-        q = q.filter(SysUserModel.is_del != True)
+        if not is_admin:
+            q = q.filter(SysUserModel.rtx_id != ADMIN)
         if not q:
             return [], 0
         total = len(q.all())

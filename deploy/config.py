@@ -84,7 +84,7 @@ MAIL_PASSWORD = None
 
 # user
 USER_DEFAULT_AVATAR = 'http://pygo2.top/images/article_w.jpg'
-USER_DEFAULT_PASSWORD = '1qaz@WSX'
+USER_DEFAULT_PASSWORD = 'abc1234'
 USER_DEFAULT_TIMELINE = 6
 
 # store

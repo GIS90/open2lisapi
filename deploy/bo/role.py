@@ -116,3 +116,8 @@ class RoleBo(BOBase):
         q = q.filter(RoleModel.engname.in_(engname_list))
         q = q.filter(RoleModel.is_del != True)
         return q.all()
+
+    def get_select_all(self):
+        q = self.session.query(RoleModel)
+        q = q.filter(RoleModel.is_del != True)
+        return q.all()

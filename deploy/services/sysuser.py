@@ -203,7 +203,7 @@ class SysUserService(object):
                 203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
             ).json()
         # 判断是否管理员，如果是管理员是全部菜单权限
-        is_admin = True if user_res.get('rtx_id') == ADMIN \
+        is_admin = True if ADMIN in user_res.get('role')\
             else False
         auth_list = list()
         if not is_admin:
