@@ -33,6 +33,7 @@ from deploy.bo.bo_base import BOBase
 from deploy.models.sysuser import SysUserModel
 
 from deploy.config import ADMIN
+from deploy.utils.utils import get_now
 
 
 class SysUserBo(BOBase):
@@ -86,3 +87,25 @@ class SysUserBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all(), total
+
+    def get_models_by_md5_list(self, md5_list):
+        if not md5_list:
+            return []
+        q = self.session.query(SysUserModel)
+        q = q.filter(SysUserModel.md5_id.in_(md5_list))
+        return q.all()
+
+    def batch_delete_by_md5_list(self, params):
+        if not params.get('list'):
+            return 0
+
+        rtx_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(SysUserModel)
+        q = q.filter(SysUserModel.md5_id.in_(rtx_list))
+        q = q.filter(SysUserModel.is_del != 1)
+        q = q.update({SysUserModel.is_del: True,
+                      SysUserModel.delete_rtx: rtx_id,
+                      SysUserModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q

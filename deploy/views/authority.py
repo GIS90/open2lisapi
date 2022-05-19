@@ -272,3 +272,117 @@ def user_add():
         LOG.error("authority>user add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/userinfo/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def user_info():
+    """
+    get user detail information
+    :return: json data
+    """
+    if request.method == 'POST':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.args or {}
+        return AuthorityService().user_info(params)
+    except Exception as e:
+        LOG.error("authority>user info is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/mdeluser/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def user_batch_delete():
+    """
+    batch delete many user data, from sysuser table
+    post request and json parameters
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().user_batch_delete(params)
+    except Exception as e:
+        LOG.error("authority>user batch delete is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/userstatus/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def user_status():
+    """
+    change user data status
+    from user table
+    post request and json parameters
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().user_status(params)
+    except Exception as e:
+        LOG.error("authority>user change status is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/updateuser/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def user_update():
+    """
+    update exist user by rtx id
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().user_update(params)
+    except Exception as e:
+        LOG.error("authority>user update is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/userrp/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def user_reset_pw():
+    """
+    reset user password
+    default is abc1234
+    :return: json data
+    """
+    if request.method == 'POST':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.args or {}
+        return AuthorityService().user_reset_pw(params)
+    except Exception as e:
+        LOG.error("authority>user info is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

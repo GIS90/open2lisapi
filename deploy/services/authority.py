@@ -34,6 +34,7 @@ Life is short, I use python.
 # usage: /usr/bin/python authority.py
 # ------------------------------------------------------------
 import datetime
+import json
 from operator import itemgetter
 from itertools import groupby
 
@@ -45,7 +46,7 @@ from deploy.bo.sysuser import SysUserBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM, \
     ADMIN, MENU_ONE_LEVEL, \
-    USER_DEFAULT_AVATAR, USER_DEFAULT_PASSWORD
+    USER_DEFAULT_AVATAR, USER_DEFAULT_PASSWORD, USER_DEFAULT_INTROD
 from deploy.utils.utils import d2s, get_now, md5, check_length
 
 
@@ -141,6 +142,27 @@ class AuthorityService(object):
         'introduction'
     ]
 
+    req_user_status_attrs = [
+        'rtx_id',
+        'c_rtx_id',
+        'status'
+    ]
+
+    req_user_deletes_attrs = [
+        'rtx_id',
+        'list'
+    ]
+
+    req_user_update_attrs = [
+        'to_rtx_id',
+        'rtx_id',
+        'name',
+        'phone',
+        'email',
+        'role',
+        'introduction'
+    ]
+
     def __init__(self):
         """
         authority service class initialize
@@ -196,12 +218,13 @@ class AuthorityService(object):
         else:
             return res
 
-    def _user_model_to_dict(self, model, is_pass=False):
+    def _user_model_to_dict(self, model, is_pass=False, is_detail=False):
         """
         role model to dict data
         return json data
 
         is_pass: is or not need password
+        is_detail: is or not need detail, 主要用于是否超出字符限制
         """
         if not model:
             return {}
@@ -226,9 +249,12 @@ class AuthorityService(object):
             elif attr == 'avatar':
                 _res[attr] = model.avatar or USER_DEFAULT_AVATAR
             elif attr == 'introduction':
-                _res[attr] = '%s...查看详情' % str(model.introduction)[0: AUTH_NUM-1] \
-                    if model.introduction and len(model.introduction) > AUTH_NUM \
-                    else model.introduction or ""
+                if not is_detail:
+                    _res[attr] = '%s...查看详情' % str(model.introduction)[0: AUTH_NUM-1] \
+                        if model.introduction and len(model.introduction) > AUTH_NUM \
+                        else model.introduction or ""
+                else:
+                    _res[attr] = model.introduction or ""
             elif attr == 'department':
                 _res[attr] = model.department or ""
             elif attr == 'role':  # 多角色，存储role的engname，也就是role的rtx_id
@@ -784,11 +810,266 @@ class AuthorityService(object):
         new_model.avatar = USER_DEFAULT_AVATAR
         new_model.department = ""
         new_model.role = new_params.get('role') or ""
-        new_model.introduction = new_params.get('introduction') or ""
+        new_model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD
         new_model.create_time = get_now()
         new_model.create_rtx = new_params.get('add_rtx_id')
         new_model.is_del = False
+        new_model.delete_time = ''
         self.role_bo.add_model(new_model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
+        ).json()
+
+    def user_batch_delete(self, params):
+        """
+        batch delete many user data, from sysuser table
+        post request and json parameters
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_user_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'list':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+
+        all_data = self.sysuser_bo.get_models_by_md5_list(new_params.get('list'))
+        if not all_data:
+            return Status(
+                302, 'failure', u'注销用户不存在', {}
+            ).json()
+        for _d in all_data:
+            if not _d: continue
+            if _d.rtx_id == ADMIN:
+                return Status(
+                    302, 'failure', u'Admin用户不允许注销，请重新选择', {}
+                ).json()
+
+        res = self.sysuser_bo.batch_delete_by_md5_list(params=new_params)
+        return Status(100, 'success', '用户注销成功' or StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure', "成功：%s，失败：%s" % (res, (len(new_params.get('list')) - res)), {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
+
+    def user_status(self, params):
+        """
+        one change user data status
+        from user table
+        post request and json parameters
+        :return: json data
+
+        状态改变：
+        true：注销
+        false：启用
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_user_status_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v and k != 'status':
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'status':
+                if not isinstance(v, bool):
+                    return Status(
+                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}
+                    ).json()
+                new_params[k] = v
+            else:
+                new_params[k] = str(v)
+
+        model = self.sysuser_bo.get_user_by_rtx_id(rtx_id=new_params.get('c_rtx_id'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '用户不存在' or StatusMsgs.get(302), {}
+            ).json()
+        # change status
+        model.is_del = new_params.get('status')
+        if new_params.get('status'):
+            model.delete_rtx = new_params.get('rtx_id')
+            model.delete_time = get_now()
+        self.role_bo.merge_model(model)
+        message = '用户注销成功' if new_params.get('status') else '用户启用成功'
+        return Status(
+            100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def user_info(self, params):
+        """
+        get user detail information
+        by rtx id
+        :return: json data
+
+        data:
+            - user base info
+            - role list (select)
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        rtx_id = params.get('rtx_id')
+        # check rtx_id is or not exist
+        model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '用户不存在' or StatusMsgs.get(302), {}
+            ).json()
+        # deleted: 先查看启用、注销2种状态的数据
+        # if model and model.is_del:
+        #     return Status(
+        #         302, 'failure', '用户已注销' or StatusMsgs.get(302), {}
+        #     ).json()
+
+        # user base info
+        model_res = self._user_model_to_dict(model, is_pass=False, is_detail=True)
+        # role select list
+        roles_res = json.loads(self.role_select_list()) or {}
+        model_res['roles'] = roles_res.get('data').get('list') or [] \
+            if roles_res.get('status_id') == 100 else []
+        return Status(
+            100, 'success', StatusMsgs.get(100), model_res
+        ).json()
+
+    def user_update(self, params):
+        """
+        update user, information contain:
+            - name
+            - phone
+            - email
+            - role
+            - introduction
+        by user rtx id
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_user_update_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            # check: value is not null
+            if not v and k not in ['email', 'introduction']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}
+                ).json()
+            # check: length
+            if k == 'name' and not check_length(v, 30):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'phone' and len(v) != 11:
+                return Status(
+                    213, 'failure', u'正确电话为11位' % k, {}
+                ).json()
+            elif k == 'email' and not check_length(v, 35):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'introduction' and not check_length(v, 255):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            # check: role
+            if k == 'role':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                # TODO 可以加上role验证
+                new_params[k] = ';'.join(v)
+            else:
+                new_params[k] = str(v)
+
+        print('*' * 100)
+        print(new_params)
+        model = self.sysuser_bo.get_user_by_rtx_id(new_params.get('to_rtx_id'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在', {}
+            ).json()
+        # data is delete: 注销 && 启用状态均可以更新
+        # if model and model.is_del:
+        #     return Status(
+        #         304, 'failure', '数据已删除，不允许更新', {}
+        #     ).json()
+
+        model.fullname = new_params.get('name')
+        model.phone = new_params.get('phone')
+        model.email = new_params.get('email')
+        model.role = new_params.get('role')
+        model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD
+        self.role_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}
+        ).json()
+
+    def user_reset_pw(self, params):
+        """
+        reset user password
+        default is abc1234
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        rtx_id = params.get('rtx_id')
+        # check rtx_id is or not exist
+        model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '用户不存在' or StatusMsgs.get(302), {}
+            ).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '用户已注销' or StatusMsgs.get(302), {}
+            ).json()
+
+        # reset password
+        model.password = USER_DEFAULT_PASSWORD
+        self.role_bo.merge_model(model)
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}
         ).json()

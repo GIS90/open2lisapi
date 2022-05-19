@@ -86,6 +86,7 @@ MAIL_PASSWORD = None
 USER_DEFAULT_AVATAR = 'http://pygo2.top/images/article_w.jpg'
 USER_DEFAULT_PASSWORD = 'abc1234'
 USER_DEFAULT_TIMELINE = 6
+USER_DEFAULT_INTROD = "这家伙很懒，什么也没留下......"
 
 # store
 _CACHE = '/static/cache'
@@ -118,7 +119,6 @@ AUTH_NUM = 45
 
 # others
 NOBN = 'NoNameBody'
-
 
 """
 enrty: initializate config
