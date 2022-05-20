@@ -20,6 +20,8 @@ describe:
         通过token获取用户信息，前端存储role
         用过rtx_id获取菜单权限
 
+    目前token使用的是rtx_id的md5值，后期可以使用token验证，预留接口
+
 base_info:
     __author__ = "PyGo"
     __time__ = "2022/2/20 9:53 上午"
@@ -157,7 +159,10 @@ def timeline():
 @timeer
 def password():
     """
-    update user password
+    update user password, password contain:
+        - new password
+        - confirm password
+        - old password
     :return: json data
     """
     if request.method == 'GET':

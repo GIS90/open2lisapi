@@ -1017,8 +1017,6 @@ class AuthorityService(object):
             else:
                 new_params[k] = str(v)
 
-        print('*' * 100)
-        print(new_params)
         model = self.sysuser_bo.get_user_by_rtx_id(new_params.get('to_rtx_id'))
         # not exist
         if not model:

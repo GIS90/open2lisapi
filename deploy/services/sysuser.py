@@ -31,7 +31,7 @@ from deploy.bo.sysuser import SysUserBo
 from deploy.bo.menu import MenuBo
 from deploy.bo.role import RoleBo
 from deploy.services.menu import MenuService
-from deploy.utils.utils import d2s, get_now
+from deploy.utils.utils import d2s, get_now, check_length
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.logger import logger as LOG
@@ -58,8 +58,7 @@ class SysUserService(object):
         self.base_attrs = ['id', 'rtx_id', 'md5_id', 'fullname', 'password',
                            'email', 'phone', 'avatar', 'introduction', 'department', 'role']
         self.extend_attrs = ['create_time', 'create_rtx', 'is_del', 'delete_time', 'delete_rtx']
-        self.update_attrs = ['name', 'email', 'phone', 'avatar',
-                             'introduction', 'department', 'role']
+        self.update_attrs = ['name', 'email', 'phone', 'introduction']
         self.password_attrs = ['old_password', 'new_password', 'con_password']
 
     def _model_to_dict(self, model, _type: str = 'base') -> dict:
@@ -178,6 +177,7 @@ class SysUserService(object):
         # delete password information
         if user_model.get('password'):
             del user_model['password']
+
         return Status(
             100, 'success', StatusMsgs.get(100),
             {'user': user_model, 'token': token} or {}
@@ -208,6 +208,7 @@ class SysUserService(object):
                 203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
             ).json()
         # 判断是否管理员，如果是管理员是全部菜单权限
+        # 多角色，if包含管理员，直接是管理员权限
         is_admin = True if ADMIN in user_res.get('role')\
             else False
         auth_list = list()
@@ -220,6 +221,7 @@ class SysUserService(object):
                 if not _r or not _r.authority: continue
                 auth_list_str += _r.authority
             auth_list = [int(x) for x in auth_list_str.split(';') if x]
+            auth_list = list(set(auth_list))    # 去重
         # get authority menu tree
         user_auth = self.menu_service.get_routes(auth_list, is_admin) or []
         LOG.info('%s login auth rtx_id ==========' % user_res.get('rtx_id') or O_NOBN)
@@ -250,6 +252,28 @@ class SysUserService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
+            # check: value is not null
+            if not v and k not in ['email', 'introduction']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}
+                ).json()
+            # check: length
+            if k == 'name' and not check_length(v, 30):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'phone' and len(v) != 11:
+                return Status(
+                    213, 'failure', u'正确电话为11位' % k, {}
+                ).json()
+            elif k == 'email' and not check_length(v, 35):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
+            elif k == 'introduction' and not check_length(v, 255):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}
+                ).json()
             if k == 'name':
                 new_data['fullname'] = v
             elif k == 'rtx_id':
@@ -277,7 +301,10 @@ class SysUserService(object):
 
     def update_password_by_rtx(self, data):
         """
-        update user password by rtx id
+        update user password by rtx id, password contain:
+            - new password
+            - confirm password
+            - old password
         data: user password data
         """
         # check parameters

@@ -168,7 +168,7 @@ class RequestService(object):
             return Status(
                 212, 'failure', u'缺少请求参数', {}
             ).json()
-
+        # check parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
