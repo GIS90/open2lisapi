@@ -293,8 +293,7 @@ class ExcelService(object):
             # 获取文件header
             excel_headers = self.get_excel_headers(store.get('path')) \
                 if not is_compress else {}
-            print('=' * 20)
-            print(excel_headers)
+
             new_model = self.excel_result_bo.new_mode()
             new_model.rtx_id = store.get('rtx_id')
             new_model.name = store.get('name')

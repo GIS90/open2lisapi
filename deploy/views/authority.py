@@ -96,7 +96,10 @@ def role_add():
 @timeer
 def role_update():
     """
-    update exist role by md5
+    update exist role by role md5 value, contain:
+        - engname(not allow update)
+        - chnname
+        - introduction
     :return: json data
     """
     if request.method == 'GET':
@@ -167,6 +170,9 @@ def role_auth():
     """
     get the role authority list
     :return: json data, authority is tree
+        menus: 菜单
+        auths: 角色的权限列表
+        expand: 默认展开的一级菜单列表
     get method
     """
     if request.method == 'POST':
@@ -177,7 +183,7 @@ def role_auth():
     try:
         # 参数
         params = request.args or {}
-        return AuthorityService().role_auth_tere(params)
+        return AuthorityService().role_auth_tree(params)
     except Exception as e:
         LOG.error("authority>role auth is error: %s" % e)
         return Status(501, 'failure',
@@ -234,7 +240,7 @@ def role_select_list():
 def user_list():
     """
     get user list from db table role: limit, offset
-    many list
+    many list data
     :return: json data
     """
     if request.method == 'GET':
@@ -256,7 +262,7 @@ def user_list():
 @timeer
 def user_add():
     """
-    add new user
+    add new user to db sysuser table one data
     :return: json data
     """
     if request.method == 'GET':
@@ -323,8 +329,7 @@ def user_batch_delete():
 @timeer
 def user_status():
     """
-    change user data status
-    from user table
+    change user data status, from user table
     post request and json parameters
     :return: json data
     """
