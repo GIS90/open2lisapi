@@ -52,7 +52,7 @@ request_service = RequestService()
 @manage.route('/login/', methods=['GET', 'POST'], strict_slashes=False)
 def login_in():
     """
-    login in to system
+    login：login in to system
     :return: json data
     """
     if request.method == 'POST':
@@ -70,18 +70,25 @@ def login_in():
         # 支持用户phone、email登录
         rtx_id = rtx_id.strip()  # 去空格
         user_model = SysUserService().get_login_by_rtx(rtx_id)
+        # user is not exist
         if not user_model:
             return Status(
-                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}
+                202, 'failure', u'用户未注册' or StatusMsgs.get(202), {}
             ).json()
+        # user is deleted
         if user_model.get('is_del'):
             return Status(
-                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
+                203, 'failure', u'用户已注销' or StatusMsgs.get(203), {}
             ).json()
-        # 验证密码
+        # check password
         if user_model.get('password') != user_pwd:
             return Status(
-                201, 'failure', StatusMsgs.get(201) or u'密码错误，请重新输入正确密码', {}
+                201, 'failure', u'密码有误，请重新输入正确密码' or StatusMsgs.get(201), {}
+            ).json()
+        # check is or not exist token
+        if not user_model.get('md5_id'):
+            return Status(
+                999, 'failure', u'Token初始化失败，请联系管理员', {}
             ).json()
 
         rtx = user_model.get('rtx_id') or rtx_id
@@ -89,7 +96,7 @@ def login_in():
         session['user_id'] = rtx
         request_service.add_request(request, rtx=rtx)
         return Status(
-            100, 'success', StatusMsgs.get(100), {'token': user_model.get('md5_id') or ''}
+            100, 'success', StatusMsgs.get(100), {'token': user_model.get('md5_id')}
         ).json()
     else:
         return Status(
@@ -100,7 +107,7 @@ def login_in():
 @manage.route('/logout/', methods=['GET', 'POST'], strict_slashes=False)
 def login_out():
     """
-    user login out the system
+    logout：user login out the system
     :return: json data
     """
     user_id = get_user_id()

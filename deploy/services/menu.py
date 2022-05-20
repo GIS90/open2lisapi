@@ -50,17 +50,37 @@ class MenuService(object):
             'create_time', 'create_rtx', 'is_del', 'delete_time', 'delete_rtx'
         ]
         self.menu_attrs = [
-            'id', 'name', 'path', 'pid', 'level', 'md5_id',
-            'component', 'hidden', 'redirect',
+            'id',
+            'name',
+            'path',
+            'pid',
+            'level',
+            'md5_id',
+            'component',
+            'hidden',
+            'redirect',
         ]
         self.menu_meta_attrs = [
-            'title', 'icon', 'noCache', 'affix', 'breadcrumb',
+            'title',
+            'icon',
+            'noCache',
+            'affix',
+            'breadcrumb',
         ]
         self.del_attrs = [
-            'id', 'pid', 'level', 'md5_id'
+            'id',
+            'pid',
+            'level',
+            'md5_id'
         ]
 
     def _model_to_menu_dict(self, model, level: int = 1) -> dict:
+        """
+        format menu model to dict type data
+        return dict object
+
+        格式化菜单对象
+        """
         if not model:
             return {}
 
@@ -166,7 +186,9 @@ class MenuService(object):
             3.把一级菜单加入one_menus，二级加入template_list
             4.对二级菜单进行分组
             5.把二级菜单加入对应的一级菜单的children
-            6.return
+            6.return data
+
+        获取用户菜单权限routers
         """
         if not auth_list and not is_admin:
             return []
