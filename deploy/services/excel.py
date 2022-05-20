@@ -224,6 +224,7 @@ class ExcelService(object):
 
     def store_source_to_db(self, store):
         """
+        存储文件信息到excel_source数据库表
         store source file message to db
         params store: store message
             - rtx_id: rtx-id
@@ -351,9 +352,9 @@ class ExcelService(object):
                 _res[attr] = model.numopr or 0
             elif attr == 'url':
                 if model.store_url:
-                    # 直接拼接的下载url，无check
+                    # 直接拼接的下载url，无check ping
                     _res['url'] = self.store_lib.open_download_url(store_name=model.store_url)
-                    # url and check
+                    # url and check ping
                     # resp = self.store_lib.open_download(store_name=model.store_url)
                     # _res['url'] = resp.get('data').get('url') if resp.get('status_id') == 100 else ''
                 else:
@@ -375,7 +376,7 @@ class ExcelService(object):
                     _res['sheet_names'] = new_res
                     set_sheet_name = ';'.join(set_sheet_name)
                     if len(set_sheet_name) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
-                        set_sheet_name = '%s...（选择Sheet过多，省略部分）' % set_sheet_name[0:SHEET_NAME_LIMIT]
+                        set_sheet_name = '%s...具体查看请下载' % set_sheet_name[0:SHEET_NAME_LIMIT]
                     _res['set_sheet_name'] = set_sheet_name
                     _res['set_sheet_index'] = set_sheet_index
                 else:
@@ -504,7 +505,7 @@ class ExcelService(object):
 
     def excel_upload(self, params, upload_file, is_check_fmt: bool = True):
         """
-        one file to upload
+        one excel file upload to server(file store object)
         params params: request params, rtx_id and excel type
         params upload_file: excel upload file
         params is_check_fmt: file is or not check format
@@ -518,14 +519,16 @@ class ExcelService(object):
         """
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数', {}
+                212, 'failure', u'缺少请求参数' or StatusMsgs.get(212), {}
             ).json()
         for k, v in params.items():
             if not k: continue
+            # illegal parameters check
             if k not in self.req_upload_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
+        # parameters check
         if not params.get('rtx_id'):
             return Status(
                 212, 'failure', u'缺少rtx_id请求参数', {}
@@ -546,7 +549,8 @@ class ExcelService(object):
                 217, 'failure', StatusMsgs.get(217), {}
             ).json()
         # file local store
-        is_ok, store_msg = self.file_lib.store_file(upload_file, compress=False, is_md5_store_name=False)
+        is_ok, store_msg = self.file_lib.store_file(
+            upload_file, compress=False, is_md5_store_name=False)
         if not is_ok:
             return Status(
                 220, 'failure', StatusMsgs.get(220), {}
@@ -606,7 +610,7 @@ class ExcelService(object):
             ).json()
         if failure_list:
             return Status(
-                224, 'failure', u'文件上传成功：%s，失败：%s' % (len(success_list), len(failure_list)),
+                224, 'failure', u'文件上传：成功[%s]，失败[%s]' % (len(success_list), len(failure_list)),
                 {}
             ).json()
         return Status(
@@ -622,6 +626,7 @@ class ExcelService(object):
         update real file name and store file name
         """
         _res = dict()
+        # check
         if not model or not new_name:
             return _res
         if not model.name or not model.store_name \
@@ -634,7 +639,7 @@ class ExcelService(object):
             new_name = '%s%s' % (new_names[0], self.DEFAULT_EXCEL_FORMAT)
         local_urls = str(model.local_url).split('/')
         new_local_url = str(model.local_url).replace(local_urls[-1], new_name)
-        # check exist file
+        # check rename file exist
         if os.path.exists(new_local_url):
             new_names = os.path.splitext(str(new_name))
             new_name = '%s-%s%s' % (new_names[0], get_now(format="%Y-%m-%d-%H-%M-%S"), new_names[-1])
@@ -661,8 +666,12 @@ class ExcelService(object):
 
     def update_source(self, params):
         """
-        update source file
-        params is dict
+        update source file information, contain:
+            - name 文件名称
+            - set_sheet 设置的Sheet
+
+        params is dict data
+        return json data
         """
         if not params:
             return Status(
@@ -681,19 +690,20 @@ class ExcelService(object):
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}
                 ).json()
-            if k == 'set_sheet':
+            # parameters check
+            if k == 'set_sheet':    # parameter type check
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}
                     ).json()
-                new_params[k] = ';'.join(v)
-            elif k == 'name':
+                new_params[k] = ';'.join(v) # 格式化成字符串存储
+            elif k == 'name':   # file name check
                 new_names = os.path.splitext(str(v))
                 if new_names[-1] not in self.EXCEL_FORMAT:
                     return Status(
                         217, 'failure', u'文件格式只支持.xls、.xlsx', {}
                     ).json()
-                if not check_length(v, 80):  # check: length
+                if not check_length(v, 80):  # length check
                     return Status(
                         213, 'failure', u'请求参数%s长度超限制' % k, {}
                     ).json()
@@ -707,7 +717,7 @@ class ExcelService(object):
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}
             ).json()
-        # delete
+        # deleted
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}
@@ -720,7 +730,9 @@ class ExcelService(object):
             ).json()
 
         is_update = False
-        if new_params.get('name') and str(new_params.get('name')) != str(model.name):
+        # file name to rename
+        if new_params.get('name') and \
+                str(new_params.get('name')) != str(model.name):
             res = self._update_file_name(model, new_params.get('name'))
             if res:
                 model.name = res.get('name')
@@ -728,7 +740,9 @@ class ExcelService(object):
                 model.local_url = res.get('local_url')
                 model.store_url = res.get('store_url')
                 is_update = True
-        if new_params.get('set_sheet') and str(new_params.get('set_sheet')) != str(model.set_sheet):
+        # file set_sheet to update
+        if new_params.get('set_sheet') and \
+                str(new_params.get('set_sheet')) != str(model.set_sheet):
             model.set_sheet = new_params.get('set_sheet')
             is_update = True
         if is_update:
@@ -802,11 +816,11 @@ class ExcelService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-            if not v:
+            if not v: # parameter is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}
                 ).json()
-            if k == 'list':
+            if k == 'list': # check type
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}
@@ -818,11 +832,14 @@ class ExcelService(object):
         res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+            else Status(303, 'failure',
+                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def excel_merge(self, params):
         """
-        many file to merge one file
+        many excel file to merge one excel file,
+        many file list by file md5 list
         params params: request params, rtx_id and excel md5 list
         
         return json result
@@ -850,7 +867,7 @@ class ExcelService(object):
                     213, 'failure', u'请求参数%s长度超限制' % k, {}
                 ).json()
 
-            if k == 'list':
+            if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}
@@ -934,6 +951,7 @@ class ExcelService(object):
             ).json()
 
         new_params = dict()
+        # parameters check
         for k, v in params.items():
             if not k: continue
             if k not in self.req_result_list_attrs and v:
@@ -944,18 +962,18 @@ class ExcelService(object):
                 v = int(v) if v else EXCEL_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
-            elif k == 'type':
+            elif k == 'type':      # filter: check parameter type, format is [1, 2]
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s必须为list类型' % k, {}
                     ).json()
                 v = [str(i) for i in v] if v else []
-            elif k == 'name' and v:
+            elif k == 'name' and v:     # filter: like search
                 v = '%' + str(v) + '%'
-            elif k == 'start_time' and v:
+            elif k == 'start_time' and v:   # filter: start_time
                 v = d2s(v) if isinstance(v, datetime.datetime) \
                     else '%s 00:00:00' % v
-            elif k == 'end_time' and v:
+            elif k == 'end_time' and v:   # filter: end_time
                 v = d2s(v) if isinstance(v, datetime.datetime) \
                     else '%s 23:59:59' % v
             else:
@@ -983,7 +1001,7 @@ class ExcelService(object):
 
     def update_result(self, params):
         """
-        update result excel file
+        update result excel file, only update file name
         params is dict
         """
         if not params:
@@ -998,11 +1016,11 @@ class ExcelService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-            if not v:
+            if not v:       # value check, is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}
                 ).json()
-            if k == 'name':
+            if k == 'name':     # check name and length
                 new_names = os.path.splitext(str(v))
                 if new_names[-1] not in self.EXCEL_FORMAT:
                     return Status(
@@ -1023,7 +1041,7 @@ class ExcelService(object):
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}
             ).json()
-        # delete
+        # deleted
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}
@@ -1061,6 +1079,7 @@ class ExcelService(object):
             ).json()
 
         new_params = dict()
+        # parameters check
         for k, v in params.items():
             if not k: continue
             if k not in self.req_delete_attrs:
@@ -1109,6 +1128,7 @@ class ExcelService(object):
             ).json()
 
         new_params = dict()
+        # parameters check
         for k, v in params.items():
             if not k: continue
             if k not in self.req_deletes_attrs:
@@ -1119,7 +1139,7 @@ class ExcelService(object):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}
                 ).json()
-            if k == 'list':
+            if k == 'list':     # type check
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}
@@ -1131,18 +1151,28 @@ class ExcelService(object):
         res = self.excel_result_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure', StatusMsgs.get(303), {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+            else Status(303, 'failure',
+                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
     def init_split_params(self, params):
         """
         initialize the result excel file split parameter
         params is dict
+        return json data, data contain:
+            - sheet_index
+            - sheet_names
+            - column_names
+            - excel_split_store
+            - split_type
+            - bool_type
         """
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
 
+        # check parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1208,6 +1238,7 @@ class ExcelService(object):
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
 
+        # check parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1216,7 +1247,7 @@ class ExcelService(object):
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
             v = str(v)
-            if not v:
+            if not v:       # check value is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}
                 ).json()
@@ -1244,7 +1275,8 @@ class ExcelService(object):
 
     def excel_split(self, params):
         """
-        split method
+        split method, split parameters is many
+        function: one file to split many file
         one excel file to split many file
         """
         if not params:
@@ -1273,6 +1305,7 @@ class ExcelService(object):
         bool_type = bool_type \
             if bool_type else BOOL
         new_params = dict()
+        # parameters check
         for k, v in params.items():
             if not k: continue
             if k not in self.req_split_attrs:
@@ -1335,6 +1368,7 @@ class ExcelService(object):
         # 无sheet，默认index为0
         sheet = new_params.get('sheet') or '0'
         headers = model.headers
+        # 分割表行数检查
         row = 0
         if headers:  # db get row
             sheet_header = json.loads(headers).get(str(sheet))

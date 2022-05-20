@@ -64,8 +64,10 @@ class SysUserService(object):
 
     def _model_to_dict(self, model, _type: str = 'base') -> dict:
         """
-        db model transfer to dict data
+        user model transfer to dict data
         model: user model
+
+        format user object
         """
         if not model:
             return {}
@@ -117,6 +119,7 @@ class SysUserService(object):
     def get_user_by_rtx_id(self, rtx_id: str) -> dict:
         """
         get user model by rtx id
+        return dict object data
         """
         user_res = dict()
         if not rtx_id:
@@ -128,6 +131,7 @@ class SysUserService(object):
     def get_login_by_rtx(self, rtx_id: str) -> dict:
         """
         get login user by rtx id
+        return dict object data
         """
         user_res = dict()
         if not rtx_id:
@@ -139,6 +143,7 @@ class SysUserService(object):
     def get_user_by_token(self, token: str, is_vue: bool = False) -> dict:
         """
         get user model by token
+        return dict object data
         """
         user_res = dict()
         if not token:

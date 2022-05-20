@@ -52,8 +52,7 @@ CORS(excel, supports_credentials=True)
 def source_list():
     """
     get excel list from db table excel_source
-    many file
-    :return: json data
+    :return: many json data
     """
     if request.method == 'GET':
         return Status(
@@ -65,7 +64,7 @@ def source_list():
         params = request.get_json() or {}
         return ExcelService().excel_source_list(params)
     except Exception as e:
-        LOG.error("excel>list is error: %s" % e)
+        LOG.error("excel>source list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -74,9 +73,9 @@ def source_list():
 @timeer
 def upload():
     """
-    excel file upload to server
-    one file
+    one excel file upload to server(file store object)
     :return: json data
+    单文件上传
     """
     if request.method == 'GET':
         return Status(
@@ -103,9 +102,9 @@ def upload():
 @timeer
 def uploads():
     """
-    excel file upload to server
-    many file
+    one excel file upload to server(file store object)
     :return: json data
+    多文件上传
     """
     if request.method == 'GET':
         return Status(
@@ -133,7 +132,9 @@ def uploads():
 @timeer
 def update_source():
     """
-    update source excel file information
+    update source file information, contain:
+        - name 文件名称
+        - set_sheet 设置的Sheet
     by excel file md5
     :return: json data
     """
@@ -169,7 +170,7 @@ def source_delete():
         params = request.get_json() or {}
         return ExcelService().source_delete(params)
     except Exception as e:
-        LOG.error("excel>delete source file is error: %s" % e)
+        LOG.error("excel>delete one source file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -191,7 +192,7 @@ def source_deletes():
         params = request.get_json() or {}
         return ExcelService().source_deletes(params)
     except Exception as e:
-        LOG.error("excel>batch deletes source file is error: %s" % e)
+        LOG.error("excel>delete many source file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -200,7 +201,8 @@ def source_deletes():
 @timeer
 def merge():
     """
-    many excel file to merge by file md5 list
+    many excel file to merge one excel file,
+    many file list by file md5 list
     :return: json data
     """
     if request.method == 'GET':
@@ -236,7 +238,7 @@ def history_list():
         params = request.get_json() or {}
         return ExcelService().excel_history_list(params)
     except Exception as e:
-        LOG.error("excel>history is error: %s" % e)
+        LOG.error("excel>history list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -245,7 +247,7 @@ def history_list():
 @timeer
 def update_result():
     """
-    update result excel file information
+    update result excel file, only update file name
     by excel file md5
     :return: json data
     """
@@ -291,6 +293,7 @@ def result_delete():
 def result_deletes():
     """
     delete many result excel file by md5 list
+    parameter list is List type
     :return: json data
     """
     if request.method == 'GET':
@@ -313,7 +316,8 @@ def result_deletes():
 def init_split_params():
     """
     initialize the result excel file split parameter
-    :return: json data
+    :return: json data, contain:
+        sheet_index, sheet_names, column_names, excel_split_store, split_type, bool_type
     """
     if request.method == 'GET':
         return Status(
@@ -348,7 +352,7 @@ def get_sheet_header():
         params = request.get_json() or {}
         return ExcelService().get_sheet_header(params)
     except Exception as e:
-        LOG.error("excel>get sheet headers  is error: %s" % e)
+        LOG.error("excel>get sheet headers is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -357,8 +361,8 @@ def get_sheet_header():
 @timeer
 def split():
     """
-    split method
-    one file to split many file
+    split method, split parameters is many
+    function: one file to split many file
     :return: json data
     """
     if request.method == 'GET':
