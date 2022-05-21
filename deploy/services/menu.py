@@ -181,10 +181,11 @@ class MenuService(object):
         get user routers by authority list
         get_login_auth_by_rtx to use
         思路：
-            1.依据role中的authority值获取菜单数据
+            1.get_all获取全部权限数据
             2.每一条菜单数据转为字段类型数据的菜单
             3.把一级菜单加入one_menus，二级加入template_list
             4.对二级菜单进行分组
+            5.依据authority值对菜单进行判定
             5.把二级菜单加入对应的一级菜单的children
             6.return data
 
@@ -194,13 +195,13 @@ class MenuService(object):
             return []
 
         _res = list()
-        all_menus = self.menu_bo.get_menus_by_ids(auth_list) \
-            if not is_admin else self.menu_bo.get_all(root=False)
+        all_menus = self.menu_bo.get_all(root=False)
         if not all_menus:
             return _res
 
-        template_list = list()
-        one_menus = dict()
+        two_m_template_list = list()  # 二级临时菜单，List格式
+        one_menus = dict()      # 一级菜单，Dict格式
+        add_flag = dict()       # 是否添加router标志，Dict格式
         for menu in all_menus:
             if not menu or menu.is_del or menu.hidden or \
                     not menu.name or not menu.path or \
@@ -208,16 +209,25 @@ class MenuService(object):
                 continue
             _d = self._model_to_menu_dict(menu, level=menu.level)
             if not _d: continue
-            one_menus[menu.id] = _d if menu.level == MENU_ONE_LEVEL \
-                else template_list.append(_d)
+            if is_admin:    # 管理员特殊权限
+                if menu.level == 2:
+                    add_flag[menu.pid] = True
+                one_menus[menu.id] = _d if menu.level == MENU_ONE_LEVEL \
+                    else two_m_template_list.append(_d)
+            else:       # 非管理员，用二级菜单去判断是否有一级
+                if menu.level == MENU_ONE_LEVEL:
+                    one_menus[menu.id] = _d
+                if menu.level == 2 and menu.id in auth_list:
+                    add_flag[menu.pid] = True
+                    two_m_template_list.append(_d)
 
-        template_list.sort(key=itemgetter('pid'))
-        for key, group in groupby(template_list, key=itemgetter('pid')):
-            if key in one_menus.keys():
+        two_m_template_list.sort(key=itemgetter('pid'))
+        for key, group in groupby(two_m_template_list, key=itemgetter('pid')):
+            if key in one_menus.keys() and add_flag.get(key):
                 _d = one_menus.get(key)
                 # _d = self._del_nof_menu_d(_d)
                 _d['children'] = list(group)
                 _res.append(_d)
 
-        del template_list
+        del two_m_template_list
         return _res

@@ -203,8 +203,6 @@ class SysUserService(object):
             ).json()
         # user model is deleted
         user_res = self._model_to_dict(user, _type='base')
-        print('*' * 100)
-        print(user_res)
         if user_res.get('is_del'):
             return Status(
                 203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
@@ -225,9 +223,7 @@ class SysUserService(object):
             auth_list = [int(x) for x in auth_list_str.split(';') if x]
             auth_list = list(set(auth_list))    # 去重
         # get authority menu tree
-        print(auth_list)
         user_auth = self.menu_service.get_routes(auth_list, is_admin) or []
-        print(user_auth)
         LOG.info('%s login auth rtx_id ==========' % user_res.get('rtx_id') or O_NOBN)
         return Status(
             100, 'success', StatusMsgs.get(100),
