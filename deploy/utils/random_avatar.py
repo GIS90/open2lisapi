@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    创建用户随机头像
+    创建用户随机头像，用于初始化、个人设置等
 
 base_info:
     __author__ = "PyGo"
@@ -17,13 +17,23 @@ base_info:
 usage:
 
 design:
-
+    类别设计：
+        - 二次元
+        - 游戏
+        - 美食
+        - 宇宙
+        - 风景
+        - 影视
+        - 艺术
+        - 时尚
+        - 植物
+        - 动物
 reference urls:
 
 python version:
     python3
 
-
+store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
 Enjoy the good life everyday！！!
 Life is short, I use python.
 
@@ -33,7 +43,15 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python random_avatar.py
 # ------------------------------------------------------------
+import os
+
+from deploy.config import USER_AVATAR_STORE_URL, USER_AVATAR_STORE_NAME
 
 
-if __name__ == '__main__':
+def _get_store_url():
+    return os.path.join(USER_AVATAR_STORE_URL, USER_AVATAR_STORE_NAME)
+
+
+def get_random_avatar():
     pass
+

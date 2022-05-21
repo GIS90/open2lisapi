@@ -87,13 +87,15 @@ USER_DEFAULT_AVATAR = 'http://pygo2.top/images/article_w.jpg'
 USER_DEFAULT_PASSWORD = 'abc1234'
 USER_DEFAULT_TIMELINE = 6
 USER_DEFAULT_INTROD = "这家伙很懒，什么也没留下......"
+USER_AVATAR_STORE_URL = "http://avatar.pygo2.top"
+USER_AVATAR_STORE_NAME = "avatar-default"
 
 # store
 _CACHE = '/static/cache'
 STORE_BASE_URL = 'http://store.pygo2.top'
 STORE_ACCESS = 'mRF0cKGUJcfv7ry_Wyvc24cDNWEQz9DAKo_UOn0G'
 STORE_SECRET = 'xabmlB9zZ_MRwtgofQJzUxINnmcO_VUfkXYILx_Q'
-STORE_SPACE_NAME = 'twtoolbox'
+STORE_SPACE_NAME = 'open2lisapi'
 
 # menu
 MENU_ROOT_ID = 0
@@ -168,6 +170,8 @@ with open(_config_file) as f:
     USER_DEFAULT_AVATAR = _config_info['USER']['AVATAR'] or USER_DEFAULT_AVATAR
     USER_DEFAULT_PASSWORD = _config_info['USER']['PASSWORD'] or USER_DEFAULT_PASSWORD
     USER_DEFAULT_TIMELINE = _config_info['USER']['TIMELINE'] or USER_DEFAULT_TIMELINE
+    USER_AVATAR_STORE_URL = _config_info['USER']['STORE_BASE_URL'] or USER_AVATAR_STORE_URL
+    USER_AVATAR_STORE_NAME = _config_info['USER']['STORE_NAME'] or USER_AVATAR_STORE_NAME
 
     # store
     STORE_BASE_URL = _config_info['STORE']['BASE_URL'] or STORE_BASE_URL
