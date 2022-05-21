@@ -172,10 +172,12 @@ class AuthorityService(object):
         self.menu_bo = MenuBo()
         self.sysuser_bo = SysUserBo()
 
-    def _role_model_to_dict(self, model):
+    def _role_model_to_dict(self, model, is_detail=False):
         """
         role model to dict data
         return json data
+
+        is_detail: detail information, 是否是缩略数据
         """
         if not model:
             return {}
@@ -192,9 +194,12 @@ class AuthorityService(object):
             elif attr == 'authority':
                 res[attr] = model.authority
             elif attr == 'introduction':
-                res[attr] = model.introduction or '' \
-                    if len(model.introduction) < AUTH_NUM \
-                    else '%s...查看详情' % str(model.introduction)[:AUTH_NUM-1]
+                if not is_detail:
+                    res[attr] = model.introduction or '' \
+                        if len(model.introduction) < AUTH_NUM \
+                        else '%s...查看详情' % str(model.introduction)[:AUTH_NUM-1]
+                else:
+                    res[attr] = model.introduction or ''
             elif attr == 'create_time':
                 if model.create_time and isinstance(model.create_time, str):
                     res[attr] = model.create_time
@@ -326,6 +331,39 @@ class AuthorityService(object):
                 n += 1
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def role_info(self, params):
+        """
+        get role detail information
+        by rtx id
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        role_md5 = params.get('md5')
+        if not role_md5:
+            return Status(
+                212, 'failure', "缺少md5参数", {}
+            ).json()
+
+        model = self.role_bo.get_model_by_md5(role_md5)
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '角色不存在' or StatusMsgs.get(302), {}
+            ).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '角色已删除' or StatusMsgs.get(302), {}
+            ).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._role_model_to_dict(model, is_detail=True)
         ).json()
 
     def role_add(self, params):
@@ -670,7 +708,6 @@ class AuthorityService(object):
                 # new_v = list(set(new_v))      # 去重
                 v = ';'.join(new_v)
             new_params[k] = str(v)
-
         model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:

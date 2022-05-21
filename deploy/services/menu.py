@@ -88,21 +88,21 @@ class MenuService(object):
         _meta = dict()
         for attr in (self.menu_attrs + self.menu_meta_attrs):
             if attr == 'id':
-                _res[attr] = model.id or ""
+                _res[attr] = model.id
             elif attr == 'name':
-                _res[attr] = model.name or ""
+                _res[attr] = model.name
             elif attr == 'path':
-                _res[attr] = model.path or ""
+                _res[attr] = model.path
             elif attr == 'title':
-                _meta[attr] = model.title or ""
+                _meta[attr] = model.title
             elif attr == 'pid':
-                _res[attr] = model.pid or ""
+                _res[attr] = model.pid
             elif attr == 'level':
-                _res[attr] = model.level or ""
+                _res[attr] = model.level
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id or ""
+                _res[attr] = model.md5_id
             elif attr == 'component':
-                _res[attr] = model.component or ""
+                _res[attr] = model.component
             elif attr == 'hidden':
                 _res[attr] = True if model.hidden else False
             elif attr == 'redirect' and level == 1:
@@ -128,21 +128,21 @@ class MenuService(object):
         _res = dict()
         for attr in self.all_attrs:
             if attr == 'id':
-                _res[attr] = model.id or ""
+                _res[attr] = model.id
             elif attr == 'name':
-                _res[attr] = model.name or ""
+                _res[attr] = model.name
             elif attr == 'path':
-                _res[attr] = model.path or ""
+                _res[attr] = model.path
             elif attr == 'title':
-                _res[attr] = model.title or ""
+                _res[attr] = model.title
             elif attr == 'pid':
-                _res[attr] = model.pid or ""
+                _res[attr] = model.pid
             elif attr == 'level':
-                _res[attr] = model.level or ""
+                _res[attr] = model.level
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id or ""
+                _res[attr] = model.md5_id
             elif attr == 'component':
-                _res[attr] = model.component or ""
+                _res[attr] = model.component
             elif attr == 'hidden':
                 _res[attr] = True if model.hidden else False
             elif attr == 'redirect':
