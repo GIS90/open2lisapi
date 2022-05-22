@@ -663,7 +663,7 @@ class ExcelService(object):
             'store_url': new_store_url
         }
 
-    def update_source(self, params):
+    def source_update(self, params):
         """
         update source file information, contain:
             - name 文件名称
@@ -998,7 +998,7 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def update_result(self, params):
+    def result_update(self, params):
         """
         update result excel file, only update file name
         params is dict

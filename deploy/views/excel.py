@@ -47,7 +47,7 @@ excel = Blueprint('excel', __name__, url_prefix='/excel')
 CORS(excel, supports_credentials=True)
 
 
-@excel.route('/list/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/source/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def source_list():
     """
@@ -128,9 +128,9 @@ def uploads():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/updates/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/supdate/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def update_source():
+def source_update():
     """
     update source file information, contain:
         - name 文件名称
@@ -146,14 +146,14 @@ def update_source():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().update_source(params)
+        return ExcelService().source_update(params)
     except Exception as e:
         LOG.error("excel>update source excel file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/delete/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/sdelete/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def source_delete():
     """
@@ -175,7 +175,7 @@ def source_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/sdeletes/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def source_deletes():
     """
@@ -243,9 +243,9 @@ def history_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/updater/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/rupdate/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def update_result():
+def result_update():
     """
     update result excel file, only update file name
     by excel file md5
@@ -259,14 +259,14 @@ def update_result():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().update_result(params)
+        return ExcelService().result_update(params)
     except Exception as e:
         LOG.error("excel>update result excel file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/deleter/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/rdelete/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def result_delete():
     """
@@ -288,7 +288,7 @@ def result_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/deletesr/', methods=['GET', 'POST'], strict_slashes=False)
+@excel.route('/rdeletes/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def result_deletes():
     """

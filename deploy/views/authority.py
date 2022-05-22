@@ -92,7 +92,7 @@ def role_info():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/addrole/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/roleadd/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_add():
     """
@@ -114,7 +114,7 @@ def role_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/updaterole/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/roleupdate/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_update():
     """
@@ -139,7 +139,7 @@ def role_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/mdelrole/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/rolemdel/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_batch_delete():
     """
@@ -162,7 +162,7 @@ def role_batch_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/delrole/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/roledel/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_delete():
     """
@@ -212,7 +212,7 @@ def role_auth():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/savetree/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/rolesavetree/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_save_tree():
     """
@@ -280,7 +280,7 @@ def user_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/adduser/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/useradd/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_add():
     """
@@ -324,7 +324,7 @@ def user_info():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/mdeluser/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/usermdel/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_batch_delete():
     """
@@ -370,7 +370,7 @@ def user_status():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/updateuser/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/userupdate/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_update():
     """
