@@ -56,6 +56,14 @@ class MenuBo(BOBase):
         q = q.all()
         return q
 
+    def get_all_no(self, root=False):
+        q = self.session.query(MenuModel)
+        if not root:
+            q = q.filter(MenuModel.id != MENU_ROOT_ID)
+        q = q.order_by(MenuModel.id.asc())
+        q = q.all()
+        return q
+
     def get_menus_by_ids(self, menu_ids):
         q = self.session.query(MenuModel)
         q = q.filter(MenuModel.id.in_(menu_ids))

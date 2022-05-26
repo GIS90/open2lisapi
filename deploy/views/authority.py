@@ -413,3 +413,25 @@ def user_reset_pw():
         LOG.error("authority>user info is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/menu/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def menu_list():
+    """
+    get menu list from db table menu
+    many list data
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().menu_list(params)
+    except Exception as e:
+        LOG.error("authority>menu list is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

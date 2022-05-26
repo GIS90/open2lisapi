@@ -163,6 +163,28 @@ class AuthorityService(object):
         'introduction'
     ]
 
+    menu_list_attrs = [
+        'id',
+        'name',
+        'path',
+        'title',
+        'pid',
+        'level',
+        'md5_id',
+        'component',
+        'hidden',
+        'redirect',
+        'icon',
+        'noCache',
+        'affix',
+        'breadcrumb',
+        'create_time',
+        'create_rtx',
+        'is_del',
+        'delete_time',
+        'delete_rtx'
+    ]
+
     def __init__(self):
         """
         authority service class initialize
@@ -264,6 +286,68 @@ class AuthorityService(object):
                 _res[attr] = model.department or ""
             elif attr == 'role':  # 多角色，存储role的engname，也就是role的rtx_id
                 _res[attr] = str(model.role).split(';') if model.role else []
+            elif attr == 'create_time':
+                _res[attr] = d2s(model.create_time) \
+                    if not isinstance(model.create_time, str) else model.create_time or ''
+            elif attr == 'create_rtx':
+                _res[attr] = model.create_rtx or ''
+            elif attr == 'is_del':
+                _res[attr] = True if model.is_del else False
+            elif attr == 'delete_time':
+                if not isinstance(model.delete_time, str):
+                    _res[attr] = d2s(model.delete_time)
+                elif isinstance(model.delete_time, str) and model.delete_time == '0000-00-00 00:00:00':
+                    _res[attr] = ''
+                else:
+                    _res[attr] = model.delete_time or ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx or ""
+        else:
+            return _res
+
+    def _menu_model_to_dict(self, model):
+        """
+        menu model to dict data
+        return json data
+
+        'id', 'name', 'path', 'title', 'pid', 'level', 'md5_id',
+        'component', 'hidden', 'redirect', 'icon', 'noCache', 'affix', 'breadcrumb',
+        'create_time','create_rtx', 'is_del','delete_time','delete_rtx'
+        """
+        if not model:
+            return {}
+
+        _res = dict()
+        for attr in self.menu_list_attrs:
+            if not attr: continue
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'name':
+                _res[attr] = model.name
+            elif attr == 'path':
+                _res[attr] = model.path
+            elif attr == 'title':
+                _res[attr] = model.title
+            elif attr == 'pid':
+                _res[attr] = model.pid
+            elif attr == 'level':
+                _res[attr] = model.level
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'component':
+                _res[attr] = model.component
+            elif attr == 'hidden':
+                _res[attr] = '是' if model.hidden else '否'
+            elif attr == 'redirect':
+                _res[attr] = model.redirect
+            elif attr == 'icon':
+                _res[attr] = model.icon
+            elif attr == 'noCache':
+                _res[attr] = '是' if model.noCache else '否'
+            elif attr == 'affix':
+                _res[attr] = '是' if model.affix else '否'
+            elif attr == 'breadcrumb':
+                _res[attr] = '是' if model.breadcrumb else '否'
             elif attr == 'create_time':
                 _res[attr] = d2s(model.create_time) \
                     if not isinstance(model.create_time, str) else model.create_time or ''
@@ -1139,4 +1223,80 @@ class AuthorityService(object):
 
         return Status(
             100, 'success', StatusMsgs.get(100), {}
+        ).json()
+
+    def menu_list(self, params):
+        """
+        get menu list from db table menu
+        return json data
+
+        思路：1.获取全部数据，包含禁用的菜单
+        2.进行过滤分组，一级菜单 && 二级临时菜单
+        3.二级临时菜单按pid父节点ID进行group分组
+        4.二级临时菜单加入到一级菜单的children
+        5.return dara
+
+        default get menu is all
+        data structure:
+        [{
+          id: 1,
+          date: '2016-05-02',
+          name: 'XXXX'
+        }, {
+          id: 2,
+          date: '2016-05-01',
+          name: 'YYYY'
+          children: [{
+              id: 21,
+              date: '2016-05-01',
+              name: 'YYYY-01'
+            }]
+        }]
+
+        难点：数据结构
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        rtx_id = params.get('rtx_id')
+        if not rtx_id:
+            return Status(
+                214, 'failure', u'缺少rtx_id请求参数', {}).json()
+
+        all_menus = self.menu_bo.get_all_no(root=False)   # 全部数据，包含禁用菜单 过滤根节点0
+        if not all_menus:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {}).json()
+
+        _res = list()
+        template_list = list()
+        one_menus = dict()
+        one_menus_keys = list()
+        # 所有菜单，遍历之后加入一级菜单列表、临时菜单列表（二级）
+        for menu in all_menus:
+            if not menu: continue
+            _d = self._menu_model_to_dict(menu)
+            if not _d: continue
+            if int(menu.level) == MENU_ONE_LEVEL:
+                one_menus[menu.id] = _d
+                one_menus_keys.append({'id': menu.id})
+            else:
+                template_list.append(_d)
+        template_list.sort(key=itemgetter('pid'))
+        # 二级菜单分组，加入新的数据列表
+        for key, group in groupby(template_list, key=itemgetter('pid')):
+            if key in one_menus.keys():
+                _d = one_menus.get(key)
+                _new_child = list()
+                for g in group:
+                    if not g: continue
+                    if _d.get('path'):
+                        g['path'] = '%s/%s' % (_d.get('path'), g.get('path'))
+                    _new_child.append(g)
+                _d['children'] = _new_child
+                _res.append(_d)
+        # 删除临时列表
+        del template_list
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': _res, 'keys': one_menus_keys}
         ).json()
