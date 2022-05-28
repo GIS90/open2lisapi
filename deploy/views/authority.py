@@ -435,3 +435,24 @@ def menu_list():
         LOG.error("authority>menu list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/menuinfo/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def menu_info():
+    """
+    get menu detail information from db table menu, menu is dict object
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().menu_info(params)
+    except Exception as e:
+        LOG.error("authority>menu info is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

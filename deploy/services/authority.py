@@ -43,9 +43,10 @@ from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
 from deploy.bo.menu import MenuBo
 from deploy.bo.sysuser import SysUserBo
+from deploy.bo.enum import EnumBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM, \
-    ADMIN, MENU_ONE_LEVEL, \
+    ADMIN, MENU_ONE_LEVEL, MENU_ROOT_ID, \
     USER_DEFAULT_AVATAR, USER_DEFAULT_PASSWORD, USER_DEFAULT_INTROD
 from deploy.utils.utils import d2s, get_now, md5, check_length
 
@@ -185,6 +186,11 @@ class AuthorityService(object):
         'delete_rtx'
     ]
 
+    req_menu_info_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     def __init__(self):
         """
         authority service class initialize
@@ -193,6 +199,7 @@ class AuthorityService(object):
         self.role_bo = RoleBo()
         self.menu_bo = MenuBo()
         self.sysuser_bo = SysUserBo()
+        self.enum_bo = EnumBo()
 
     def _role_model_to_dict(self, model, is_detail=False):
         """
@@ -305,14 +312,17 @@ class AuthorityService(object):
         else:
             return _res
 
-    def _menu_model_to_dict(self, model):
+    def _menu_model_to_dict(self, model, info=False):
         """
         menu model to dict data
         return json data
-
-        'id', 'name', 'path', 'title', 'pid', 'level', 'md5_id',
-        'component', 'hidden', 'redirect', 'icon', 'noCache', 'affix', 'breadcrumb',
-        'create_time','create_rtx', 'is_del','delete_time','delete_rtx'
+        :params info:
+            - true：详情/编辑
+            - false：table数据显示
+        attrs:
+            'id', 'name', 'path', 'title', 'pid', 'level', 'md5_id',
+            'component', 'hidden', 'redirect', 'icon', 'noCache', 'affix', 'breadcrumb',
+            'create_time','create_rtx', 'is_del','delete_time','delete_rtx'
         """
         if not model:
             return {}
@@ -331,23 +341,35 @@ class AuthorityService(object):
             elif attr == 'pid':
                 _res[attr] = model.pid
             elif attr == 'level':
-                _res[attr] = model.level
+                _res[attr] = str(model.level)
             elif attr == 'md5_id':
                 _res[attr] = model.md5_id
             elif attr == 'component':
                 _res[attr] = model.component
             elif attr == 'hidden':
-                _res[attr] = '是' if model.hidden else '否'
+                if info:
+                    _res[attr] = '1' if model.hidden else '0'
+                else:
+                    _res[attr] = '是' if model.hidden else '否'
             elif attr == 'redirect':
                 _res[attr] = model.redirect
             elif attr == 'icon':
                 _res[attr] = model.icon
             elif attr == 'noCache':
-                _res[attr] = '是' if model.noCache else '否'
+                if info:
+                    _res[attr] = '1' if model.noCache else '0'
+                else:
+                    _res[attr] = '是' if model.noCache else '否'
             elif attr == 'affix':
-                _res[attr] = '是' if model.affix else '否'
+                if info:
+                    _res[attr] = '1' if model.affix else '0'
+                else:
+                    _res[attr] = '是' if model.affix else '否'
             elif attr == 'breadcrumb':
-                _res[attr] = '是' if model.breadcrumb else '否'
+                if info:
+                    _res[attr] = '1' if model.breadcrumb else '0'
+                else:
+                    _res[attr] = '是' if model.breadcrumb else '否'
             elif attr == 'create_time':
                 _res[attr] = d2s(model.create_time) \
                     if not isinstance(model.create_time, str) else model.create_time or ''
@@ -1263,25 +1285,30 @@ class AuthorityService(object):
             return Status(
                 214, 'failure', u'缺少rtx_id请求参数', {}).json()
 
-        all_menus = self.menu_bo.get_all_no(root=False)   # 全部数据，包含禁用菜单 过滤根节点0
+        all_menus = self.menu_bo.get_all_no(root=True)   # 全部数据，包含禁用菜单 过滤根节点0
         if not all_menus:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {}).json()
 
         _res = list()
-        template_list = list()
-        one_menus = dict()
-        one_menus_keys = list()
+        template_list = list()  # 二级临时菜单
+        one_menus = dict()  # 一级菜单
+        one_menus_keys = list()  # 菜单一级节点keys，List类型，存储格式：{'id': menu.id}
+        root_menu = dict()  # 菜单根节点，只有一个
         # 所有菜单，遍历之后加入一级菜单列表、临时菜单列表（二级）
         for menu in all_menus:
             if not menu: continue
-            _d = self._menu_model_to_dict(menu)
+            _d = self._menu_model_to_dict(menu, info=False)
             if not _d: continue
             if int(menu.level) == MENU_ONE_LEVEL:
                 one_menus[menu.id] = _d
                 one_menus_keys.append({'id': menu.id})
             else:
                 template_list.append(_d)
+            if int(menu.id) == MENU_ROOT_ID:
+                root_menu['id'] = str(menu.id)
+                root_menu['name'] = menu.name
+                root_menu['title'] = menu.title
         template_list.sort(key=itemgetter('pid'))
         # 二级菜单分组，加入新的数据列表
         for key, group in groupby(template_list, key=itemgetter('pid')):
@@ -1292,11 +1319,81 @@ class AuthorityService(object):
                     if not g: continue
                     if _d.get('path'):
                         g['path'] = '%s/%s' % (_d.get('path'), g.get('path'))
+                    # 二级菜单加入父节点信息（一级菜单）
+                    g['pname'] = _d.get('name')
+                    g['ptitle'] = _d.get('title')
                     _new_child.append(g)
                 _d['children'] = _new_child
+                # 一级菜单加入根节点信息
+                _d['pid'] = root_menu.get('id') or "0"
+                _d['pname'] = root_menu.get('name') or "Home"
+                _d['ptitle'] = root_menu.get('title') or "首页"
                 _res.append(_d)
         # 删除临时列表
         del template_list
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': _res, 'keys': one_menus_keys}
         ).json()
+
+    def menu_info(self, params):
+        """
+        get menu detail information from db table menu, menu is dict object
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_menu_info_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+
+        model = self.menu_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
+        model_res = self._menu_model_to_dict(model, info=True)
+        # 获取根节点 && 一级菜单
+        root_one_menu_models = self.menu_bo.get_root_one_menus()
+        root_menu = list()  # 菜单根节点，只有一个
+        one_menus = list()  # 一级菜单，多个List类型
+        for menu in root_one_menu_models:
+            if not menu: continue
+            root_menu.append({'label': menu.title, 'value': str(menu.id)}) \
+                if int(menu.id) == MENU_ROOT_ID \
+                else one_menus.append({'label': menu.title, 'value': str(menu.id)})
+        menu_options = [
+            {'label': "根节点", 'options': root_menu},
+            {'label': "一级菜单", 'options': one_menus}
+        ]
+
+        # enum info
+        names = ['menu-level', 'bool-type']
+        enums_models = self.enum_bo.get_model_by_names(names)
+        template_list = list()
+        for e in enums_models:
+            template_list.append({'name': str(e.name), 'label': str(e.value), 'value': str(e.key)})
+        enums_models_dict = dict()
+        template_list.sort(key=itemgetter('name'))
+        for key, group in groupby(template_list, key=itemgetter('name')):
+            enums_models_dict[key] = list(group)
+        # pid 字符串
+        model_res['pid'] = str(model_res.get('pid'))
+        data = {
+            'menu': model_res,
+            'level_enmus': enums_models_dict.get('menu-level'),
+            'bool_enmus': enums_models_dict.get('bool-type'),
+            'menu_options': menu_options
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), data).json()

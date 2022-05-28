@@ -260,7 +260,10 @@ VALUES
 ('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', 'admin', '2022-04-27 00:00:00'),
 -- excel-num
 ('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '1', '行', '行', 'admin', '2022-04-27 00:00:00'),
-('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', 'admin', '2022-04-27 00:00:00');
+('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', 'admin', '2022-04-27 00:00:00'),
+-- menu-level
+('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '1', '一级菜单', '一级菜单', 'admin', '2022-04-27 00:00:00'),
+('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '2', '二级菜单', '', '二级菜单', '2022-04-27 00:00:00');
 
 
 -- create excel_source
