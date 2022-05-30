@@ -207,7 +207,7 @@ def role_auth():
         params = request.args or {}
         return AuthorityService().role_auth_tree(params)
     except Exception as e:
-        LOG.error("authority>role auth is error: %s" % e)
+        LOG.error("authority>role auth tree is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -230,7 +230,7 @@ def role_save_tree():
         params = request.get_json() or {}
         return AuthorityService().role_save_tree(params)
     except Exception as e:
-        LOG.error("authority>role save auth is error: %s" % e)
+        LOG.error("authority>role save auth tree is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -410,7 +410,7 @@ def user_reset_pw():
         params = request.args or {}
         return AuthorityService().user_reset_pw(params)
     except Exception as e:
-        LOG.error("authority>user info is error: %s" % e)
+        LOG.error("authority>user reset password is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -454,6 +454,44 @@ def menu_info():
         return AuthorityService().menu_info(params)
     except Exception as e:
         LOG.error("authority>menu info is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/menuadd/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def menu_add():
+    """
+    add new menu information to db table menu
+    menu is dict object
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().menu_add(params)
+    except Exception as e:
+        LOG.error("authority>menu add is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/menuaddinit/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def menu_add_init():
+    """
+    initialize add menu information from db table menu, menu is dict object
+    :return: json data
+    data is enums: bool, one level menus
+    """
+    try:
+        return AuthorityService().menu_add_init()   # no parameters
+    except Exception as e:
+        LOG.error("authority>menu add init is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 

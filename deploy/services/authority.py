@@ -210,8 +210,7 @@ class AuthorityService(object):
         'breadcrumb',
     ]
 
-    req_menu_no_update_attrs = [
-        'component',
+    req_menu_no_need_attrs = [
         'redirect'
     ]
 
@@ -225,6 +224,22 @@ class AuthorityService(object):
         'noCache',
         'affix',
         'breadcrumb'
+    ]
+
+    req_menu_add_attrs = [
+        'rtx_id',
+        'name',
+        'title',
+        'path',
+        'icon',
+        'pid',
+        'level',
+        'component',
+        'redirect',
+        'hidden',
+        'noCache',
+        'affix',
+        'breadcrumb',
     ]
 
     def __init__(self):
@@ -1434,6 +1449,96 @@ class AuthorityService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), data).json()
 
+    def menu_add(self, params):
+        """
+        add new menu information to db table menu
+        menu is dict object
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_menu_add_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k not in self.req_menu_no_need_attrs:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k in self.req_menu_bool_update_attrs:
+                v = True if str(v) == '1' else False
+            elif k in self.req_menu_int_update_attrs:
+                v = int(v)
+            else:
+                v = str(v)
+            new_params[k] = v
+
+        # check name is or not exist, name is unique
+        model = self.menu_bo.get_model_by_name(new_params.get('name'))
+        # model is exist
+        if model:
+            return Status(
+                302, 'failure', '菜单RTX名称已存在' or StatusMsgs.get(302), {}).json()
+        # create new model
+        new_model = self.menu_bo.new_mode()
+        new_params['md5_id'] = md5(new_params.get('name'))
+        new_params['create_time'] = get_now()
+        new_params['is_del'] = False
+        for key, value in new_params.items():
+            if not key: continue
+            if key == 'rtx_id':
+                setattr(new_model, 'create_rtx', value)
+            else:
+                setattr(new_model, key, value)
+        else:
+            self.menu_bo.add_model(new_model)
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}).json()
+
+    def menu_add_init(self):
+        """
+        initialize add menu information from db table menu, menu is dict object
+        no parameters
+        :return: json data
+        data is enums: bool, one level menus
+        """
+        # 获取根节点 && 一级菜单
+        root_one_menu_models = self.menu_bo.get_root_one_menus()
+        root_menu = list()  # 菜单根节点，只有一个
+        one_menus = list()  # 一级菜单，多个List类型
+        for menu in root_one_menu_models:
+            if not menu: continue
+            root_menu.append({'label': menu.title, 'value': str(menu.id)}) \
+                if int(menu.id) == MENU_ROOT_ID \
+                else one_menus.append({'label': menu.title, 'value': str(menu.id)})
+        menu_options = [
+            {'label': "根节点", 'options': root_menu},
+            {'label': "一级菜单", 'options': one_menus}
+        ]
+
+        # enum info
+        names = ['menu-level', 'bool-type']
+        enums_models = self.enum_bo.get_model_by_names(names)
+        template_list = list()
+        for e in enums_models:
+            template_list.append({'name': str(e.name), 'label': str(e.value), 'value': str(e.key)})
+        enums_models_dict = dict()
+        template_list.sort(key=itemgetter('name'))
+        for key, group in groupby(template_list, key=itemgetter('name')):
+            enums_models_dict[key] = list(group)
+        data = {
+            'level_enmus': enums_models_dict.get('menu-level'),
+            'bool_enmus': enums_models_dict.get('bool-type'),
+            'menu_options': menu_options
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), data).json()
+
     def menu_update(self, params):
         """
         update menu detail information from db table menu, menu is dict object
@@ -1450,7 +1555,7 @@ class AuthorityService(object):
             if k not in self.req_menu_update_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v and k not in self.req_menu_no_update_attrs:
+            if not v and k not in self.req_menu_no_need_attrs:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             if k in self.req_menu_bool_update_attrs:

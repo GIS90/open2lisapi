@@ -83,3 +83,9 @@ class MenuBo(BOBase):
         q = q.filter(MenuModel.level.in_([MENU_ROOT_ID, MENU_ONE_LEVEL]))
         q = q.all()
         return q
+
+    def get_model_by_name(self, name):
+        q = self.session.query(MenuModel)
+        q = q.filter(MenuModel.name == name)
+        q = q.first()
+        return q
