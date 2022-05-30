@@ -56,6 +56,8 @@ class AuthorityService(object):
     authority service
     """
 
+    DEFAULT_COMPONENT = 'layout'
+
     req_role_list_attrs = [
         'rtx_id',
         'limit',
@@ -189,6 +191,40 @@ class AuthorityService(object):
     req_menu_info_attrs = [
         'rtx_id',
         'md5'
+    ]
+
+    req_menu_update_attrs = [
+        'rtx_id',
+        'md5',
+        'name',
+        'title',
+        'path',
+        'icon',
+        'pid',
+        'level',
+        'component',
+        'redirect',
+        'hidden',
+        'noCache',
+        'affix',
+        'breadcrumb',
+    ]
+
+    req_menu_no_update_attrs = [
+        'component',
+        'redirect'
+    ]
+
+    req_menu_int_update_attrs = [
+        'pid',
+        'level'
+    ]
+
+    req_menu_bool_update_attrs = [
+        'hidden',
+        'noCache',
+        'affix',
+        'breadcrumb'
     ]
 
     def __init__(self):
@@ -1397,3 +1433,64 @@ class AuthorityService(object):
         }
         return Status(
             100, 'success', StatusMsgs.get(100), data).json()
+
+    def menu_update(self, params):
+        """
+        update menu detail information from db table menu, menu is dict object
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_menu_update_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k not in self.req_menu_no_update_attrs:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k in self.req_menu_bool_update_attrs:
+                v = True if str(v) == '1' else False
+            elif k in self.req_menu_int_update_attrs:
+                v = int(v)
+            else:
+                v = str(v)
+            new_params[k] = v
+
+        model = self.menu_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
+        if model.name != new_params.get('name'):
+            model.name = new_params.get('name')
+        if model.path != new_params.get('path'):
+            model.path = new_params.get('path')
+        if model.title != new_params.get('title'):
+            model.title = new_params.get('title')
+        if model.pid != new_params.get('pid'):
+            model.pid = new_params.get('pid')
+        if model.level != new_params.get('level'):
+            model.level = new_params.get('level')
+        if model.component != new_params.get('component'):
+            model.component = new_params.get('component') or self.DEFAULT_COMPONENT
+        if model.redirect != new_params.get('redirect'):
+            model.redirect = new_params.get('redirect')
+        if model.icon != new_params.get('icon'):
+            model.icon = new_params.get('icon')
+        if model.hidden != new_params.get('hidden'):
+            model.hidden = new_params.get('hidden')
+        if model.noCache != new_params.get('noCache'):
+            model.noCache = new_params.get('noCache')
+        if model.affix != new_params.get('affix'):
+            model.affix = new_params.get('affix')
+        if model.breadcrumb != new_params.get('breadcrumb'):
+            model.breadcrumb = new_params.get('breadcrumb')
+        self.menu_bo.merge_model(model)
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}).json()
