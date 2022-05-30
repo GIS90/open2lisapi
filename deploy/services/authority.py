@@ -242,6 +242,12 @@ class AuthorityService(object):
         'breadcrumb',
     ]
 
+    req_menu_status_attrs = [
+        'rtx_id',
+        'md5',
+        'status'
+    ]
+
     def __init__(self):
         """
         authority service class initialize
@@ -1599,3 +1605,56 @@ class AuthorityService(object):
 
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
+
+    def menu_status(self, params):
+        """
+        change menu data status, from menu table
+        post request and json parameters
+        :return: json data
+
+        状态改变：
+        true：注销
+        false：启用
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_menu_status_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v and k != 'status':     # value check, is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'status':   # status check: 只允许为bool类型
+                if not isinstance(v, bool):
+                    return Status(
+                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}
+                    ).json()
+                new_params[k] = v
+            else:
+                new_params[k] = str(v)
+
+        model = self.menu_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}
+            ).json()
+        # change status
+        model.is_del = new_params.get('status')
+        if new_params.get('status'):
+            model.delete_rtx = new_params.get('rtx_id')
+            model.delete_time = get_now()
+        self.menu_bo.merge_model(model)
+        message = '菜单禁用成功' if new_params.get('status') else '菜单启用成功'
+        return Status(
+            100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
