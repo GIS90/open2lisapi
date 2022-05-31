@@ -101,13 +101,13 @@ VALUES
 DROP TABLES IF EXISTS `menu`;
 CREATE TABLE `menu`  (
     `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `name` varchar(15) NOT NULL COMMENT '路由name，首字母大写',
+    `name` varchar(25) NOT NULL COMMENT '路由name，首字母大写',
     `path` varchar(35) NOT NULL COMMENT '路由path，首字母小写',
     `title` varchar(25) NOT NULL COMMENT '名称',
     `pid` int NOT NULL COMMENT '父ID',
     `level` int NOT NULL default 1 COMMENT '级别',
     `md5_id` varchar(55) NOT NULL COMMENT 'md5值',
-    `component` varchar(15) NOT NULL COMMENT '路由组件，与router mappings映射',
+    `component` varchar(25) NOT NULL COMMENT '路由组件，与router mappings映射',
     `hidden` bool default False COMMENT '是否在SideBar显示，默认为false',
     `redirect` varchar(55) COMMENT '重定向',
     `icon` varchar(25) COMMENT '图标',

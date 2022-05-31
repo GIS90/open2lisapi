@@ -1475,6 +1475,17 @@ class AuthorityService(object):
             if not v and k not in self.req_menu_no_need_attrs:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # parameters length check
+            if k in ['name', 'component', 'icon'] and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度限制25' % k, {}).json()
+            elif k in ['path', 'title', 'icon'] and not check_length(v, 35):
+                return Status(
+                    213, 'failure', u'请求参数%s长度限制35' % k, {}).json()
+            elif k == 'redirect' and v and not check_length(v, 55):
+                return Status(
+                    213, 'failure', u'请求参数%s长度限制55' % k, {}).json()
+
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
             elif k in self.req_menu_int_update_attrs:
@@ -1564,6 +1575,17 @@ class AuthorityService(object):
             if not v and k not in self.req_menu_no_need_attrs:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # parameters length check
+            if k in ['name', 'component', 'icon'] and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度限制25' % k, {}).json()
+            elif k in ['path', 'title', 'icon'] and not check_length(v, 35):
+                return Status(
+                    213, 'failure', u'请求参数%s长度限制35' % k, {}).json()
+            elif k == 'redirect' and v and not check_length(v, 55):
+                return Status(
+                    213, 'failure', u'请求参数%s长度限制55' % k, {}).json()
+
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
             elif k in self.req_menu_int_update_attrs:

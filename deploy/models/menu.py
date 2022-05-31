@@ -50,13 +50,13 @@ class MenuModel(base.ModelBase):
     __tablename__ = 'menu'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(15))
+    name = Column(String(25))
     path = Column(String(35))
     title = Column(String(35))
     pid = Column(Integer)
     level = Column(Integer)
     md5_id = Column(String(55))
-    component = Column(String(15))
+    component = Column(String(25))
     hidden = Column(Boolean())
     redirect = Column(String(55))
     icon = Column(String(25))
