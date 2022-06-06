@@ -202,27 +202,6 @@ CREATE TABLE `api`  (
 -- delete
 delete from api;
 -- insert data
-insert into
-api(`blueprint`, `endpoint`, `path`, `type`, `short`, `long`)
-VALUES
--- manage
-('manage', 'manage.login_in', '/manage/login', 'primary', '登录', '用户请求系统登录'),
-('manage', 'manage.login_out', '/manage/logout', 'danger', '退出', '用户请求系统退出'),
--- user
-('user', 'user.info', '/user/info', 'info', '用户信息', '请求获取用户信息'),
-('user', 'user.auth', '/user/auth', 'info', '用户权限', '请求获取用户权限'),
-('user', 'user.timeline', '/user/timeline', 'info', '访问日志', '请求用户操作系统日志信息'),
-('user', 'user.update', '/user/update', 'success', '更新用户信息', '更新用户基础信息数据'),
-('user', 'user.password', '/user/password', 'success', '更新用户密码', '更新用户密码信息'),
-('user', 'user.avatar', '/user/avatar', 'success', '更新用户头像', '更新用户头像信息'),
--- excel
-('excel', 'excel.list', '/excel/list', 'info', 'Excel文件列表', '获取Excel文件列表'),
-('excel', 'excel.upload', '/excel/upload', 'success', 'Excel上传文件', '上传单个Excel文件'),
-('excel', 'excel.uploads', '/excel/uploads', 'success', 'Excel上传文件', '上传多个Excel文件'),
-('excel', 'excel.update', '/excel/update', 'success', 'Excel更新数据', '更新Excel文件信息'),
-('excel', 'excel.delete', '/excel/delete', 'success', 'Excel删除文件', '删除单个Excel文件'),
-('excel', 'excel.deletes', '/excel/deletes', 'success', 'Excel批量文件', '批量删除多个Excel文件'),
-('excel', 'excel.merge', '/excel/merge', 'success', 'Excel数据合并', '多个Excel、Sheet文件合并');
 
 
 

@@ -191,8 +191,10 @@ class RequestService(object):
         # start = datetime.datetime.now()
         res, total = self.request_bo.get_by_rtx(new_params)
         # end = datetime.datetime.now()
+        # print('=' * 30)
         # print((end-start).seconds)
         # print(total)
+        # print('=' * 30)
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'timeline': [], 'total': 0}
