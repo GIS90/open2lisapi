@@ -202,6 +202,8 @@ CREATE TABLE `api`  (
 -- delete
 delete from api;
 -- insert data
+-- SQL见开发进度表->后台API
+
 
 
 
@@ -229,20 +231,29 @@ insert into
 enum(`name`, `md5_id`, `key`, `value`, `description`, `create_rtx`, `create_time`)
 VALUES
 -- bool
-('bool-type', '5886ecb16dfd303f97ef685f943f4735', '1', '是', '是', 'admin', '2022-04-27 00:00:00'),
-('bool-type', '5886ecb16dfd303f97ef685f943f4735', '0', '否', '否', 'admin', '2022-04-27 00:00:00'),
+('bool-type', '5886ecb16dfd303f97ef685f943f4735', '1', '是', '是', 'admin', '2022-01-01 00:00:00'),
+('bool-type', '5886ecb16dfd303f97ef685f943f4735', '0', '否', '否', 'admin', '2022-01-01 00:00:00'),
 -- excel-type
-('excel-type', '3a4048a9372203790ebfc88337f38981', '1', '合并', '表格处理方式合并', 'admin', '2022-04-27 00:00:00'),
-('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', 'admin', '2022-04-27 00:00:00'),
+('excel-type', '3a4048a9372203790ebfc88337f38981', '1', '合并', '表格处理方式合并', 'admin', '2022-01-01 00:00:00'),
+('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', 'admin', '2022-01-01 00:00:00'),
 -- excel-split-store
-('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '1', '多表一Sheet', '表格拆分多表一Sheet存储方式', 'admin', '2022-04-27 00:00:00'),
-('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', 'admin', '2022-04-27 00:00:00'),
+('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '1', '多表一Sheet', '表格拆分多表一Sheet存储方式', 'admin', '2022-01-01 00:00:00'),
+('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', 'admin', '2022-01-01 00:00:00'),
 -- excel-num
-('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '1', '行', '行', 'admin', '2022-04-27 00:00:00'),
-('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', 'admin', '2022-04-27 00:00:00'),
+('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '1', '行', '行', 'admin', '2022-01-01 00:00:00'),
+('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', 'admin', '2022-01-01 00:00:00'),
 -- menu-level
-('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '1', '一级菜单', '一级菜单', 'admin', '2022-04-27 00:00:00'),
-('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '2', '二级菜单', '', '二级菜单', '2022-04-27 00:00:00');
+('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '1', '一级菜单', '一级菜单', 'admin', '2022-01-01 00:00:00'),
+('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '2', '二级菜单', '二级菜单', 'admin', '2022-01-01 00:00:00'),
+-- 文件类型
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '1', 'WORD', 'WORD文档', 'admin', '2022-01-01 00:00:00'),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '2', 'EXCEL', 'EXCEL表格', 'admin', '2022-01-01 00:00:00'),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '3', 'PPT', 'PPT演示文稿', 'admin', '2022-01-01 00:00:00'),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '4', '文本', '文本文件', 'admin', '2022-01-01 00:00:00'),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '5', 'PDF', 'PDF文件', 'admin', '2022-01-01 00:00:00'),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '99', '其他', '其他类型文件', 'admin', '2022-01-01 00:00:00');
+
+
 
 
 -- create excel_source
@@ -306,6 +317,29 @@ CREATE UNIQUE INDEX excel_result_index ON excel_result (`md5_id`);
 
 
 
+
+-- create office
+DROP TABLES IF EXISTS `office`;
+
+CREATE TABLE `office` (
+	`id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+	`name` varchar(80) COMMENT '原始名称',
+	`store_name` varchar(100) COMMENT '存储名称',
+	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
+	`rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
+	`file_type` varchar(2) NOT NULL COMMENT '文件类型',
+	`transfer` bool DEFAULT False COMMENT '转换状态',
+    `transfer_time` datetime COMMENT '转换时间',
+    `local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
+	`store_url` varchar(120) COMMENT '文件store对象存储资源路径（相对路径）',
+	`create_time` datetime COMMENT '创建时间',
+	`delete_rtx` varchar(25) COMMENT '删除用户rtx',
+	`delete_time` datetime COMMENT '删除时间',
+	`is_del` bool DEFAULT False COMMENT '是否删除',
+	PRIMARY KEY (`id`)
+) COMMENT='Office文件记录表';
+
+CREATE UNIQUE INDEX office_index ON office (`md5_id`);
 
 
 
