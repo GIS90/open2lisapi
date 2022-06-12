@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    excel service
+    office service
 
 base_info:
     __author__ = "PyGo"
@@ -55,9 +55,9 @@ from deploy.utils.utils import get_now, d2s, md5, s2d, check_length
 from deploy.utils.enums import *
 
 
-class ExcelService(object):
+class OfficeService(object):
     """
-    excel service
+    office service
     """
 
     # define many request api parameters
@@ -198,7 +198,7 @@ class ExcelService(object):
         """
         excel service class initialize
         """
-        super(ExcelService, self).__init__()
+        super(OfficeService, self).__init__()
         self.excel_lib = ExcelLib()
         self.file_lib = FileLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
@@ -455,7 +455,7 @@ class ExcelService(object):
 
     def excel_source_list(self, params):
         """
-        get source excel list by params
+        get excel source excel list by params
         params is dict
         return json data
         """
@@ -502,9 +502,9 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def excel_upload(self, params, upload_file, is_check_fmt: bool = True):
+    def office_upload(self, params, upload_file, is_check_fmt: bool = True):
         """
-        one excel file upload to server(file store object)
+        one office file upload to server(file store object)
         params params: request params, rtx_id and excel type
         params upload_file: excel upload file
         params is_check_fmt: file is or not check format
@@ -576,9 +576,9 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {}
         ).json()
 
-    def excel_upload_m(self, params, upload_files, is_check_fmt: bool = True):
+    def office_upload_m(self, params, upload_files, is_check_fmt: bool = True):
         """
-        many file to upload
+        many office file to upload
         params params: request params
         params upload_files: excel upload file
         params is_check_fmt: file is or not check format
@@ -597,7 +597,7 @@ class ExcelService(object):
         for uf in upload_files:
             try:
                 if not uf: continue
-                store_res = self.excel_upload(params=params, upload_file=upload_files.get(uf))
+                store_res = self.office_upload(params=params, upload_file=upload_files.get(uf))
                 store_res_json = json.loads(store_res)
                 success_list.append(uf) if store_res_json.get('status_id') == 100 \
                     else failure_list.append(uf)
@@ -663,9 +663,9 @@ class ExcelService(object):
             'store_url': new_store_url
         }
 
-    def source_update(self, params):
+    def excel_source_update(self, params):
         """
-        update source file information, contain:
+        update excel source file information, contain:
             - name 文件名称
             - set_sheet 设置的Sheet
 
@@ -750,9 +750,9 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def source_delete(self, params):
+    def excel_source_delete(self, params):
         """
-        delete one source excel file by params
+        delete one excel source excel file by params
         params is dict
         """
         if not params:
@@ -798,9 +798,9 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def source_deletes(self, params):
+    def excel_source_deletes(self, params):
         """
-        delete many source excel file by params
+        delete many excel source excel file by params
         params is dict
         """
         if not params:
@@ -998,7 +998,7 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def result_update(self, params):
+    def excel_result_update(self, params):
         """
         update result excel file, only update file name
         params is dict
@@ -1067,7 +1067,7 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def result_delete(self, params):
+    def excel_result_delete(self, params):
         """
         delete one result excel file by params
         params is dict
@@ -1116,9 +1116,9 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def result_deletes(self, params):
+    def excel_result_deletes(self, params):
         """
-        delete many result excel file by params
+        delete many excel result excel file by params
         params is dict
         """
         if not params:
@@ -1154,7 +1154,7 @@ class ExcelService(object):
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
-    def init_split_params(self, params):
+    def excel_init_split_params(self, params):
         """
         initialize the result excel file split parameter
         params is dict
@@ -1227,7 +1227,7 @@ class ExcelService(object):
             100, 'success', StatusMsgs.get(100), data
         ).json()
 
-    def get_sheet_header(self, params):
+    def excel_sheet_header(self, params):
         """
         get sheet headers by sheet index
         params is dict

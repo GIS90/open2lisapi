@@ -174,11 +174,12 @@ class AuthorityService(object):
         'pid',
         'level',
         'md5_id',
+        'order_id',
         'component',
         'hidden',
         'redirect',
         'icon',
-        'noCache',
+        'cache',
         'affix',
         'breadcrumb',
         'create_time',
@@ -401,6 +402,8 @@ class AuthorityService(object):
                 _res[attr] = str(model.level)
             elif attr == 'md5_id':
                 _res[attr] = model.md5_id
+            elif attr == 'order_id':
+                _res[attr] = model.order_id
             elif attr == 'component':
                 _res[attr] = model.component
             elif attr == 'hidden':
@@ -412,11 +415,11 @@ class AuthorityService(object):
                 _res[attr] = model.redirect
             elif attr == 'icon':
                 _res[attr] = model.icon
-            elif attr == 'noCache':
+            elif attr == 'cache':
                 if info:
-                    _res[attr] = '1' if model.noCache else '0'
+                    _res[attr] = '1' if model.cache else '0'
                 else:
-                    _res[attr] = '是' if model.noCache else '否'
+                    _res[attr] = '是' if model.cache else '否'
             elif attr == 'affix':
                 if info:
                     _res[attr] = '1' if model.affix else '0'

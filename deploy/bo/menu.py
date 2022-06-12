@@ -52,7 +52,7 @@ class MenuBo(BOBase):
         if not root:
             q = q.filter(MenuModel.id != MENU_ROOT_ID)
         q = q.filter(MenuModel.is_del != True)
-        q = q.order_by(MenuModel.id.asc())
+        q = q.order_by(MenuModel.order_id.asc())
         q = q.all()
         return q
 

@@ -59,11 +59,12 @@ class MenuService(object):
             'component',
             'hidden',
             'redirect',
+            'order_id'
         ]
         self.menu_meta_attrs = [
             'title',
             'icon',
-            'noCache',
+            'cache',
             'affix',
             'breadcrumb',
         ]
@@ -101,6 +102,8 @@ class MenuService(object):
                 _res[attr] = model.level
             elif attr == 'md5_id':
                 _res[attr] = model.md5_id
+            elif attr == 'order_id':
+                _res[attr] = model.order_id
             elif attr == 'component':
                 _res[attr] = model.component
             elif attr == 'hidden':
@@ -109,8 +112,8 @@ class MenuService(object):
                 _res[attr] = model.redirect or ""
             elif attr == 'icon':
                 _meta[attr] = model.icon or ""
-            elif attr == 'noCache' and level == 2:
-                _meta[attr] = True if model.noCache else False
+            elif attr == 'cache' and level == 2:
+                _meta[attr] = False if model.cache else True
             elif attr == 'affix' and level == 2:
                 _meta[attr] = True if model.affix else False
             elif attr == 'breadcrumb' and level == 2:
@@ -141,6 +144,8 @@ class MenuService(object):
                 _res[attr] = model.level
             elif attr == 'md5_id':
                 _res[attr] = model.md5_id
+            elif attr == 'order_id':
+                _res[attr] = model.order_id
             elif attr == 'component':
                 _res[attr] = model.component
             elif attr == 'hidden':
@@ -149,8 +154,8 @@ class MenuService(object):
                 _res[attr] = model.redirect or ""
             elif attr == 'icon':
                 _res[attr] = model.icon or ""
-            elif attr == 'noCache':
-                _res[attr] = True if model.noCache else False
+            elif attr == 'cache':
+                _res[attr] = False if model.cache else True
             elif attr == 'affix':
                 _res[attr] = True if model.affix else False
             elif attr == 'breadcrumb':

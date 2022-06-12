@@ -40,40 +40,18 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import timeer
-from deploy.services.excel import ExcelService
+from deploy.services.office import OfficeService
 
 
-excel = Blueprint('excel', __name__, url_prefix='/excel')
-CORS(excel, supports_credentials=True)
+office = Blueprint('office', __name__, url_prefix='/office')
+CORS(office, supports_credentials=True)
 
 
-@excel.route('/source/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
-def source_list():
-    """
-    get excel list from db table excel_source
-    :return: many json data
-    """
-    if request.method == 'GET':
-        return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
-
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return ExcelService().excel_source_list(params)
-    except Exception as e:
-        LOG.error("excel>source list is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
-
-
-@excel.route('/upload/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/upload/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def upload():
     """
-    one excel file upload to server(file store object)
+    one office file upload to server(file store object)
     :return: json data
     单文件上传
     """
@@ -91,18 +69,18 @@ def upload():
                 216, 'failure', StatusMsgs.get(216), {}
             ).json()
 
-        return ExcelService().excel_upload(params, request.files.get('files'))
+        return OfficeService().office_upload(params, request.files.get('files'))
     except Exception as e:
-        LOG.error("excel>upload is error: %s" % e)
+        LOG.error("office>upload is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/uploads/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/uploads/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def uploads():
     """
-    one excel file upload to server(file store object)
+    many office file upload to server(file store object)
     :return: json data
     多文件上传
     """
@@ -121,18 +99,40 @@ def uploads():
                 216, 'failure', StatusMsgs.get(216), {}
             ).json()
 
-        return ExcelService().excel_upload_m(params, files)
+        return OfficeService().office_upload_m(params, files)
     except Exception as e:
-        LOG.error("excel>uploads is error: %s" % e)
+        LOG.error("office>uploads is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/supdate/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_source_list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def source_update():
+def excel_source_list():
     """
-    update source file information, contain:
+    get excel source list from db table excel_source by parameters
+    :return: many json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return OfficeService().excel_source_list(params)
+    except Exception as e:
+        LOG.error("office>excel source list is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@office.route('/excel_source_update/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def excel_source_update():
+    """
+    update excel source file information, contain:
         - name 文件名称
         - set_sheet 设置的Sheet
     by excel file md5
@@ -146,18 +146,18 @@ def source_update():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().source_update(params)
+        return OfficeService().excel_source_update(params)
     except Exception as e:
-        LOG.error("excel>update source excel file is error: %s" % e)
+        LOG.error("office>update excel source file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/sdelete/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_source_delete/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def source_delete():
+def excel_source_delete():
     """
-    delete one source excel file by md5
+    delete one excel source excel file by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -168,18 +168,18 @@ def source_delete():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().source_delete(params)
+        return OfficeService().excel_source_delete(params)
     except Exception as e:
-        LOG.error("excel>delete one source file is error: %s" % e)
+        LOG.error("office>delete one excel source file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/sdeletes/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_source_deletes/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def source_deletes():
+def excel_source_deletes():
     """
-    delete many source excel file by md5 list
+    delete many excel source excel file by md5 list
     :return: json data
     """
     if request.method == 'GET':
@@ -190,16 +190,16 @@ def source_deletes():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().source_deletes(params)
+        return OfficeService().excel_source_deletes(params)
     except Exception as e:
-        LOG.error("excel>delete many source file is error: %s" % e)
+        LOG.error("office>delete many excel source file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/merge/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_merge/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def merge():
+def excel_merge():
     """
     many excel file to merge one excel file,
     many file list by file md5 list
@@ -213,18 +213,18 @@ def merge():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().excel_merge(params)
+        return OfficeService().excel_merge(params)
     except Exception as e:
-        LOG.error("excel>merge is error: %s" % e)
+        LOG.error("office>excel merge is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/history/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_history_list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def history_list():
+def excel_history_list():
     """
-    get history excel list from db table excel_result
+    get excel history excel list from db table excel_result
     many file
     :return: json data
     """
@@ -236,18 +236,18 @@ def history_list():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().excel_history_list(params)
+        return OfficeService().excel_history_list(params)
     except Exception as e:
-        LOG.error("excel>history list is error: %s" % e)
+        LOG.error("office>excel history list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/rupdate/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_result_update/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def result_update():
+def excel_result_update():
     """
-    update result excel file, only update file name
+    update excel result excel file, only update file name
     by excel file md5
     :return: json data
     """
@@ -259,18 +259,18 @@ def result_update():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().result_update(params)
+        return OfficeService().excel_result_update(params)
     except Exception as e:
-        LOG.error("excel>update result excel file is error: %s" % e)
+        LOG.error("office>update result excel file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/rdelete/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_result_delete/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def result_delete():
+def excel_result_delete():
     """
-    delete one result excel file by md5
+    delete one excel result excel file by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -281,18 +281,18 @@ def result_delete():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().result_delete(params)
+        return OfficeService().excel_result_delete(params)
     except Exception as e:
-        LOG.error("excel>delete result file is error: %s" % e)
+        LOG.error("office>delete excel result file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/rdeletes/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_result_deletes/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def result_deletes():
+def excel_result_deletes():
     """
-    delete many result excel file by md5 list
+    delete many excel result excel file by md5 list
     parameter list is List type
     :return: json data
     """
@@ -304,18 +304,18 @@ def result_deletes():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().result_deletes(params)
+        return OfficeService().excel_result_deletes(params)
     except Exception as e:
-        LOG.error("excel>batch deletes result file is error: %s" % e)
+        LOG.error("office>batch deletes excel result file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/initsplit/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_init_split/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def init_split_params():
+def excel_init_split_params():
     """
-    initialize the result excel file split parameter
+    initialize the excel result excel file split parameter
     :return: json data, contain:
         sheet_index, sheet_names, column_names, excel_split_store, split_type, bool_type
     """
@@ -327,16 +327,16 @@ def init_split_params():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().init_split_params(params)
+        return OfficeService().excel_init_split_params(params)
     except Exception as e:
-        LOG.error("excel>initialize split parameter is error: %s" % e)
+        LOG.error("office>initialize excel split parameter is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/sheetheader/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_sheet_header/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def get_sheet_header():
+def excel_sheet_header():
     """
     get sheet headers by sheet index
     excel_source table
@@ -350,16 +350,16 @@ def get_sheet_header():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().get_sheet_header(params)
+        return OfficeService().excel_sheet_header(params)
     except Exception as e:
-        LOG.error("excel>get sheet headers is error: %s" % e)
+        LOG.error("office>get excel sheet headers is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@excel.route('/split/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_split/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def split():
+def excel_split():
     """
     split method, split parameters is many
     function: one file to split many file
@@ -373,8 +373,30 @@ def split():
     try:
         # 参数
         params = request.get_json() or {}
-        return ExcelService().excel_split(params)
+        return OfficeService().excel_split(params)
     except Exception as e:
-        LOG.error("excel>split is error: %s" % e)
+        LOG.error("office>split is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@office.route('/pdf2word_list/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def pdf2word_list():
+    """
+    get pdf2word list from db table by parameters
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        # return AuthorityService().role_list(params)
+    except Exception as e:
+        LOG.error("office>pdf2word list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
