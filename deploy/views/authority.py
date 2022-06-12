@@ -47,7 +47,7 @@ auth = Blueprint('auth', __name__, url_prefix='/auth')
 CORS(auth, supports_credentials=True)
 
 
-@auth.route('/role/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_list():
     """
@@ -70,9 +70,9 @@ def role_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/roleinfo/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def role_info():
+def role_detail():
     """
     get role detail information
     :return: json data
@@ -85,14 +85,14 @@ def role_info():
     try:
         # 参数
         params = request.args or {}
-        return AuthorityService().role_info(params)
+        return AuthorityService().role_detail(params)
     except Exception as e:
-        LOG.error("authority>role info is error: %s" % e)
+        LOG.error("authority>role detail is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/roleadd/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_add/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_add():
     """
@@ -114,7 +114,7 @@ def role_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/roleupdate/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_update/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_update():
     """
@@ -139,7 +139,7 @@ def role_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/rolemdel/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_del_m/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_batch_delete():
     """
@@ -162,7 +162,7 @@ def role_batch_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/roledel/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_del/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_delete():
     """
@@ -186,7 +186,7 @@ def role_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/tree/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_auth/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_auth():
     """
@@ -212,7 +212,7 @@ def role_auth():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/rolesavetree/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_save_tree/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_save_tree():
     """
@@ -235,7 +235,7 @@ def role_save_tree():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/roleselect/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_select/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def role_select_list():
     """
@@ -257,7 +257,7 @@ def role_select_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/user/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_list():
     """
@@ -280,7 +280,7 @@ def user_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/useradd/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_add/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_add():
     """
@@ -302,9 +302,9 @@ def user_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/userinfo/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def user_info():
+def user_detail():
     """
     get user detail information
     :return: json data
@@ -317,14 +317,14 @@ def user_info():
     try:
         # 参数
         params = request.args or {}
-        return AuthorityService().user_info(params)
+        return AuthorityService().user_detail(params)
     except Exception as e:
-        LOG.error("authority>user info is error: %s" % e)
+        LOG.error("authority>user detail is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/usermdel/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_del_m/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_batch_delete():
     """
@@ -347,7 +347,7 @@ def user_batch_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/userstatus/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_status/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_status():
     """
@@ -370,7 +370,7 @@ def user_status():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/userupdate/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_update/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_update():
     """
@@ -392,7 +392,7 @@ def user_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/userrp/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_reset_pw/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def user_reset_pw():
     """
@@ -415,7 +415,7 @@ def user_reset_pw():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/menu/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/menu_list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def menu_list():
     """
@@ -437,9 +437,9 @@ def menu_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/menuinfo/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/menu_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
-def menu_info():
+def menu_detail():
     """
     get menu detail information from db table menu, menu is dict object
     :return: json data
@@ -451,14 +451,14 @@ def menu_info():
     try:
         # 参数
         params = request.get_json() or {}
-        return AuthorityService().menu_info(params)
+        return AuthorityService().menu_detail(params)
     except Exception as e:
-        LOG.error("authority>menu info is error: %s" % e)
+        LOG.error("authority>menu detail is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/menuadd/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/menu_add/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def menu_add():
     """
@@ -480,7 +480,7 @@ def menu_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/menuaddinit/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/menu_add_init/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def menu_add_init():
     """
@@ -496,7 +496,7 @@ def menu_add_init():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/menuupdate/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/menu_update/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def menu_update():
     """
@@ -517,7 +517,7 @@ def menu_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/menustatus/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/menu_status/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def menu_status():
     """

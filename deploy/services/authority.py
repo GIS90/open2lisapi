@@ -499,7 +499,7 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def role_info(self, params):
+    def role_detail(self, params):
         """
         get role detail information
         by rtx id
@@ -1152,7 +1152,7 @@ class AuthorityService(object):
             100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def user_info(self, params):
+    def user_detail(self, params):
         """
         get user detail information
         by rtx id
@@ -1396,7 +1396,7 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'list': _res, 'keys': one_menus_keys}
         ).json()
 
-    def menu_info(self, params):
+    def menu_detail(self, params):
         """
         get menu detail information from db table menu, menu is dict object
         :return: json data
