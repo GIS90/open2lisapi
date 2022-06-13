@@ -52,7 +52,7 @@ class MenuBo(BOBase):
         if not root:
             q = q.filter(MenuModel.id != MENU_ROOT_ID)
         q = q.filter(MenuModel.is_del != True)
-        q = q.order_by(MenuModel.order_id.asc())
+        q = q.order_by(MenuModel.order_id.asc(), MenuModel.id.asc())
         q = q.all()
         return q
 
@@ -60,7 +60,7 @@ class MenuBo(BOBase):
         q = self.session.query(MenuModel)
         if not root:
             q = q.filter(MenuModel.id != MENU_ROOT_ID)
-        q = q.order_by(MenuModel.id.asc())
+        q = q.order_by(MenuModel.order_id.asc(), MenuModel.id.asc())
         q = q.all()
         return q
 
@@ -68,7 +68,7 @@ class MenuBo(BOBase):
         q = self.session.query(MenuModel)
         q = q.filter(MenuModel.id.in_(menu_ids))
         q = q.filter(MenuModel.is_del != True)
-        q = q.order_by(MenuModel.id.asc())
+        q = q.order_by(MenuModel.order_id.asc(), MenuModel.id.asc())
         q = q.all()
         return q
 
@@ -81,6 +81,7 @@ class MenuBo(BOBase):
     def get_root_one_menus(self):
         q = self.session.query(MenuModel)
         q = q.filter(MenuModel.level.in_([MENU_ROOT_ID, MENU_ONE_LEVEL]))
+        q = q.order_by(MenuModel.order_id.asc(), MenuModel.id.asc())
         q = q.all()
         return q
 

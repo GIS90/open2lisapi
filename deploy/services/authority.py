@@ -203,16 +203,18 @@ class AuthorityService(object):
         'icon',
         'pid',
         'level',
+        'order_id',
         'component',
         'redirect',
         'hidden',
-        'noCache',
+        'cache',
         'affix',
         'breadcrumb',
     ]
 
     req_menu_no_need_attrs = [
-        'redirect'
+        'redirect',
+        'order_id'
     ]
 
     req_menu_int_update_attrs = [
@@ -222,7 +224,7 @@ class AuthorityService(object):
 
     req_menu_bool_update_attrs = [
         'hidden',
-        'noCache',
+        'cache',
         'affix',
         'breadcrumb'
     ]
@@ -238,7 +240,7 @@ class AuthorityService(object):
         'component',
         'redirect',
         'hidden',
-        'noCache',
+        'cache',
         'affix',
         'breadcrumb',
     ]
@@ -379,7 +381,7 @@ class AuthorityService(object):
             - false：table数据显示
         attrs:
             'id', 'name', 'path', 'title', 'pid', 'level', 'md5_id',
-            'component', 'hidden', 'redirect', 'icon', 'noCache', 'affix', 'breadcrumb',
+            'component', 'hidden', 'redirect', 'icon', 'cache', 'affix', 'breadcrumb',
             'create_time','create_rtx', 'is_del','delete_time','delete_rtx'
         """
         if not model:
@@ -1353,7 +1355,7 @@ class AuthorityService(object):
         _res = list()
         template_list = list()  # 二级临时菜单
         one_menus = dict()  # 一级菜单
-        one_menus_keys = list()  # 菜单一级节点keys，List类型，存储格式：{'id': menu.id}
+        one_menus_keys = list()  # 菜单一级节点keys，List类型，存储格式：[{'id': menu.id}, {'id': menu.id}...]
         root_menu = dict()  # 菜单根节点，只有一个
         # 所有菜单，遍历之后加入一级菜单列表、临时菜单列表（二级）
         for menu in all_menus:
@@ -1369,6 +1371,7 @@ class AuthorityService(object):
                 root_menu['id'] = str(menu.id)
                 root_menu['name'] = menu.name
                 root_menu['title'] = menu.title
+
         template_list.sort(key=itemgetter('pid'))
         # 二级菜单分组，加入新的数据列表
         for key, group in groupby(template_list, key=itemgetter('pid')):
@@ -1383,7 +1386,9 @@ class AuthorityService(object):
                     g['pname'] = _d.get('name')
                     g['ptitle'] = _d.get('title')
                     _new_child.append(g)
-                _d['children'] = _new_child
+                # 二级菜单排序
+                _new_sort_child = sorted(_new_child, key=itemgetter('order_id'), reverse=False)
+                _d['children'] = _new_sort_child
                 # 一级菜单加入根节点信息
                 _d['pid'] = root_menu.get('id') or "0"
                 _d['pname'] = root_menu.get('name') or "Home"
@@ -1391,9 +1396,11 @@ class AuthorityService(object):
                 _res.append(_d)
         # 删除临时列表
         del template_list
+        # 一级菜单菜单排序
+        sort_res = sorted(_res, key=itemgetter('order_id'), reverse=False)
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': _res, 'keys': one_menus_keys}
+            100, 'success', StatusMsgs.get(100), {'list': sort_res, 'keys': one_menus_keys}
         ).json()
 
     def menu_detail(self, params):
@@ -1508,6 +1515,7 @@ class AuthorityService(object):
         new_params['md5_id'] = md5(new_params.get('name'))
         new_params['create_time'] = get_now()
         new_params['is_del'] = False
+        new_params['order_id'] = 0
         for key, value in new_params.items():
             if not key: continue
             if key == 'rtx_id':
@@ -1591,6 +1599,8 @@ class AuthorityService(object):
 
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
+            elif k == 'order_id':
+                v = int(v) if v else 0
             elif k in self.req_menu_int_update_attrs:
                 v = int(v)
             else:
@@ -1602,6 +1612,7 @@ class AuthorityService(object):
         if not model:
             return Status(
                 302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
+
         if model.name != new_params.get('name'):
             model.name = new_params.get('name')
         if model.path != new_params.get('path'):
@@ -1620,12 +1631,14 @@ class AuthorityService(object):
             model.icon = new_params.get('icon')
         if model.hidden != new_params.get('hidden'):
             model.hidden = new_params.get('hidden')
-        if model.noCache != new_params.get('noCache'):
-            model.noCache = new_params.get('noCache')
+        if model.cache != new_params.get('cache'):
+            model.cache = new_params.get('cache')
         if model.affix != new_params.get('affix'):
             model.affix = new_params.get('affix')
         if model.breadcrumb != new_params.get('breadcrumb'):
             model.breadcrumb = new_params.get('breadcrumb')
+        if model.order_id != new_params.get('order_id'):
+            model.order_id = new_params.get('order_id')
         self.menu_bo.merge_model(model)
 
         return Status(

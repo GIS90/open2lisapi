@@ -231,8 +231,11 @@ class MenuService(object):
             if key in one_menus.keys() and add_flag.get(key):
                 _d = one_menus.get(key)
                 # _d = self._del_nof_menu_d(_d)
-                _d['children'] = list(group)
+                _sort_group = sorted(group, key=itemgetter('order_id'), reverse=False)
+                _d['children'] = list(_sort_group)
                 _res.append(_d)
 
         del two_m_template_list
-        return _res
+        # 一级菜单排序
+        _sort_res = sorted(_res, key=itemgetter('order_id'), reverse=False)
+        return _sort_res
