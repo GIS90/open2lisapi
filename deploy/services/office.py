@@ -47,6 +47,7 @@ from deploy.utils.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
 from deploy.bo.excel_result import ExcelResultBo
 from deploy.bo.enum import EnumBo
+from deploy.bo.office import OfficeBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     EXCEL_LIMIT, EXCEL_STORE_BK, \
@@ -80,7 +81,8 @@ class OfficeService(object):
 
     req_upload_attrs = [
         'rtx_id',
-        'type'
+        'file_type',
+        'excel_sub_type'
     ]
 
     req_source_update_attrs = [
@@ -205,6 +207,7 @@ class OfficeService(object):
         self.excel_source_bo = ExcelSourceBo()
         self.excel_result_bo = ExcelResultBo()
         self.enum_bo = EnumBo()
+        self.office_bo = OfficeBo()
 
     def get_excel_headers(self, excel_file):
         """
@@ -222,13 +225,53 @@ class OfficeService(object):
         new_res = self.excel_lib.read_headers(excel_file)
         return new_res
 
-    def store_source_to_db(self, store):
+    def store_office_to_db(self, store):
         """
-        存储文件信息到excel_source数据库表
-        store source file message to db
+        store office file message to db
         params store: store message
             - rtx_id: rtx-id
-            - type: excel opr type
+            - file_type: file type
+            - excel_sub_type: excel opr type, merge or split
+            - name: file name
+            - md5: file md5
+            - store_name: file store name
+            - path: file store url, no have store base url
+            - message: message
+
+        default value:
+            - numopr: number operation, default value is 0
+            - set_sheet: operation sheet index, default value is 0
+
+        excel headers from excel_lib get_headers methods
+        """
+        if not store:
+            return False
+
+        try:
+            # create new mode
+            new_model = self.office_bo.new_mode()
+            new_model.rtx_id = store.get('rtx_id')
+            new_model.name = store.get('name')
+            new_model.store_name = store.get('store_name')
+            new_model.md5_id = store.get('md5')
+            new_model.file_type = store.get('file_type')
+            new_model.transfer = False
+            new_model.local_url = store.get('path')
+            new_model.store_url = store.get('store_name')
+            new_model.create_time = get_now()
+            new_model.is_del = False
+            self.office_bo.add_model(new_model)
+            return True
+        except:
+            return False
+
+    def store_excel_source_to_db(self, store):
+        """
+        store excel source file message to db
+        params store: store message
+            - rtx_id: rtx-id
+            - file_type: file type
+            - excel_sub_type: excel opr type, merge or split
             - name: file name
             - md5: file md5
             - store_name: file store name
@@ -247,12 +290,13 @@ class OfficeService(object):
         try:
             # 获取文件header
             excel_headers = self.get_excel_headers(store.get('path'))
+            # create new mode
             new_model = self.excel_source_bo.new_mode()
             new_model.rtx_id = store.get('rtx_id')
             new_model.name = store.get('name')
             new_model.store_name = store.get('store_name')
             new_model.md5_id = store.get('md5')
-            new_model.ftype = store.get('type')
+            new_model.ftype = store.get('excel_sub_type')
             new_model.local_url = store.get('path')
             new_model.store_url = store.get('store_name')
             new_model.numopr = 0
@@ -269,9 +313,9 @@ class OfficeService(object):
         except:
             return False
 
-    def store_result_to_db(self, store):
+    def store_excel_result_to_db(self, store):
         """
-        store result file message to db
+        store excel result file message to db
         params store: store message
             - rtx_id: rtx-id
             - type: excel opr type
@@ -516,10 +560,11 @@ class OfficeService(object):
 
         return json data
         """
+        # no parameters, return
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数' or StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', u'缺少请求参数' or StatusMsgs.get(212), {}).json()
+
         for k, v in params.items():
             if not k: continue
             # illegal parameters check
@@ -527,33 +572,29 @@ class OfficeService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-        # parameters check
-        if not params.get('rtx_id'):
+            # value check
+            if not v and k in ['rtx_id', 'file_type']:
+                return Status(
+                    212, 'failure', u'未指定%s请求参数' % k, {}
+                ).json()
+        # excel parameters check
+        if int(params.get('file_type')) == 2 and \
+                int(params.get('excel_sub_type')) not in [EXCEL_MERGE, EXCEL_SPLIT]:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}
-            ).json()
-        if not params.get('type'):
-            return Status(
-                212, 'failure', u'未指定type请求参数', {}
-            ).json()
-        if params.get('type') and int(params.get('type')) not in [EXCEL_MERGE, EXCEL_SPLIT]:
-            return Status(
-                213, 'failure', u'请求参数type值不合法', {}
+                213, 'failure', u'请求参数excel_sub_type值不合法', {}
             ).json()
 
-        f_name = upload_file.filename
+        f_name = upload_file.filename   # file object
         # file format filter
         if is_check_fmt and not self.file_lib.allow_format_fmt(f_name):
             return Status(
-                217, 'failure', StatusMsgs.get(217), {}
-            ).json()
+                217, 'failure', StatusMsgs.get(217), {}).json()
         # file local store
         is_ok, store_msg = self.file_lib.store_file(
             upload_file, compress=False, is_md5_store_name=False)
         if not is_ok:
             return Status(
-                220, 'failure', StatusMsgs.get(220), {}
-            ).json()
+                220, 'failure', StatusMsgs.get(220), {}).json()
         # file upload to store object, manual control
         if EXCEL_STORE_BK:
             store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
@@ -563,22 +604,35 @@ class OfficeService(object):
                               'failure',
                               store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
                               {}).json()
+
         # file to db
         store_msg['rtx_id'] = params.get('rtx_id')
-        store_msg['type'] = params.get('type')
-        is_to_db = self.store_source_to_db(store_msg)
+        store_msg['file_type'] = params.get('file_type')
+        store_msg['excel_sub_type'] = params.get('excel_sub_type')
+        # 存储文件记录到数据库，依据file_type进行不同存储
+        file_type = int(params.get('file_type'))
+        if file_type == FileTypeEnum.WORD.value:   # word
+            pass
+        elif file_type == FileTypeEnum.EXCEL.value:   # excel
+            is_to_db = self.store_excel_source_to_db(store_msg)
+        elif file_type == FileTypeEnum.PPT.value:   # ppt
+            pass
+        elif file_type == FileTypeEnum.TEXT.value:   # text
+            pass
+        elif file_type == FileTypeEnum.PDF.value:   # pdf
+            is_to_db = self.store_office_to_db(store_msg)
+        else:   # other
+            pass
         if not is_to_db:
             return Status(
-                225, 'failure', StatusMsgs.get(225), {}
-            ).json()
+                225, 'failure', StatusMsgs.get(225), {}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {}
-        ).json()
+            100, 'success', StatusMsgs.get(100), {}).json()
 
     def office_upload_m(self, params, upload_files, is_check_fmt: bool = True):
         """
-        many office file to upload
+        多文件上传 && 存储（many office file to upload and store）
         params params: request params
         params upload_files: excel upload file
         params is_check_fmt: file is or not check format
@@ -589,11 +643,11 @@ class OfficeService(object):
         """
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数', {}
-            ).json()
+                212, 'failure', u'缺少请求参数', {}).json()
 
         success_list = list()
         failure_list = list()
+        # TODO 循环的方式进行存储文件，后期改成多进程
         for uf in upload_files:
             try:
                 if not uf: continue
@@ -605,16 +659,14 @@ class OfficeService(object):
                 failure_list.append(uf)
         if upload_files and len(failure_list) == len(upload_files):
             return Status(
-                223, 'failure', '文件上传失败' or StatusMsgs.get(223), {}
-            ).json()
+                223, 'failure', '文件上传失败' or StatusMsgs.get(223), {}).json()
         if failure_list:
             return Status(
                 224, 'failure', u'文件上传：成功[%s]，失败[%s]' % (len(success_list), len(failure_list)),
-                {}
-            ).json()
+                {}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {}
-        ).json()
+            100, 'success', StatusMsgs.get(100), {}).json()
 
     def _update_file_name(self, model, new_name):
         """
@@ -921,11 +973,10 @@ class OfficeService(object):
         store_msg['rtx_id'] = new_params.get('rtx_id')
         store_msg['type'] = EXCEL_MERGE
         store_msg['md5'] = md5(store_msg.get('name'))
-        is_to_db = self.store_result_to_db(store_msg)
+        is_to_db = self.store_excel_result_to_db(store_msg)
         if not is_to_db:
             return Status(
-                225, 'failure', StatusMsgs.get(225), {}
-            ).json()
+                225, 'failure', StatusMsgs.get(225), {}).json()
 
         # add source file number operation
         for _r in res:
@@ -1428,11 +1479,10 @@ class OfficeService(object):
             'compress': data.get('compress') or False,
             'nfile': data.get('nfile') or 1
         }
-        is_to_db = self.store_result_to_db(new_data)
+        is_to_db = self.store_excel_result_to_db(new_data)
         if not is_to_db:
             return Status(
-                225, 'failure', StatusMsgs.get(225), {}
-            ).json()
+                225, 'failure', StatusMsgs.get(225), {}).json()
 
         # update excel result number operation
         model.numopr = model.numopr + 1

@@ -57,8 +57,8 @@ def upload():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
     try:
         # 参数
         params = request.form
@@ -66,8 +66,7 @@ def upload():
         files = request.files
         if not files or (files and not files.get('files')):
             return Status(
-                216, 'failure', StatusMsgs.get(216), {}
-            ).json()
+                216, 'failure', StatusMsgs.get(216), {}).json()
 
         return OfficeService().office_upload(params, request.files.get('files'))
     except Exception as e:
@@ -86,8 +85,7 @@ def uploads():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -96,8 +94,7 @@ def uploads():
         files = request.files
         if not files:
             return Status(
-                216, 'failure', StatusMsgs.get(216), {}
-            ).json()
+                216, 'failure', StatusMsgs.get(216), {}).json()
 
         return OfficeService().office_upload_m(params, files)
     except Exception as e:
@@ -115,8 +112,7 @@ def excel_source_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -140,8 +136,7 @@ def excel_source_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -162,8 +157,7 @@ def excel_source_delete():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -184,8 +178,7 @@ def excel_source_deletes():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -207,8 +200,7 @@ def excel_merge():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -230,8 +222,7 @@ def excel_history_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -253,8 +244,7 @@ def excel_result_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -275,8 +265,7 @@ def excel_result_delete():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -298,8 +287,7 @@ def excel_result_deletes():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -321,8 +309,7 @@ def excel_init_split_params():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -344,8 +331,7 @@ def excel_sheet_header():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -367,8 +353,7 @@ def excel_split():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -389,8 +374,7 @@ def pdf2word_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
