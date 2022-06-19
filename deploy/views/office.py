@@ -379,8 +379,76 @@ def pdf2word_list():
     try:
         # 参数
         params = request.get_json() or {}
-        # return AuthorityService().role_list(params)
+        return OfficeService().pdf2word_list(params)
     except Exception as e:
         LOG.error("office>pdf2word list is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@office.route('/office_pdf_update/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def office_pdf_update():
+    """
+    update office pdf file information, contain:
+        - name 文件名称
+        - start 转换开始页
+        - end 转换结束页
+        - pages 指定转换页列表
+    by file md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return OfficeService().office_pdf_update(params)
+    except Exception as e:
+        LOG.error("office>update office pdf file is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@office.route('/office_pdf_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def office_pdf_delete():
+    """
+    delete one office pdf file by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return OfficeService().office_pdf_delete(params)
+    except Exception as e:
+        LOG.error("office>delete one office pdf file is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@office.route('/office_pdf_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def office_pdf_deletes():
+    """
+    delete many office pdf file by md5 list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return OfficeService().office_pdf_deletes(params)
+    except Exception as e:
+        LOG.error("office>delete many office pdf file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

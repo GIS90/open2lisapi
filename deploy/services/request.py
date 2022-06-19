@@ -36,7 +36,7 @@ Life is short, I use python.
 from deploy.bo.request import RequestBo
 from deploy.utils.utils import get_now, get_real_ip, \
     get_rtx_id, d2s
-from deploy.config import USER_DEFAULT_TIMELINE, EXCEL_LIMIT
+from deploy.config import USER_DEFAULT_TIMELINE, OFFICE_LIMIT
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 
@@ -177,7 +177,7 @@ class RequestService(object):
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
             if k == 'limit':
-                v = int(v) if v else EXCEL_LIMIT
+                v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
             elif k == 'rtx_id':

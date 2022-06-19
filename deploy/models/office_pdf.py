@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe:
-    office model
+    office pdf model
 
 base_info:
     __author__ = "PyGo"
@@ -44,15 +44,16 @@ from sqlalchemy import (
 from deploy.models import base
 
 
-__all__ = ("OfficeModel")
+__all__ = ("OfficePDFModel")
 
 
-class OfficeModel(base.ModelBase):
-    __tablename__ = 'office'
+class OfficePDFModel(base.ModelBase):
+    __tablename__ = 'office_pdf'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80))
     store_name = Column(String(100))
+    transfer_name = Column(String(100))
     md5_id = Column(String(55))
     rtx_id = Column(String(25))
     file_type = Column(String(2))
@@ -60,6 +61,10 @@ class OfficeModel(base.ModelBase):
     transfer_time = Column(TIMESTAMP)
     local_url = Column(String(120))
     store_url = Column(String(120))
+    transfer_url = Column(String(120))
+    start = Column(Integer)
+    end = Column(Integer)
+    pages = Column(String(100))
     create_time = Column(TIMESTAMP)
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)

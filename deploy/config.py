@@ -108,9 +108,9 @@ IMAGE_WIDTH = 1000
 # article
 ART_LIMIT = 10
 
-# excel
-EXCEL_LIMIT = 15
-EXCEL_STORE_BK = False
+# office
+OFFICE_LIMIT = 15
+OFFICE_STORE_BK = False
 SHEET_NUM_LIMIT = 20
 SHEET_NAME_LIMIT = 85
 
@@ -196,10 +196,10 @@ with open(_config_file) as f:
     ART_LIMIT = _config_info['ARTICLE']['LIMIT'] or ART_LIMIT
 
     # excel
-    EXCEL_LIMIT = _config_info['EXCEL']['LIMIT'] or EXCEL_LIMIT
-    EXCEL_STORE_BK = _config_info['EXCEL']['STORE_BK'] or EXCEL_STORE_BK
-    SHEET_NUM_LIMIT = _config_info['EXCEL']['SHEET_NUM_LIMIT'] or SHEET_NUM_LIMIT
-    SHEET_NAME_LIMIT = _config_info['EXCEL']['SHEET_NAME_LIMIT'] or SHEET_NAME_LIMIT
+    OFFICE_LIMIT = _config_info['OFFICE']['LIMIT'] or OFFICE_LIMIT
+    OFFICE_STORE_BK = _config_info['OFFICE']['STORE_BK'] or OFFICE_STORE_BK
+    SHEET_NUM_LIMIT = _config_info['OFFICE']['SHEET_NUM_LIMIT'] or SHEET_NUM_LIMIT
+    SHEET_NAME_LIMIT = _config_info['OFFICE']['SHEET_NAME_LIMIT'] or SHEET_NAME_LIMIT
 
     # convert
     CONVERT_MULPRO = _config_info['CONVERT']['MULPRO'] or CONVERT_MULPRO

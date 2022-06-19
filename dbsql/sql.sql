@@ -318,27 +318,32 @@ CREATE UNIQUE INDEX excel_result_index ON excel_result (`md5_id`);
 
 
 -- create office
-DROP TABLES IF EXISTS `office`;
+DROP TABLES IF EXISTS `office_pdf`;
 
-CREATE TABLE `office` (
+CREATE TABLE `office_pdf` (
 	`id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
 	`name` varchar(80) COMMENT '原始名称',
-	`store_name` varchar(100) COMMENT '存储名称',
+	`store_name` varchar(100) COMMENT '原始文件store存储名称',
+	`transfer_name` varchar(100) COMMENT '转换文件store存储名称',
 	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
 	`rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
 	`file_type` varchar(2) NOT NULL COMMENT '文件类型',
 	`transfer` bool DEFAULT False COMMENT '转换状态',
     `transfer_time` datetime COMMENT '转换时间',
     `local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
-	`store_url` varchar(120) COMMENT '文件store对象存储资源路径（相对路径）',
+	`store_url` varchar(120) COMMENT '原始文件store对象存储资源路径（相对路径）',
+	`transfer_url` varchar(120) COMMENT '转换文件store对象存储资源路径（相对路径）',
+	`start` int COMMENT '转换开始页',
+	`end` int COMMENT '转换结束页',
+	`pages` varchar(100) COMMENT '指定的转换页码',
 	`create_time` datetime COMMENT '创建时间',
 	`delete_rtx` varchar(25) COMMENT '删除用户rtx',
 	`delete_time` datetime COMMENT '删除时间',
 	`is_del` bool DEFAULT False COMMENT '是否删除',
 	PRIMARY KEY (`id`)
-) COMMENT='Office文件记录表';
+) COMMENT='PDF文件记录表';
 
-CREATE UNIQUE INDEX office_index ON office (`md5_id`);
+CREATE UNIQUE INDEX office_pdf_index ON office_pdf (`md5_id`);
 
 
 

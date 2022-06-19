@@ -47,10 +47,10 @@ from deploy.utils.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
 from deploy.bo.excel_result import ExcelResultBo
 from deploy.bo.enum import EnumBo
-from deploy.bo.office import OfficeBo
+from deploy.bo.office_pdf import OfficePDFBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
-    EXCEL_LIMIT, EXCEL_STORE_BK, \
+    OFFICE_LIMIT, OFFICE_STORE_BK, \
     ADMIN, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
 from deploy.utils.utils import get_now, d2s, md5, s2d, check_length
 from deploy.utils.enums import *
@@ -192,6 +192,34 @@ class OfficeService(object):
         'create_time'
     ]
 
+    req_pdf2word_list_attrs = [
+        'rtx_id',
+        'limit',
+        'offset'
+    ]
+
+    office_pdf_show_attrs = [
+        'id',
+        'name',
+        'store_name',
+        'transfer_name',
+        'md5_id',
+        'rtx_id',
+        'file_type',
+        'transfer',
+        'transfer_time',
+        'local_url',
+        'store_url',
+        'transfer_url',
+        'start',
+        'end',
+        'pages',
+        'create_time',
+        'delete_rtx',
+        'delete_time',
+        'is_del'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -207,7 +235,7 @@ class OfficeService(object):
         self.excel_source_bo = ExcelSourceBo()
         self.excel_result_bo = ExcelResultBo()
         self.enum_bo = EnumBo()
-        self.office_bo = OfficeBo()
+        self.office_pdf_bo = OfficePDFBo()
 
     def get_excel_headers(self, excel_file):
         """
@@ -225,9 +253,9 @@ class OfficeService(object):
         new_res = self.excel_lib.read_headers(excel_file)
         return new_res
 
-    def store_office_to_db(self, store):
+    def store_office_pdf_to_db(self, store):
         """
-        store office file message to db
+        store office pdf file message to db
         params store: store message
             - rtx_id: rtx-id
             - file_type: file type
@@ -249,7 +277,7 @@ class OfficeService(object):
 
         try:
             # create new mode
-            new_model = self.office_bo.new_mode()
+            new_model = self.office_pdf_bo.new_mode()
             new_model.rtx_id = store.get('rtx_id')
             new_model.name = store.get('name')
             new_model.store_name = store.get('store_name')
@@ -260,7 +288,7 @@ class OfficeService(object):
             new_model.store_url = store.get('store_name')
             new_model.create_time = get_now()
             new_model.is_del = False
-            self.office_bo.add_model(new_model)
+            self.office_pdf_bo.add_model(new_model)
             return True
         except:
             return False
@@ -367,10 +395,67 @@ class OfficeService(object):
         except:
             return False
 
-    def _source_model_to_dict(self, model):
+    def _office_pdf_model_to_dict(self, model, _type='info'):
+        """
+        office model to dict
+        params model: office model object
+        attrs from class define attrs
+        return dict data
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.office_pdf_show_attrs:
+            if not attr: continue
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'name':
+                _res[attr] = model.name
+            elif attr == 'store_name':
+                _res[attr] = model.store_name
+            elif attr == 'transfer_name':
+                _res[attr] = model.transfer_name
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'file_type':
+                _res[attr] = '.pdf'
+            elif attr == 'transfer':
+                if _type == 'info':
+                    _res[attr] = '是' if model.transfer else '否'
+                else:
+                    _res[attr] = True if model.transfer else False
+            elif attr == 'transfer_time':
+                _res[attr] = d2s(model.transfer_time) if model.transfer_time else ''
+            elif attr == 'local_url':
+                _res[attr] = model.local_url
+            elif attr == 'store_url':
+                _res[attr] = self.store_lib.open_download_url(store_name=model.store_url) \
+                    if model.store_url else ''
+            elif attr == 'transfer_url':
+                _res[attr] = self.store_lib.open_download_url(store_name=model.transfer_url) \
+                    if model.transfer_url else ''
+            elif attr == 'start':
+                _res[attr] = model.start
+            elif attr == 'end':
+                _res[attr] = model.end
+            elif attr == 'pages':
+                _res[attr] = model.pages
+            elif attr == 'create_time':
+                _res[attr] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx
+            elif attr == 'delete_time':
+                _res[attr] = d2s(model.delete_time) if model.delete_time else ''
+        else:
+            return _res
+
+    def _excel_source_model_to_dict(self, model):
         """
         excel source model to dict
-        params model: source model object
+        params model: excel source model object
         attrs from class define attrs
         return dict data
         """
@@ -431,10 +516,10 @@ class OfficeService(object):
         else:
             return _res
 
-    def _result_model_to_dict(self, model):
+    def _excel_result_model_to_dict(self, model):
         """
         excel result model to dict
-        params model: result model object
+        params model: excel result model object
         attrs from class define attrs
         return dict data
         """
@@ -520,7 +605,7 @@ class OfficeService(object):
                     213, 'failure', u'请求参数type值不合法', {}
                 ).json()
             if k == 'limit':
-                v = int(v) if v else EXCEL_LIMIT
+                v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
             else:
@@ -537,7 +622,7 @@ class OfficeService(object):
         n = 1
         for _d in res:
             if not _d: continue
-            _res_dict = self._source_model_to_dict(_d)
+            _res_dict = self._excel_source_model_to_dict(_d)
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
@@ -596,7 +681,7 @@ class OfficeService(object):
             return Status(
                 220, 'failure', StatusMsgs.get(220), {}).json()
         # file upload to store object, manual control
-        if EXCEL_STORE_BK:
+        if OFFICE_STORE_BK:
             store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
                                               local_file=store_msg.get('path'))
             if store_res.get('status_id') != 100:
@@ -620,7 +705,7 @@ class OfficeService(object):
         elif file_type == FileTypeEnum.TEXT.value:   # text
             pass
         elif file_type == FileTypeEnum.PDF.value:   # pdf
-            is_to_db = self.store_office_to_db(store_msg)
+            is_to_db = self.store_office_pdf_to_db(store_msg)
         else:   # other
             pass
         if not is_to_db:
@@ -961,7 +1046,7 @@ class OfficeService(object):
             'path': merge_res.get('data').get('path')
         }
         # file upload to store object, manual control
-        if EXCEL_STORE_BK:
+        if OFFICE_STORE_BK:
             store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
                                               local_file=store_msg.get('path'))
             if store_res.get('status_id') != 100:
@@ -1009,7 +1094,7 @@ class OfficeService(object):
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
             if k == 'limit':
-                v = int(v) if v else EXCEL_LIMIT
+                v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
             elif k == 'type':      # filter: check parameter type, format is [1, 2]
@@ -1040,7 +1125,7 @@ class OfficeService(object):
         n = 1
         for _d in res:
             if not _d: continue
-            _res_dict = self._result_model_to_dict(_d)
+            _res_dict = self._excel_result_model_to_dict(_d)
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
@@ -1461,7 +1546,7 @@ class OfficeService(object):
         data = resp_json.get('data')
         # file upload to store object, manual control
         store_name = '%s/%s' % (get_now('%Y%m%d'), data.get('name'))
-        if EXCEL_STORE_BK:
+        if OFFICE_STORE_BK:
             store_res = self.store_lib.upload(store_name=store_name, local_file=data.get('path'))
             if store_res.get('status_id') != 100:
                 return Status(store_res.get('status_id'),
@@ -1491,3 +1576,117 @@ class OfficeService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}
         ).json()
+
+    def pdf2word_list(self, params):
+        """
+        get pdf2word file list by params
+        params is dict
+        return json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_pdf2word_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if k == 'type' and int(v) != FileTypeEnum.PDF.value:
+                return Status(
+                    213, 'failure', u'请求参数type值不合法', {}
+                ).json()
+            if k == 'limit':
+                v = int(v) if v else OFFICE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            else:
+                v = str(v) if v else ''
+            new_params[k] = v
+        res, total = self.office_pdf_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._office_pdf_model_to_dict(_d, _type='info')
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def office_pdf_update(self, params):
+        """
+        update office pdf file information, contain:
+            - name 文件名称
+            - start 转换开始页
+            - end 转换结束页
+            - pages 指定转换页列表
+        by file md5
+        :return: json data
+        """
+        pass
+
+    def office_pdf_delete(self, params):
+        """
+        delete one office pdf file by md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        # parameters check
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            new_params[k] = str(v)
+
+        model = self.office_pdf_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}
+            ).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}
+            ).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}
+            ).json()
+        model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
+        self.office_pdf_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def office_pdf_deletes(self, params):
+        """
+        delete many office pdf file by md5 list
+        :return: json data
+        """
+        pass
