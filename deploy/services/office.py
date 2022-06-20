@@ -1689,4 +1689,35 @@ class OfficeService(object):
         delete many office pdf file by md5 list
         :return: json data
         """
-        pass
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        new_params = dict()
+        # parameters check
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}
+                ).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}
+                ).json()
+            if k == 'list':  # type check
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
+                    ).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+
+        res = self.office_pdf_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure',
+                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()

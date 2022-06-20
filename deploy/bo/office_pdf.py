@@ -66,3 +66,20 @@ class OfficePDFBo(BOBase):
         q = self.session.query(OfficePDFModel)
         q = q.filter(OfficePDFModel.md5_id == str(md5))
         return q.first() if q else None
+
+    def batch_delete_by_md5(self, params):
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(OfficePDFModel)
+        q = q.filter(OfficePDFModel.md5_id.in_(md5_list))
+        if rtx_id:
+            q = q.filter(OfficePDFModel.rtx_id == rtx_id)
+        q = q.filter(OfficePDFModel.is_del != 1)
+        q = q.update({OfficePDFModel.is_del: True,
+                      OfficePDFModel.delete_rtx: rtx_id,
+                      OfficePDFModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q
