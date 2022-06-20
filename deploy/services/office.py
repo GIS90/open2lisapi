@@ -98,6 +98,11 @@ class OfficeService(object):
         'md5'
     ]
 
+    req_detail_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     req_delete_attrs = [
         'rtx_id',
         'md5'
@@ -218,6 +223,15 @@ class OfficeService(object):
         'delete_rtx',
         'delete_time',
         'is_del'
+    ]
+
+    req_pdf_update_attrs = [
+        'rtx_id',
+        'start',
+        'end',
+        'pages',
+        'mode',
+        'md5'
     ]
 
     EXCEL_FORMAT = ['.xls', '.xlsx']
@@ -438,11 +452,11 @@ class OfficeService(object):
                 _res[attr] = self.store_lib.open_download_url(store_name=model.transfer_url) \
                     if model.transfer_url else ''
             elif attr == 'start':
-                _res[attr] = model.start
+                _res[attr] = model.start or ''
             elif attr == 'end':
-                _res[attr] = model.end
+                _res[attr] = model.end or ''
             elif attr == 'pages':
-                _res[attr] = model.pages
+                _res[attr] = model.pages or ''
             elif attr == 'create_time':
                 _res[attr] = d2s(model.create_time) if model.create_time else ''
             elif attr == 'delete_rtx':
@@ -1592,12 +1606,10 @@ class OfficeService(object):
             if not k: continue
             if k not in self.req_pdf2word_list_attrs and v:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'type' and int(v) != FileTypeEnum.PDF.value:
                 return Status(
-                    213, 'failure', u'请求参数type值不合法', {}
-                ).json()
+                    213, 'failure', u'请求参数type值不合法', {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -1623,6 +1635,41 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
+    def office_pdf_detail(self, params):
+        """
+        get office pdf file detail information, by file md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+
+        model = self.office_pdf_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._office_pdf_model_to_dict(model, _type='detail')
+        ).json()
+
     def office_pdf_update(self, params):
         """
         update office pdf file information, contain:
@@ -1630,10 +1677,94 @@ class OfficeService(object):
             - start 转换开始页
             - end 转换结束页
             - pages 指定转换页列表
+            - mode 模式
         by file md5
         :return: json data
         """
-        pass
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_pdf_update_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # parameters check
+            if k == 'mode':  # parameter pages
+                if not isinstance(v, bool):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是Boolean' % k, {}).json()
+                new_params[k] = v
+            elif k in ['start', 'end']:     # check integer
+                if v:
+                    try:
+                        v_int = int(v)
+                    except:
+                        return Status(
+                            213, 'failure', u'请求参数%s类型必须是整数' % k, {}).json()
+                    if v_int > 10000:
+                        return Status(
+                            213, 'failure', u'请求参数%s最大限制10000' % k, {}).json()
+                    new_params[k] = v_int
+                else:
+                    new_params[k] = ''
+            elif k == 'pages':      # check special parameter
+                if v:
+                    v_s = str(v).strip().split(',')     # 去空格在分割
+                    if len(v_s) <= 0:    # 无可用分页数据，直接continue
+                        new_params[k] = ''
+                        continue
+                    for _v in v_s:
+                        if not _v: continue
+                        if not str(_v).isdigit():
+                            return Status(
+                                213, 'failure', u'请检查指定分页数据，用英文,分割', {}).json()
+                    new_params[k] = str(v)
+                else:
+                    new_params[k] = ''
+            else:
+                new_params[k] = str(v)
+        if new_params.get('start') and new_params.get('end'):
+            if new_params.get('start') > new_params.get('end'):
+                return Status(
+                    213, 'failure', u'起始页码不得大于结束页码', {}).json()
+
+        model = self.office_pdf_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+
+        # update
+        is_update = False
+        if new_params.get('start') != model.start:
+            model.start = new_params.get('start')
+            is_update = True
+        if new_params.get('end') != model.end:
+            model.end = new_params.get('end')
+            is_update = True
+        if new_params.get('pages') != model.pages:
+            model.pages = new_params.get('pages')
+            is_update = True
+        # if new_params.get('mode') != model.mode:
+        #     model.mode = new_params.get('mode')
+        #     is_update = True
+        if is_update:
+            self.excel_source_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
 
     def office_pdf_delete(self, params):
         """

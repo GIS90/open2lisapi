@@ -386,6 +386,27 @@ def pdf2word_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
+@office.route('/office_pdf_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def office_pdf_detail():
+    """
+    get office pdf file detail information, by file md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return OfficeService().office_pdf_detail(params)
+    except Exception as e:
+        LOG.error("office>get office pdf file detail is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
 @office.route('/office_pdf_update/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def office_pdf_update():
@@ -402,10 +423,11 @@ def office_pdf_update():
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().office_pdf_update(params)
     try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().office_pdf_update(params)
+        pass
     except Exception as e:
         LOG.error("office>update office pdf file is error: %s" % e)
         return Status(501, 'failure',
