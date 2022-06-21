@@ -423,11 +423,10 @@ def office_pdf_update():
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
-    # 参数
-    params = request.get_json() or {}
-    return OfficeService().office_pdf_update(params)
     try:
-        pass
+        # 参数
+        params = request.get_json() or {}
+        return OfficeService().office_pdf_update(params)
     except Exception as e:
         LOG.error("office>update office pdf file is error: %s" % e)
         return Status(501, 'failure',

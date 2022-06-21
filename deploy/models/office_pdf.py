@@ -62,6 +62,7 @@ class OfficePDFModel(base.ModelBase):
     local_url = Column(String(120))
     store_url = Column(String(120))
     transfer_url = Column(String(120))
+    mode = Column(Boolean())
     start = Column(Integer)
     end = Column(Integer)
     pages = Column(String(100))

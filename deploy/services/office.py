@@ -216,6 +216,7 @@ class OfficeService(object):
         'local_url',
         'store_url',
         'transfer_url',
+        'mode',
         'start',
         'end',
         'pages',
@@ -301,6 +302,7 @@ class OfficeService(object):
             new_model.local_url = store.get('path')
             new_model.store_url = store.get('store_name')
             new_model.create_time = get_now()
+            new_model.mode = True
             new_model.is_del = False
             self.office_pdf_bo.add_model(new_model)
             return True
@@ -451,6 +453,11 @@ class OfficeService(object):
             elif attr == 'transfer_url':
                 _res[attr] = self.store_lib.open_download_url(store_name=model.transfer_url) \
                     if model.transfer_url else ''
+            elif attr == 'mode':
+                if _type == 'info':
+                    _res[attr] = '通用页码' if model.mode else '指定页码'
+                else:
+                    _res[attr] = True if model.mode else False
             elif attr == 'start':
                 _res[attr] = model.start or ''
             elif attr == 'end':
@@ -1757,9 +1764,9 @@ class OfficeService(object):
         if new_params.get('pages') != model.pages:
             model.pages = new_params.get('pages')
             is_update = True
-        # if new_params.get('mode') != model.mode:
-        #     model.mode = new_params.get('mode')
-        #     is_update = True
+        if new_params.get('mode') != model.mode:
+            model.mode = new_params.get('mode')
+            is_update = True
         if is_update:
             self.excel_source_bo.merge_model(model)
         return Status(

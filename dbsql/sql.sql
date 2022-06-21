@@ -333,6 +333,7 @@ CREATE TABLE `office_pdf` (
     `local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
 	`store_url` varchar(120) COMMENT '原始文件store对象存储资源路径（相对路径）',
 	`transfer_url` varchar(120) COMMENT '转换文件store对象存储资源路径（相对路径）',
+	`mode` bool DEFAULT True COMMENT '转换模式：True页码，False指定页码',
 	`start` int COMMENT '转换开始页',
 	`end` int COMMENT '转换结束页',
 	`pages` varchar(100) COMMENT '指定的转换页码',
