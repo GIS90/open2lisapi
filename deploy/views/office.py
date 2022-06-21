@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    excel views
+    office views
 
 base_info:
     __author__ = "PyGo"

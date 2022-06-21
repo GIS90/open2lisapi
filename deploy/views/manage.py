@@ -61,25 +61,21 @@ def login_in():
         user_pwd = data_json.get('password')
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少username请求参数', {}
-            ).json()
+                212, 'failure', u'缺少username请求参数', {}).json()
         if not user_pwd:
             return Status(
-                212, 'failure', u'缺少password请求参数', {}
-            ).json()
+                212, 'failure', u'缺少password请求参数', {}).json()
         # 支持用户phone、email登录
         rtx_id = rtx_id.strip()  # 去空格
         user_model = SysUserService().get_login_by_rtx(rtx_id)
         # user is not exist
         if not user_model:
             return Status(
-                202, 'failure', u'用户未注册' or StatusMsgs.get(202), {}
-            ).json()
+                202, 'failure', u'用户未注册' or StatusMsgs.get(202), {}).json()
         # user is deleted
         if user_model.get('is_del'):
             return Status(
-                203, 'failure', u'用户已注销' or StatusMsgs.get(203), {}
-            ).json()
+                203, 'failure', u'用户已注销' or StatusMsgs.get(203), {}).json()
         # check password
         if user_model.get('password') != user_pwd:
             return Status(
@@ -88,8 +84,7 @@ def login_in():
         # check is or not exist token
         if not user_model.get('md5_id'):
             return Status(
-                999, 'failure', u'Token初始化失败，请联系管理员', {}
-            ).json()
+                999, 'failure', u'Token初始化失败，请联系管理员', {}).json()
 
         rtx = user_model.get('rtx_id') or rtx_id
         LOG.info('%s login in ==========' % rtx or NoNameBody)
