@@ -473,3 +473,29 @@ def office_pdf_deletes():
         LOG.error("office>delete many office pdf file is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@office.route('/office_pdf_to/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def office_pdf_to():
+    """
+    office pdf file convert to word file, one file to convert:
+        1.check current file set data
+        2.convert pdf file to word
+        3.convert success to store object
+        4.update transfer information
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().office_pdf_to(params)
+    try:
+        pass
+    except Exception as e:
+        LOG.error("office>office pdf convert to word file is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

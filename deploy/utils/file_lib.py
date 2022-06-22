@@ -121,14 +121,15 @@ class FileLib(object):
         real_store_dir = os.path.join(STORE_CACHE, now_date)
         if not os.path.exists(real_store_dir):  # dir is not exist, to make dir
             mk_dirs(real_store_dir)
-        # 加入try，防止存储失败
+
+        """ 加入try，防止存储失败 """
         try:
             file_name = file.filename
             if is_md5_store_name:       # store name by md5
                 _, store_name_md5 = filename2md5(file_name=file_name, _type='file')
                 file_name = store_name_md5
             _real_file = os.path.join(real_store_dir, file_name)     # 文件真实存储
-            # 文件已存在，加上当前时间戳避免重复存在导致覆盖
+            """ 文件已存在，加上当前时间戳避免重复存在导致覆盖 """
             if os.path.exists(_real_file):
                 file_names = os.path.splitext(file_name)
                 suffix = (file_names[1]).lower() if len(file_names) > 1 else ''
@@ -210,24 +211,40 @@ class FileLib(object):
         cv.convert(docx_filename=word_file, start=start, end=end, pages=pages)
         cv.close()
         # ---------------------------convert end--------------------------------------------------
-        return self.format_res(100, 'success', {'md5': cmd5, 'word': word_file})
+        return self.format_res(100, 'success', {'md5': cmd5, 'word': word_file, 'name': word_name})
 
     def __pdf2word_no_multi_processing(self, pdf_list: dict):
         """
-        pdf file convert to word file,
-        not multiprocessing
+        pdf file convert to word file, not multiprocessing
 
-        key: data md5
-        value:
-            {
+        pdf_list data structure:
+        {
+            md5: {
                 pdf: pdf file,
-                word: word file,
+                word: word name,
+                start: start page,
+                end: end page,
+                pages: page list
+            },
+            md5: {
+                pdf: pdf file,
+                word: word name,
                 start: start page,
                 end: end page,
                 pages: page list
             }
+            ...
+        }
+
+        return data structure:
+        {
+            status_id: int,
+            message: str,
+            data: list
+        }
         """
         results = dict()
+        """ 非多进程方式，循环处理 """
         for key, value in pdf_list.items():
             if not key or not value: continue
             # convert parameters deal
@@ -247,6 +264,7 @@ class FileLib(object):
             }
             if _res.get('status_id') == 100:
                 _v['word'] = _res.get('data').get('word')
+                _v['name'] = _res.get('data').get('name')
             results[key] = _v
         # ===================== 转换完成 =====================
         for k, v in pdf_list.items():
@@ -285,6 +303,7 @@ class FileLib(object):
             }
             if _r_v.get('status_id') == 100:
                 _d['word'] = _r_v.get('data').get('word')
+                _d['name'] = _r_v.get('data').get('name')
             if key in pdf_list.keys():
                 _new_v = pdf_list.get(key)
                 _new_v.update(_d)
@@ -308,14 +327,14 @@ class FileLib(object):
         {
             md5: {
                 pdf: pdf file,
-                word: word file,
+                word: word name,
                 start: start page,
                 end: end page,
                 pages: page list
             },
             md5: {
                 pdf: pdf file,
-                word: word file,
+                word: word name,
                 start: start page,
                 end: end page,
                 pages: page list

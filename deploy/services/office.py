@@ -235,6 +235,16 @@ class OfficeService(object):
         'md5'
     ]
 
+    req_pdf_convert_attrs = [
+        'rtx_id',
+        'name',
+        'start',
+        'end',
+        'pages',
+        'mode',
+        'md5'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -440,7 +450,7 @@ class OfficeService(object):
                 _res[attr] = '.pdf'
             elif attr == 'transfer':
                 if _type == 'info':
-                    _res[attr] = '是' if model.transfer else '否'
+                    _res[attr] = '已转换' if model.transfer else '未转换'
                 else:
                     _res[attr] = True if model.transfer else False
             elif attr == 'transfer_time':
@@ -1714,6 +1724,9 @@ class OfficeService(object):
                     if v_int > 10000:
                         return Status(
                             213, 'failure', u'请求参数%s最大限制10000' % k, {}).json()
+                    if v_int < 1:
+                        return Status(
+                            213, 'failure', u'请求参数%s最小值为1' % k, {}).json()
                     new_params[k] = v_int
                 else:
                     new_params[k] = ''
@@ -1754,21 +1767,11 @@ class OfficeService(object):
                 310, 'failure', StatusMsgs.get(310), {}).json()
 
         # update
-        is_update = False
-        if new_params.get('start') != model.start:
-            model.start = new_params.get('start')
-            is_update = True
-        if new_params.get('end') != model.end:
-            model.end = new_params.get('end')
-            is_update = True
-        if new_params.get('pages') != model.pages:
-            model.pages = new_params.get('pages')
-            is_update = True
-        if new_params.get('mode') != model.mode:
-            model.mode = new_params.get('mode')
-            is_update = True
-        if is_update:
-            self.excel_source_bo.merge_model(model)
+        model.start = new_params.get('start')
+        model.end = new_params.get('end')
+        model.pages = new_params.get('pages')
+        model.mode = new_params.get('mode')
+        self.excel_source_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1801,19 +1804,16 @@ class OfficeService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
+                306, 'failure', StatusMsgs.get(306), {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
+                311, 'failure', StatusMsgs.get(311), {}).json()
         model.is_del = True
         model.delete_rtx = rtx_id
         model.delete_time = get_now()
@@ -1859,3 +1859,155 @@ class OfficeService(object):
             else Status(303, 'failure',
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
+
+    def office_pdf_to(self, params):
+        """
+        office pdf file convert to word file, one file to convert:
+            1.check current file set data
+            2.convert pdf file to word
+            3.convert success to store object
+            4.update transfer information
+        save office pdf file information, contain:
+            - name 文件名称
+            - start 转换开始页
+            - end 转换结束页
+            - pages 指定转换页列表
+            - mode 模式
+        by file md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        """ ************************************* check parameters ***************************************** """
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_pdf_convert_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # parameters check
+            if k == 'mode':  # parameter pages
+                if not isinstance(v, bool):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是Boolean' % k, {}).json()
+                new_params[k] = v
+            elif k in ['start', 'end']:  # check integer
+                if v:
+                    try:
+                        v_int = int(v)
+                    except:
+                        return Status(
+                            213, 'failure', u'请求参数%s类型必须是整数' % k, {}).json()
+                    if v_int > 10000:
+                        return Status(
+                            213, 'failure', u'请求参数%s最大限制10000' % k, {}).json()
+                    if v_int < 1:
+                        return Status(
+                            213, 'failure', u'请求参数%s最小值为1' % k, {}).json()
+                    new_params[k] = v_int
+                else:
+                    new_params[k] = ''
+            elif k == 'pages':  # check special parameter
+                if v:
+                    v_s = str(v).strip().split(',')  # 去空格在分割
+                    if len(v_s) <= 0:  # 无可用分页数据，直接continue
+                        new_params[k] = ''
+                        continue
+                    for _v in v_s:
+                        if not _v: continue
+                        if not str(_v).isdigit():
+                            return Status(
+                                213, 'failure', u'请检查指定分页数据，用英文,分割', {}).json()
+                    new_params[k] = str(v)
+                else:
+                    new_params[k] = ''
+            else:
+                new_params[k] = str(v)
+        if new_params.get('start') and new_params.get('end'):
+            if new_params.get('start') > new_params.get('end'):
+                return Status(
+                    213, 'failure', u'起始页码不得大于结束页码', {}).json()
+        """ ************************************* convert: 1.check data ***************************************** """
+        model = self.office_pdf_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+
+        """ ************************************* convert: 2.convert ***************************************** """
+        # 初始化数据
+        _pdf_files = dict()
+        """
+        pdf_list data structure:
+        {
+            md5: {
+                pdf: pdf file,
+                word: word name,
+                start: start page,
+                end: end page,
+                pages: page list
+            },
+            md5: {
+                pdf: pdf file,
+                word: word name,
+                start: start page,
+                end: end page,
+                pages: page list
+            }
+            ...
+        }
+        """
+        _d = {'pdf': model.local_url, 'word': new_params.get('name'), 'start': '', 'end': '', 'pages': []}
+        if model.mode:
+            _d['start'] = model.start
+            _d['end'] = model.end
+        else:
+            _d['pages'] = model.pages.split(',') if model.pages else []
+        print('*' * 100)
+        print(_d)
+        _pdf_files[model.md5_id] = _d
+        _to_res = self.file_lib.pdf2word(pdf_list=_pdf_files, is_multi_processing=False)
+        print(_to_res)
+        _status_id = _to_res.get('status_id')
+        if _status_id != 100 or not _to_res.get('data') \
+                or not _to_res.get('data').get(model.md5_id) \
+                or not _to_res.get('data').get(model.md5_id).get('ok'):
+            return Status(
+                470, 'failure', '文件PDF转WORD失败' or StatusMsgs.get(470), {}).json()
+        """ ************************************* convert: 3.store file ***************************************** """
+        transfer_name = _to_res.get('data').get(model.md5_id).get('name')
+        word_file = _to_res.get('data').get(model.md5_id).get('word')
+        if not transfer_name or not word_file \
+                or not os.path.exists(word_file) or not os.path.isfile(word_file):
+            return Status(
+                470, 'failure', '文件PDF转WORD失败' or StatusMsgs.get(470), {}).json()
+        transfer_store_name = '%s/%s' % (get_now(format="%Y%m%d"), transfer_name)
+        store_res = self.store_lib.upload(store_name=transfer_store_name, local_file=word_file)
+        if store_res.get('status_id') != 100:
+            return Status(
+                store_res.get('status_id'), 'failure',
+                store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
+                {}).json()
+        """ ************************************* convert: 4.update transfer ***************************************** """
+        # update data
+        model.start = new_params.get('start')
+        model.end = new_params.get('end')
+        model.pages = new_params.get('pages')
+        model.mode = new_params.get('mode')
+        model.transfer = True
+        model.transfer_name = transfer_store_name
+        model.transfer_time = get_now()
+        model.transfer_url = transfer_store_name
+        self.excel_source_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}).json()
