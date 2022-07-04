@@ -1973,11 +1973,8 @@ class OfficeService(object):
             _d['end'] = model.end
         else:
             _d['pages'] = model.pages.split(',') if model.pages else []
-        print('*' * 100)
-        print(_d)
         _pdf_files[model.md5_id] = _d
         _to_res = self.file_lib.pdf2word(pdf_list=_pdf_files, is_multi_processing=False)
-        print(_to_res)
         _status_id = _to_res.get('status_id')
         if _status_id != 100 or not _to_res.get('data') \
                 or not _to_res.get('data').get(model.md5_id) \
