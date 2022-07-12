@@ -347,4 +347,53 @@ CREATE TABLE `office_pdf` (
 CREATE UNIQUE INDEX office_pdf_index ON office_pdf (`md5_id`);
 
 
+-- create dtalk_message
+DROP TABLES IF EXISTS `dtalk_message`;
+
+CREATE TABLE `dtalk_message`  (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `rtx_id` varchar(25) NULL COMMENT '用户RTX-ID',
+    `file_name` varchar(80) NULL COMMENT '文件名称',
+    `file_local_url` varchar(120) NULL COMMENT '文件存储本地路径',
+    `file_store_url` varchar(120) NULL COMMENT '文件存储云对象存储位置',
+    `md5_id` varchar(55) NULL COMMENT '数据记录record',
+    `robot` varchar(55) NULL COMMENT 'dtalk选择机器人配置md5-id',
+    `count` int NULL COMMENT '消息发送的累积次数',
+    `number` int NULL COMMENT '消息文件发送的累积次数',
+    `nsheet` int COMMENT 'sheet数',
+    `set_sheet` varchar(30) COMMENT '当前设置的sheet选择索引，列表格式',
+    `sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
+    `sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
+    `headers`text COMMENT 'excel的header信息，以json方式存储',
+    `create_time` datetime COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
+    PRIMARY KEY (`id`)
+) COMMENT='钉钉消息表';
+
+CREATE UNIQUE INDEX dtalk_message_index ON dtalk_message (`md5_id`);
+
+
+
+-- create dtalk_robot
+DROP TABLES IF EXISTS `dtalk_robot`;
+
+CREATE TABLE `dtalk_robot`  (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `rtx_id` varchar(25) NULL COMMENT '用户RTX-ID',
+    `name` varchar(55) NULL COMMENT '机器人名称',
+    `md5_id` varchar(55) NULL COMMENT '数据记录record',
+    `key` varchar(80) NULL COMMENT '机器人APP-KEY',
+    `secret` varchar(80) NULL COMMENT '机器人APP-SECRET',
+    `select` bool DEFAULT False COMMENT '是否当前为选择',
+    `description`text COMMENT '描述',
+    `create_time` datetime COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
+    PRIMARY KEY (`id`)
+) COMMENT='钉钉消息-机器人配置表';
+
+CREATE UNIQUE INDEX dtalk_robot_index ON dtalk_robot (`md5_id`);
 
