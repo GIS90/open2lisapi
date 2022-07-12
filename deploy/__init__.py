@@ -35,6 +35,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python __init__.py.py
 # ------------------------------------------------------------
+
 import os
 import sys
 from datetime import timedelta
@@ -44,7 +45,7 @@ from flask import (Flask, make_response,
                    url_for,
                    g,
                    request)
-
+# 系统包
 from deploy.config import VERSION, NAME, SECRET_KEY
 from deploy.models.base import get_session
 from deploy.utils.base_class import WebBaseClass
@@ -52,11 +53,13 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.utils import get_user_id, timeer, get_real_ip
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-
+# views
 from deploy.views.manage import manage
 from deploy.views.user import user
 from deploy.views.office import office
 from deploy.views.authority import auth
+from deploy.views.message import message
+# services
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
 
@@ -184,6 +187,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('user', user)
         self.register_blueprint('office', office)
         self.register_blueprint('auth', auth)
+        self.register_blueprint('message', message)
 
     def init_run(self):
         LOG.debug('Server is initializing......')
