@@ -44,11 +44,11 @@ from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import timeer
 
 
-message = Blueprint('message', __name__, url_prefix='/message')
-CORS(message, supports_credentials=True)
+notify = Blueprint('notify', __name__, url_prefix='/notify')
+CORS(notify, supports_credentials=True)
 
 
-@message.route('/dtalk_list/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/dtalk_list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def dtalk_list():
     """
@@ -63,6 +63,6 @@ def dtalk_list():
         params = request.get_json() or {}
         # return OfficeService().excel_source_list(params)
     except Exception as e:
-        LOG.error("message>dtalk message list is error: %s" % e)
+        LOG.error("notify>dtalk message list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
