@@ -195,7 +195,7 @@ with open(_config_file) as f:
     # article
     ART_LIMIT = _config_info['ARTICLE']['LIMIT'] or ART_LIMIT
 
-    # excel
+    # office
     OFFICE_LIMIT = _config_info['OFFICE']['LIMIT'] or OFFICE_LIMIT
     OFFICE_STORE_BK = _config_info['OFFICE']['STORE_BK'] or OFFICE_STORE_BK
     SHEET_NUM_LIMIT = _config_info['OFFICE']['SHEET_NUM_LIMIT'] or SHEET_NUM_LIMIT

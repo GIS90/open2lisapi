@@ -47,62 +47,6 @@ office = Blueprint('office', __name__, url_prefix='/office')
 CORS(office, supports_credentials=True)
 
 
-@office.route('/upload/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
-def upload():
-    """
-    one office file upload to server(file store object)
-    :return: json data
-    单文件上传
-    """
-    if request.method == 'GET':
-        return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-
-    try:
-        # 参数
-        params = request.form
-        # 文件
-        files = request.files
-        if not files or (files and not files.get('files')):
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
-
-        return OfficeService().office_upload(params, request.files.get('files'))
-    except Exception as e:
-        LOG.error("office>upload is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
-
-
-@office.route('/uploads/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
-def uploads():
-    """
-    many office file upload to server(file store object)
-    :return: json data
-    多文件上传
-    """
-    if request.method == 'GET':
-        return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-
-    try:
-        # 参数
-        params = request.form
-        # 文件
-        files = request.files
-        if not files:
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
-
-        return OfficeService().office_upload_m(params, files)
-    except Exception as e:
-        LOG.error("office>uploads is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
-
-
 @office.route('/excel_source_list/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def excel_source_list():

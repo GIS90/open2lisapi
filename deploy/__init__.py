@@ -59,6 +59,7 @@ from deploy.views.user import user
 from deploy.views.office import office
 from deploy.views.authority import auth
 from deploy.views.notify import notify
+from deploy.views.common import common
 # services
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
@@ -188,6 +189,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('office', office)
         self.register_blueprint('auth', auth)
         self.register_blueprint('notify', notify)
+        self.register_blueprint('common', common)
 
     def init_run(self):
         LOG.debug('Server is initializing......')
