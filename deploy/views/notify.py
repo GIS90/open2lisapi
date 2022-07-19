@@ -38,10 +38,9 @@ from flask_cors import CORS
 
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
-from deploy.services.sysuser import SysUserService
-from deploy.services.request import RequestService
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import timeer
+from deploy.services.notify import NotifyService
 
 
 notify = Blueprint('notify', __name__, url_prefix='/notify')
@@ -61,8 +60,8 @@ def dtalk_list():
     try:
         # 参数
         params = request.get_json() or {}
-        # return OfficeService().excel_source_list(params)
+        return NotifyService().dtalk_list(params)
     except Exception as e:
-        LOG.error("notify>dtalk message list is error: %s" % e)
+        LOG.error("notify>dtalk list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

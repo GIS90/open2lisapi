@@ -39,6 +39,7 @@ from deploy.utils.status import Status
 from deploy.utils.file_lib import FileLib
 from deploy.utils.store_lib import StoreLib
 from deploy.services.office import OfficeService
+from deploy.services.notify import NotifyService
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, OFFICE_STORE_BK
 from deploy.utils.enums import *
@@ -46,12 +47,16 @@ from deploy.utils.enums import *
 
 class CommonService(object):
     """
-    office service
+    common service
     """
     req_upload_attrs = [
         'rtx_id',
-        'file_type',
-        'excel_sub_type'
+        'file_type'
+    ]
+
+    req_upload_need_attrs = [
+        'rtx_id',
+        'file_type'
     ]
 
     def __init__(self):
@@ -59,15 +64,16 @@ class CommonService(object):
         common service class initialize
         """
         super(CommonService, self).__init__()
-        self.office_service = OfficeService()
         self.file_lib = FileLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
+        self.office_service = OfficeService()
+        self.notify_service = NotifyService()
 
     def file_upload(self, params, upload_file, is_check_fmt: bool = True):
         """
         one file upload to server(file store object)
-        params params: request params, rtx_id and excel type
-        params upload_file: excel upload file
+        params params: request params, rtx_id and file type
+        params upload_file: upload file
         params is_check_fmt: file is or not check format
         params is_store_bk: file is or not upload to store server 对象存储备份
 
@@ -76,6 +82,8 @@ class CommonService(object):
         2.upload to qiniu store server
 
         return json data
+
+        获取不同模型的service，进行操作
         """
         # ------------------------ parameters check -----------------------
         # no parameters, return
@@ -89,17 +97,11 @@ class CommonService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-            # value check
-            if not v and k in ['rtx_id', 'file_type']:
+            # necessary value check
+            if not v and k in self.req_upload_attrs:
                 return Status(
                     212, 'failure', u'未指定%s请求参数' % k, {}
                 ).json()
-        # excel parameters check
-        if int(params.get('file_type')) == 2 and \
-                int(params.get('excel_sub_type')) not in [EXCEL_MERGE, EXCEL_SPLIT]:
-            return Status(
-                213, 'failure', u'请求参数excel_sub_type值不合法', {}
-            ).json()
 
         # ======================= local store =======================
         f_name = upload_file.filename   # file object
@@ -126,19 +128,21 @@ class CommonService(object):
         # ======================= db store =======================
         store_msg['rtx_id'] = params.get('rtx_id')
         store_msg['file_type'] = params.get('file_type')
-        store_msg['excel_sub_type'] = params.get('excel_sub_type')
         # 存储文件记录到数据库，依据file_type进行不同存储
         file_type = int(params.get('file_type'))
-        if file_type == FileTypeEnum.WORD.value:   # office word
-            pass
-        elif file_type == FileTypeEnum.EXCEL.value:   # office excel
+        if file_type in [FileTypeEnum.EXCEL_MERGE.value,
+                         FileTypeEnum.EXCEL_SPLIT.value]:   # excel merge && split
             is_to_db = self.office_service.store_excel_source_to_db(store_msg)
-        elif file_type == FileTypeEnum.PPT.value:   # office ppt
+        elif file_type == FileTypeEnum.WORD.value:  # word
+            pass
+        elif file_type == FileTypeEnum.PPT.value:   # ppt
             pass
         elif file_type == FileTypeEnum.TEXT.value:   # text
             pass
         elif file_type == FileTypeEnum.PDF.value:   # office pdf
             is_to_db = self.office_service.store_office_pdf_to_db(store_msg)
+        elif file_type == FileTypeEnum.DTALK.value:   # notify dtalk
+            is_to_db = self.notify_service.store_dtalk_to_db(store_msg)
         else:   # other
             pass
         if not is_to_db:
@@ -165,8 +169,8 @@ class CommonService(object):
 
         success_list = list()
         failure_list = list()
-        # TODO 循环的方式进行存储文件，后期改成多进程
         # ------------------------ upload start -----------------------
+        # TODO 循环的方式进行存储文件，后期改成多进程
         for uf in upload_files:
             try:
                 if not uf: continue

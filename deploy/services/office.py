@@ -324,8 +324,7 @@ class OfficeService(object):
         store excel source file message to db
         params store: store message
             - rtx_id: rtx-id
-            - file_type: file type
-            - excel_sub_type: excel opr type, merge or split
+            - file_type: file type, excel opr type, merge or split
             - name: file name
             - md5: file md5
             - store_name: file store name
@@ -350,7 +349,7 @@ class OfficeService(object):
             new_model.name = store.get('name')
             new_model.store_name = store.get('store_name')
             new_model.md5_id = store.get('md5')
-            new_model.ftype = store.get('excel_sub_type')
+            new_model.ftype = store.get('file_type')
             new_model.local_url = store.get('path')
             new_model.store_url = store.get('store_name')
             new_model.numopr = 0
@@ -403,17 +402,17 @@ class OfficeService(object):
             new_model.nfile = store.get('nfile') or 1
             new_model.is_compress = is_compress
             new_model.row = excel_headers.get('sheets')[0].get('row') \
-                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else 0
+                if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else 0
             new_model.col = excel_headers.get('sheets')[0].get('col') \
-                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else 0
+                if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else 0
             new_model.nsheet = excel_headers.get('nsheet') \
-                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else 0
+                if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else 0
             new_model.sheet_names = json.dumps(excel_headers.get('names')) \
-                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else '{}'
+                if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else '{}'
             new_model.sheet_columns = json.dumps(excel_headers.get('columns')) \
-                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else '{}'
+                if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else '{}'
             new_model.headers = json.dumps(excel_headers.get('sheets')) \
-                if (int(store.get('type')) == int(EXCEL_MERGE) or not is_compress) and excel_headers else '{}'
+                if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else '{}'
             new_model.create_time = get_now()
             new_model.is_del = False
             self.excel_result_bo.add_model(new_model)
@@ -631,7 +630,7 @@ class OfficeService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}
                 ).json()
-            if k == 'type' and int(v) not in [int(EXCEL_MERGE), int(EXCEL_SPLIT)]:
+            if k == 'type' and int(v) not in [FileTypeEnum.EXCEL_MERGE.value, FileTypeEnum.EXCEL_SPLIT.value]:
                 return Status(
                     213, 'failure', u'请求参数type值不合法', {}
                 ).json()
@@ -965,7 +964,7 @@ class OfficeService(object):
                               {}).json()
         # file to db
         store_msg['rtx_id'] = new_params.get('rtx_id')
-        store_msg['type'] = EXCEL_MERGE
+        store_msg['type'] = FileTypeEnum.EXCEL_MERGE.value
         store_msg['md5'] = md5(store_msg.get('name'))
         is_to_db = self.store_excel_result_to_db(store_msg)
         if not is_to_db:
@@ -1432,8 +1431,8 @@ class OfficeService(object):
             return Status(
                 228, 'failure', StatusMsgs.get(228), {}
             ).json()
-
-        try:    # main method
+        # =========================== main method ===========================
+        try:
             resp_json = self.excel_lib.split_xlrw(file=model.local_url,
                                                   name=new_params.get('name'),
                                                   sheet=new_params.get('sheet'),
@@ -1467,7 +1466,7 @@ class OfficeService(object):
             'name': data.get('name'),
             'rtx_id': new_params.get('rtx_id'),
             'store_name': store_name,
-            'type': EXCEL_SPLIT,
+            'type': FileTypeEnum.EXCEL_SPLIT.value,
             'md5': md5(data.get('name')),
             'path': data.get('path'),
             'compress': data.get('compress') or False,

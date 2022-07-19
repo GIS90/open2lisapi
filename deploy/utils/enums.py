@@ -35,11 +35,6 @@ Life is short, I use python.
 from enum import Enum
 
 
-# Excel操作类型
-EXCEL_MERGE = 1
-EXCEL_SPLIT = 2
-
-
 # Excel拆分枚举
 EXCEL_SPLIT_STORE = ['1', '2']
 # 行列
@@ -49,10 +44,12 @@ BOOL = ['0', '1']
 
 
 class FileTypeEnum(Enum):
-    WORD = 1
-    EXCEL = 2
-    PPT = 3
-    TEXT = 4
-    PDF = 5
+    EXCEL_MERGE = 1
+    EXCEL_SPLIT = 2
+    WORD = 3
+    PPT = 4
+    TEXT = 5
+    PDF = 6
+    DTALK = 7
     OTHER = 99
 
