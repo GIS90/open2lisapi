@@ -109,3 +109,17 @@ class SysUserBo(BOBase):
                       SysUserModel.delete_time: get_now()},
                      synchronize_session=False)
         return q
+
+    def get_user_by_phone(self, phone):
+        if not phone:
+            return None
+        q = self.session.query(SysUserModel)
+        q = q.filter(SysUserModel.phone == phone)
+        return q.first() if q.first() else None
+
+    def get_user_by_email(self, email):
+        if not email:
+            return None
+        q = self.session.query(SysUserModel)
+        q = q.filter(SysUserModel.email == email)
+        return q.first() if q.first() else None

@@ -1022,11 +1022,19 @@ class AuthorityService(object):
                 new_params[k] = str(v)
 
         # check rtx_id is or not exist
-        model = self.sysuser_bo.get_user_by_rtx_id(new_params.get('rtx_id'))
-        if model:
+        if self.sysuser_bo.get_user_by_rtx_id(new_params.get('rtx_id')):
             return Status(
-                213, 'failure', '用户RTX已存在，请重新输入', {}
-            ).json()
+                213, 'failure', '用户RTX-ID已存在，请重新输入', {}).json()
+        # check phone is or not exist
+        if new_params.get('phone') and \
+                self.sysuser_bo.get_user_by_phone(new_params.get('phone')):
+            return Status(
+                213, 'failure', '用户电话已存在，请重新输入', {}).json()
+        # check email is or not exist
+        if new_params.get('email') and \
+                self.sysuser_bo.get_user_by_email(new_params.get('email')):
+            return Status(
+                213, 'failure', '用户邮箱已存在，请重新输入', {}).json()
 
         new_model = self.sysuser_bo.new_mode()
         new_model.rtx_id = new_params.get('rtx_id')
