@@ -36,7 +36,7 @@ import os
 import json
 
 from deploy.utils.excel_lib import ExcelLib
-from deploy.utils.utils import get_now, d2s
+from deploy.utils.utils import get_now, d2s, check_length
 from deploy.bo.dtalk_message import DtalkMessageBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
@@ -73,6 +73,26 @@ class NotifyService(object):
         'list'
     ]
 
+    req_detail_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
+    req_dtalk_update_attrs = [
+        'rtx_id',
+        'name',
+        'title',
+        'set_sheet',
+        'md5'
+    ]
+
+    req_dtalk_update_need_attrs = [
+        'rtx_id',
+        'name',
+        'set_sheet',
+        'md5'
+    ]
+
     dtalk_show_attrs = [
         'id',
         'rtx_id',
@@ -93,6 +113,10 @@ class NotifyService(object):
         'delete_time',
         'is_del'
     ]
+
+    EXCEL_FORMAT = ['.xls', '.xlsx']
+
+    DEFAULT_EXCEL_FORMAT = '.xlsx'
 
     def __init__(self):
         """
@@ -168,6 +192,52 @@ class NotifyService(object):
             return True
         except:
             return False
+
+    def _update_real_file_name(self, model, new_name):
+        """
+        build in method, not allow outer to use
+        update file name store_name local_url store_url
+        return json data
+
+        update real file name and store file name
+        """
+        _res = dict()
+        # check
+        if not model or not new_name:
+            return _res
+        if not model.file_name \
+                or not model.file_local_url or not model.file_store_url:
+            return _res
+
+        new_names = os.path.splitext(str(new_name))
+        # check format
+        if new_names[-1] not in self.EXCEL_FORMAT:
+            new_name = '%s%s' % (new_names[0], self.DEFAULT_EXCEL_FORMAT)
+        local_urls = str(model.file_local_url).split('/')
+        new_local_url = str(model.file_local_url).replace(local_urls[-1], new_name)
+        # check rename file exist
+        if os.path.exists(new_local_url):
+            new_names = os.path.splitext(str(new_name))
+            new_name = '%s-%s%s' % (new_names[0], get_now(format="%Y-%m-%d-%H-%M-%S"), new_names[-1])
+            new_local_url = str(model.file_local_url).replace(local_urls[-1], new_name)
+        # modify file name
+        if os.path.exists(model.file_local_url):
+            os.rename(model.file_local_url, new_local_url)
+        # store file rename
+        try:
+            store_urls = str(model.file_store_url).split('/')
+            new_store_url = str(model.file_store_url).replace(store_urls[-1], new_name)
+            _store_rename_res = self.store_lib.move(src_space_name=STORE_SPACE_NAME, src_store_name=model.file_store_url,
+                                                    tar_space_name=STORE_SPACE_NAME, tar_store_name=new_store_url)
+            if _store_rename_res.get('status_id') != 100:
+                new_store_url = model.file_store_url
+        except:
+            new_store_url = model.file_store_url
+        return {
+            'name': new_name,
+            'local_url': new_local_url,
+            'store_url': new_store_url
+        }
 
     def _dtalk_model_to_dict(self, model):
         """
@@ -357,3 +427,113 @@ class NotifyService(object):
             else Status(303, 'failure',
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def dtalk_detail(self, params):
+        """
+        get dtalk detail information, by file md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+
+        model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model)
+        ).json()
+
+    def dtalk_update(self, params):
+        """
+        update dtalk information, contain:
+            - name 文件名称
+            - title 消息标题
+            - set_sheet 设置的sheet
+        by file md5
+        :return: json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dtalk_update_attrs and v:      # 不合法参数
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k in self.req_dtalk_update_need_attrs:       # value check, is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k == 'name':      # check name and length
+                new_names = os.path.splitext(str(v))
+                if new_names[-1] not in self.EXCEL_FORMAT:
+                    return Status(
+                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}).json()
+                if not check_length(v, 80):  # check: length
+                    return Status(
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'title' and v:
+                if not check_length(v, 80):  # check: length
+                    return Status(
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'set_sheet':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
+                v = ';'.join(v)
+            else:
+                v = str(v)
+            new_params[k] = v
+
+        # ========= check data
+        model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+
+        # update
+        # <update file real name>
+        if str(new_params.get('name')) != str(model.file_name):
+            res = self._update_real_file_name(model, new_params.get('name'))
+            if res:
+                model.file_name = res.get('name')
+                model.file_local_url = res.get('local_url')
+                model.file_store_url = res.get('store_url')
+        model.title = new_params.get('title')
+        model.set_sheet = new_params.get('set_sheet')
+        self.dtalk_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()

@@ -107,3 +107,49 @@ def dtalk_deletes():
         LOG.error("office>delete many dtalk is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/dtalk_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_detail():
+    """
+    get dtalk detail information, by file md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_detail(params)
+    except Exception as e:
+        LOG.error("office>dtalk detail is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/dtalk_update/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_update():
+    """
+    update dtalk information, contain:
+        - name 文件名称
+        - title 消息标题
+        - set_sheet 设置的sheet
+    by file md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_update(params)
+    except Exception as e:
+        LOG.error("office>dtalk update is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
