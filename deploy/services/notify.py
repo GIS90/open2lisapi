@@ -41,7 +41,7 @@ from deploy.bo.dtalk_message import DtalkMessageBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
-    STORE_BASE_URL, STORE_SPACE_NAME
+    STORE_BASE_URL, STORE_SPACE_NAME, ADMIN
 from deploy.utils.store_lib import StoreLib
 
 
@@ -61,6 +61,16 @@ class NotifyService(object):
         'rtx_id',
         'file_type',
         'excel_sub_type'
+    ]
+
+    req_delete_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
+    req_deletes_attrs = [
+        'rtx_id',
+        'list'
     ]
 
     dtalk_show_attrs = [
@@ -232,18 +242,17 @@ class NotifyService(object):
         params is dict
         return json data
         """
+        # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         new_params = dict()
         for k, v in params.items():
             if not k: continue
             if k not in self.req_dtalk_list_attrs and v:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -252,11 +261,11 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
 
+        # <get data>
         res, total = self.dtalk_bo.get_all(new_params)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
-            ).json()
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
 
         new_res = list()
         n = 1
@@ -270,3 +279,81 @@ class NotifyService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
+
+    def dtalk_delete(self, params):
+        """
+        delete one dtalk data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # <update data>
+        model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
+        self.dtalk_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def dtalk_deletes(self, params):
+        """
+        delete many dtalk data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v: # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list': # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # << batch delete >>
+        res = self.dtalk_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure',
+                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()

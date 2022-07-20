@@ -32,9 +32,9 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python dtalk_message.py
 # ------------------------------------------------------------
-
 from sqlalchemy import or_
 
+from deploy.utils.utils import get_now
 from deploy.bo.bo_base import BOBase
 from deploy.models.dtalk_message import DtalkMessageModel
 
@@ -61,3 +61,25 @@ class DtalkMessageBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all(), total
+
+    def get_model_by_md5(self, md5):
+        q = self.session.query(DtalkMessageModel)
+        q = q.filter(DtalkMessageModel.md5_id == str(md5))
+        return q.first() if q else None
+
+    def batch_delete_by_md5(self, params):
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(DtalkMessageModel)
+        q = q.filter(DtalkMessageModel.md5_id.in_(md5_list))
+        if rtx_id:
+            q = q.filter(DtalkMessageModel.rtx_id == rtx_id)
+        q = q.filter(DtalkMessageModel.is_del != 1)
+        q = q.update({DtalkMessageModel.is_del: True,
+                      DtalkMessageModel.delete_rtx: rtx_id,
+                      DtalkMessageModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q
