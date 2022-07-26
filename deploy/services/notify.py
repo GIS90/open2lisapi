@@ -81,8 +81,10 @@ class NotifyService(object):
     req_dtalk_update_attrs = [
         'rtx_id',
         'name',
-        'title',
         'set_sheet',
+        'cur_sheet',
+        'title',
+        'column',
         'md5'
     ]
 
@@ -90,6 +92,8 @@ class NotifyService(object):
         'rtx_id',
         'name',
         'set_sheet',
+        'cur_sheet',
+        'column',
         'md5'
     ]
 
@@ -569,7 +573,7 @@ class NotifyService(object):
                     return Status(
                         213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'title' and v:
-                if not check_length(v, 80):  # check: length
+                if not check_length(v, 50):  # check: length
                     return Status(
                         213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'set_sheet':
@@ -577,6 +581,11 @@ class NotifyService(object):
                     return Status(
                         213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
                 v = ';'.join(v)
+            elif k == 'column':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
+                v = v
             else:
                 v = str(v)
             new_params[k] = v
@@ -607,6 +616,18 @@ class NotifyService(object):
                 model.file_store_url = res.get('store_url')
         model.title = new_params.get('title')
         model.set_sheet = new_params.get('set_sheet')
+        # sheet设置
+        cur_sheet = str(new_params.get('cur_sheet'))
+        model.cur_sheet = cur_sheet
+        # sheet title
+        title_json = json.loads(model.set_title) if model.set_title else {}
+        title_json[cur_sheet] = new_params.get('title') or ""
+        model.set_title = json.dumps(title_json)
+        # sheet column
+        set_column_json = json.loads(model.set_column)
+        if new_params.get('column'):
+            set_column_json[cur_sheet] = new_params.get('column')
+            model.set_column = json.dumps(set_column_json)
         self.dtalk_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
