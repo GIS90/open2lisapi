@@ -104,7 +104,8 @@ class ExcelLib(object):
             columns: sheet columns dict
         """
         res = {'sheets': {}, 'nsheet': 0, 'names': {}, 'columns': {}}
-        if not excel_file or not os.path.exists(excel_file):
+        if not excel_file \
+                or not os.path.exists(excel_file):
             return res
         excel = xlrd.open_workbook(excel_file)
         nsheets = excel.nsheets
@@ -114,10 +115,16 @@ class ExcelLib(object):
         columns_dict = dict()
         for i in range(0, nsheets, 1):
             sheet = excel.sheet_by_index(i)
-            names_dict[i] = sheet.name
-            sheets_dict[i] = {'row': sheet.nrows, 'col': sheet.ncols, 'index': i, 'name': sheet.name}
+            names_dict[str(i)] = sheet.name
+            ##### sheet：row行数 col列数 index索引 name名称
+            sheets_dict[str(i)] = {'row': sheet.nrows, 'col': sheet.ncols, 'index': i, 'name': sheet.name}
             try:
-                columns_dict[i] = sheet.row_values(0)
+                ##### sheet column：key：value格式
+                row_values_0 = sheet.row_values(0)
+                new_column = list()
+                for _k, _v in enumerate(row_values_0):
+                    new_column.append({'key': str(_k), 'value': str(_v)})
+                columns_dict[str(i)] = new_column
             except:
                 pass
         return {'sheets': sheets_dict, 'nsheet': nsheets, 'names': names_dict, 'columns': columns_dict}

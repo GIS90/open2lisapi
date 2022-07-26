@@ -93,21 +93,29 @@ class NotifyService(object):
         'md5'
     ]
 
+    req_change_sheet_attrs = [
+        'rtx_id',
+        'md5',
+        'sheet'
+    ]
+
     dtalk_show_attrs = [
         'id',
         'rtx_id',
-        'name',    # file_name
+        'file_name',
         'url',  # 'file_local_url', 'file_store_url',
         'md5_id',
         'robot',
         'count',
         'number',
         'nsheet',
-        'sheet_names',
-        'sheet_columns',
-        'headers',
+        # 'sheet_names',
+        # 'sheet_columns',
+        # 'headers',
         'set_sheet',
-        'title',
+        'cur_sheet',
+        'set_column',
+        'set_title',
         'create_time',
         'delete_rtx',
         'delete_time',
@@ -138,10 +146,32 @@ class NotifyService(object):
         get information from excel lib(deploy/utils/excel_lib.py)
         """
         res = {'sheets': {}, 'nsheet': 0, 'names': {}, 'columns': {}}
-        if not excel_file or not os.path.exists(excel_file):
+        if not excel_file \
+                or not os.path.exists(excel_file):
             return res
         new_res = self.excel_lib.read_headers(excel_file)
         return new_res
+
+    def _default_columns(self, columns):
+        """
+        build in method to format column
+        all select
+
+        columns is dict
+        return is dict
+        """
+        if not columns:
+            return {}
+
+        _res = dict()
+        for k, v in columns.items():
+            if not str(k) or not v: continue
+            _d = list()
+            for _v_v in v:
+                if not _v_v or not _v_v.get('key'): continue
+                _d.append(str(_v_v.get('key')))
+            _res[k] = _d
+        return _res
 
     def store_dtalk_to_db(self, store):
         """
@@ -149,7 +179,6 @@ class NotifyService(object):
         params store: store message
             - rtx_id: rtx-id
             - file_type: file type
-            - excel_sub_type: excel opr type, merge or split
             - name: file name
             - md5: file md5
             - store_name: file store name
@@ -183,9 +212,12 @@ class NotifyService(object):
             new_model.nsheet = excel_headers.get('nsheet')
             # 设置默认第一个Sheet进行操作,初始化设置
             new_model.set_sheet = '0'
+            new_model.cur_sheet = '0'
             new_model.sheet_names = json.dumps(excel_headers.get('names'))
             new_model.sheet_columns = json.dumps(excel_headers.get('columns'))
             new_model.headers = json.dumps(excel_headers.get('sheets'))
+            new_model.set_column = json.dumps(self._default_columns(excel_headers.get('columns') or {}))   # 默认设置全部
+            new_model.set_title = json.dumps({})   # title默认设置全部为空
             new_model.create_time = get_now()
             new_model.is_del = False
             self.dtalk_bo.add_model(new_model)
@@ -239,12 +271,15 @@ class NotifyService(object):
             'store_url': new_store_url
         }
 
-    def _dtalk_model_to_dict(self, model):
+    def _dtalk_model_to_dict(self, model, _type='list'):
         """
         dtalk model to dict
         params model: dtalk model object
         attrs from class define attrs
         return dict data
+
+        type is list table show data
+        type is detail data detail and config
         """
         _res = dict()
         if not model:
@@ -256,7 +291,7 @@ class NotifyService(object):
                 _res[attr] = model.id
             elif attr == 'rtx_id':
                 _res[attr] = model.rtx_id
-            elif attr == 'name':
+            elif attr == 'file_name':
                 _res[attr] = model.file_name
             elif attr == 'md5_id':
                 _res[attr] = model.md5_id
@@ -278,6 +313,11 @@ class NotifyService(object):
             elif attr == 'nsheet':
                 _res['nsheet'] = model.nsheet if model.nsheet else 1  # 无值，默认为1个SHEET
             elif attr == 'set_sheet':
+                """
+                set_sheet_name：字符串，选择的sheet名称（拼接）
+                sheet_names: 列表类型，元素为{'key': k, 'value': v}格式
+                set_sheet_index：列表类型，选择的sheet列表，与sheet_names搭配显示select多选
+                """
                 if model.sheet_names:
                     new_res = list()
                     set_sheet_name = list()
@@ -299,10 +339,44 @@ class NotifyService(object):
                     _res['sheet_names'] = []
                     _res['set_sheet_index'] = []
                     _res['set_sheet_name'] = ''
-            elif attr == 'title':
-                _res[attr] = model.title or ""
+            elif attr == 'cur_sheet':
+                _res[attr] = str(model.cur_sheet) if model.cur_sheet else "0"
+            elif attr == 'set_column':
+                if _type != 'detail':
+                    continue
+                all_column_json = json.loads(model.sheet_columns)
+                _set_column_json = json.loads(model.set_column)
+                cur_sheet = str(model.cur_sheet) if model.cur_sheet else "0"
+                _res['set_select_column'] = [] if not _set_column_json \
+                    else _set_column_json.get(cur_sheet) or []
+                _res['set_columns'] = all_column_json.get(cur_sheet) if all_column_json \
+                    else []
+            elif attr == 'set_title':
+                title_json = json.loads(model.set_title) if model.set_title else {}
+                if _type == 'list':
+                    flag = True
+                    _title = '暂无消息标题'
+                    if not title_json:
+                        flag = False
+                        title_json = json.loads(model.sheet_names)
+                    _str_title = ''
+                    for k, v in title_json.items():
+                        if not k: continue
+                        _str_title += '%s：%s｜' % (k, _title if not flag else v)
+                    if len(_str_title) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
+                        _str_title = '%s...具体详情查看设置' % _str_title[0:SHEET_NAME_LIMIT]
+                    _res[attr] = _str_title
+                if _type == 'detail':
+                    cur_sheet = str(model.cur_sheet) if model.cur_sheet else "0"
+                    _res[attr] = title_json.get(cur_sheet) or ""
             elif attr == 'create_time':
                 _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_time':
+                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx
+            elif attr == 'is_del':
+                _res[attr] = model.is_del or False
         else:
             return _res
 
@@ -460,7 +534,7 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model)
+            100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model, _type='detail')
         ).json()
 
     def dtalk_update(self, params):
@@ -536,4 +610,53 @@ class NotifyService(object):
         self.dtalk_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def dtalk_change_sheet(self, params):
+        """
+        dtalk change sheet by sheet index
+        params is dict
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}
+            ).json()
+
+        # check parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_change_sheet_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            v = str(v)
+            if not v:       # check value is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = v
+
+        model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+
+        ######################### get data
+        cur_sheet = str(new_params.get('sheet')) if new_params.get('sheet') else "0"
+        title_json = json.loads(model.set_title) if model.set_title else {}
+        title = title_json.get(cur_sheet) if title_json else ""
+        all_column_json = json.loads(model.sheet_columns)
+        _set_column_json = json.loads(model.set_column)
+        column = [] if not _set_column_json \
+            else _set_column_json.get(cur_sheet) or []
+        columns = all_column_json.get(cur_sheet) if all_column_json \
+            else []
+        data = {
+            'set_title': title,
+            'set_select_column': column,
+            'set_columns': columns,
+            'md5': new_params.get('md5')
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), data
         ).json()

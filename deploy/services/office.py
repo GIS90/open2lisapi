@@ -273,7 +273,8 @@ class OfficeService(object):
         get information from excel lib(deploy/utils/excel_lib.py)
         """
         res = {'sheets': {}, 'nsheet': 0, 'names': {}, 'columns': {}}
-        if not excel_file or not os.path.exists(excel_file):
+        if not excel_file \
+                or not os.path.exists(excel_file):
             return res
         new_res = self.excel_lib.read_headers(excel_file)
         return new_res
@@ -590,6 +591,11 @@ class OfficeService(object):
             elif attr == 'nfile':
                 _res['nfile'] = model.nfile if model.nfile else 1
             elif attr == 'set_sheet':
+                """
+                set_sheet_name：字符串，选择的sheet名称（拼接）
+                sheet_names: 列表类型，元素为{'key': k, 'value': v}格式
+                set_sheet_index：列表类型，选择的sheet列表，与sheet_names搭配显示select多选
+                """
                 if model.sheet_names:
                     new_res = list()
                     set_sheet_name = list()
@@ -1247,8 +1253,8 @@ class OfficeService(object):
         column_names.append({'label': '序号自增', 'value': '9999'})
         sheet_columns_json = json.loads(model.sheet_columns)
         if sheet_columns_json and sheet_columns_json.get(str(sheet_index)):
-            for k, v in enumerate(sheet_columns_json.get(str(sheet_index))):
-                column_names.append({'label': str(v) if v else '/', 'value': str(k)})
+            for item in sheet_columns_json.get(str(sheet_index)):
+                column_names.append({'label': str(item.get('value')) if item.get('value') else '/', 'value': str(item.get('key'))})
         # enum info
         names = ['excel-split-store', 'excel-num', 'bool-type']
         enums_models = self.enum_bo.get_model_by_names(names)
