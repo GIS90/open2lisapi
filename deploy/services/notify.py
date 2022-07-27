@@ -103,7 +103,27 @@ class NotifyService(object):
         'sheet'
     ]
 
-    dtalk_show_attrs = [
+    dtalk_list_attrs = [
+        'id',
+        'rtx_id',
+        'file_name',
+        'url',  # 'file_local_url', 'file_store_url',
+        'md5_id',
+        'robot',
+        'count',
+        'number',
+        'nsheet',
+        'set_sheet',
+        'cur_sheet',
+        'set_column',
+        'set_title',
+        'create_time',
+        'delete_rtx',
+        'delete_time',
+        'is_del'
+    ]
+
+    dtalk_detail_attrs = [
         'id',
         'rtx_id',
         'file_name',
@@ -118,8 +138,8 @@ class NotifyService(object):
         # 'headers',
         'set_sheet',
         'cur_sheet',
-        'set_column',
-        'set_title',
+        'cur_set_column',
+        'cur_set_title',
         'create_time',
         'delete_rtx',
         'delete_time',
@@ -289,7 +309,9 @@ class NotifyService(object):
         if not model:
             return _res
 
-        for attr in self.dtalk_show_attrs:
+        _attrs = self.dtalk_detail_attrs \
+            if _type == 'detail' else self.dtalk_list_attrs
+        for attr in _attrs:
             if not attr: continue
             if attr == 'id':
                 _res[attr] = model.id
@@ -346,8 +368,22 @@ class NotifyService(object):
             elif attr == 'cur_sheet':
                 _res[attr] = str(model.cur_sheet) if model.cur_sheet else "0"
             elif attr == 'set_column':
-                if _type != 'detail':
-                    continue
+                _res[attr] = model.set_column if model.set_column else ""
+            elif attr == 'set_title':
+                title_json = json.loads(model.set_title) if model.set_title else {}
+                flag = True
+                _title = '暂无消息标题'
+                if not title_json:
+                    flag = False
+                    title_json = json.loads(model.sheet_names)
+                _str_title = ''
+                for k, v in title_json.items():
+                    if not k: continue
+                    _str_title += '%s：%s｜' % (k, _title if not flag else v)
+                if len(_str_title) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
+                    _str_title = '%s...具体详情查看设置' % _str_title[0:SHEET_NAME_LIMIT]
+                _res[attr] = _str_title
+            elif attr == 'cur_set_column':
                 all_column_json = json.loads(model.sheet_columns)
                 _set_column_json = json.loads(model.set_column)
                 cur_sheet = str(model.cur_sheet) if model.cur_sheet else "0"
@@ -355,24 +391,10 @@ class NotifyService(object):
                     else _set_column_json.get(cur_sheet) or []
                 _res['set_columns'] = all_column_json.get(cur_sheet) if all_column_json \
                     else []
-            elif attr == 'set_title':
+            elif attr == 'cur_set_title':
                 title_json = json.loads(model.set_title) if model.set_title else {}
-                if _type == 'list':
-                    flag = True
-                    _title = '暂无消息标题'
-                    if not title_json:
-                        flag = False
-                        title_json = json.loads(model.sheet_names)
-                    _str_title = ''
-                    for k, v in title_json.items():
-                        if not k: continue
-                        _str_title += '%s：%s｜' % (k, _title if not flag else v)
-                    if len(_str_title) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
-                        _str_title = '%s...具体详情查看设置' % _str_title[0:SHEET_NAME_LIMIT]
-                    _res[attr] = _str_title
-                if _type == 'detail':
-                    cur_sheet = str(model.cur_sheet) if model.cur_sheet else "0"
-                    _res[attr] = title_json.get(cur_sheet) or ""
+                cur_sheet = str(model.cur_sheet) if model.cur_sheet else "0"
+                _res['set_title'] = title_json.get(cur_sheet) or ""
             elif attr == 'create_time':
                 _res['create_time'] = d2s(model.create_time) if model.create_time else ''
             elif attr == 'delete_time':
@@ -585,6 +607,10 @@ class NotifyService(object):
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
+                if len(v) < 2:
+                    if not isinstance(v, list):
+                        return Status(
+                            213, 'failure', u'请求参数%s数据至少选择2列' % k, {}).json()
                 v = v
             else:
                 v = str(v)
@@ -664,8 +690,10 @@ class NotifyService(object):
 
         ######################### get data
         cur_sheet = str(new_params.get('sheet')) if new_params.get('sheet') else "0"
+        # current sheet title set
         title_json = json.loads(model.set_title) if model.set_title else {}
         title = title_json.get(cur_sheet) if title_json else ""
+        # current column title set
         all_column_json = json.loads(model.sheet_columns)
         _set_column_json = json.loads(model.set_column)
         column = [] if not _set_column_json \
