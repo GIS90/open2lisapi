@@ -38,6 +38,7 @@ import json
 from deploy.utils.excel_lib import ExcelLib
 from deploy.utils.utils import get_now, d2s, check_length
 from deploy.bo.dtalk_message import DtalkMessageBo
+from deploy.bo.dtalk_robot import DtalkRobotBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
@@ -146,6 +147,21 @@ class NotifyService(object):
         'is_del'
     ]
 
+    dtalk_robot_attrs = [
+        # 'id',
+        'rtx_id',
+        'name',
+        'md5_id',
+        'key',
+        'secret',
+        'select',
+        'description',
+        'create_time',
+        'delete_rtx',
+        'delete_time',
+        'is_del'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -158,6 +174,7 @@ class NotifyService(object):
         self.excel_lib = ExcelLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.dtalk_bo = DtalkMessageBo()
+        self.dtalk_robot_bo = DtalkRobotBo()
 
     def get_excel_headers(self, excel_file):
         """
@@ -708,4 +725,88 @@ class NotifyService(object):
         }
         return Status(
             100, 'success', StatusMsgs.get(100), data
+        ).json()
+
+    def _dtalk_robot_model_to_dict(self, model, _type='list'):
+        """
+        dtalk robot model to dict
+        params model: dtalk robot model object
+        attrs from class define attrs
+        return dict data
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.dtalk_robot_attrs:
+            if not attr: continue
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'name':
+                _res[attr] = model.name
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'key':
+                _res[attr] = model.key
+            elif attr == 'secret':
+                _res[attr] = model.secret
+            elif attr == 'select':
+                _res[attr] = True if model.select else False
+            elif attr == 'description':
+                _res[attr] = model.description
+            elif attr == 'create_time':
+                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_time':
+                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx
+            elif attr == 'is_del':
+                _res[attr] = model.is_del or False
+        else:
+            return _res
+
+    def dtalk_robot_list(self, params):
+        """
+        get dtalk robot list by params
+        params is dict
+        return json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dtalk_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if k == 'limit':
+                v = int(v) if v else OFFICE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            else:
+                v = str(v) if v else ''
+            new_params[k] = v
+
+        # <get data>
+        res, total = self.dtalk_robot_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._dtalk_robot_model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
