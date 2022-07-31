@@ -51,10 +51,10 @@ class DtalkRobotModel(base.ModelBase):
 
     id = Column(Integer, primary_key=True)
     rtx_id = Column(String(25))
-    name = Column(String(55))
+    name = Column(String(30))
     md5_id = Column(String(55))
-    key = Column(String(80))
-    secret = Column(String(80))
+    key = Column(String(30))
+    secret = Column(String(70))
     select = Column(Boolean())
     description = Column(Text)
     create_time = Column(TIMESTAMP)

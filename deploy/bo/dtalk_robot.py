@@ -65,3 +65,11 @@ class DtalkRobotBo(BOBase):
         q = self.session.query(DtalkRobotModel)
         q = q.filter(DtalkRobotModel.md5_id == str(md5))
         return q.first() if q else None
+
+    def get_model_by_key_secret(self, key, secret):
+        q = self.session.query(DtalkRobotModel)
+        q = q.filter(DtalkRobotModel.key == str(key))
+        q = q.filter(DtalkRobotModel.secret == str(secret))
+        q = q.filter(DtalkRobotModel.is_del != 1)
+        return q.first() if q else None
+

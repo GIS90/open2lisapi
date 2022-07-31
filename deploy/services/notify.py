@@ -36,7 +36,7 @@ import os
 import json
 
 from deploy.utils.excel_lib import ExcelLib
-from deploy.utils.utils import get_now, d2s, check_length
+from deploy.utils.utils import get_now, d2s, check_length, md5
 from deploy.bo.dtalk_message import DtalkMessageBo
 from deploy.bo.dtalk_robot import DtalkRobotBo
 from deploy.utils.status import Status
@@ -160,6 +160,15 @@ class NotifyService(object):
         'delete_rtx',
         'delete_time',
         'is_del'
+    ]
+
+    dtalk_robot_add_attrs = [
+        'rtx_id',
+        'name',
+        'key',
+        'secret',
+        'description',
+        'select'
     ]
 
     EXCEL_FORMAT = ['.xls', '.xlsx']
@@ -809,4 +818,73 @@ class NotifyService(object):
                 n += 1
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def dtalk_robot_add(self, params):
+        """
+        add new dtalk robot, information contain:
+        name: 机器人名称
+        key: robot-key
+        secret: robot-secret
+        description: 机器人描述
+        select: 是否默认
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.dtalk_robot_add_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k not in ['select']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # check: length
+            if k == 'rtx_id' and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'name' and not check_length(v, 30):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'key' and not check_length(v, 30):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'secret' and not check_length(v, 70):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'description' and not check_length(v, 120):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'select' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+
+        # check key and secret is or not repeat
+        if new_params.get('key') and new_params.get('secret'):
+            if self.dtalk_robot_bo.get_model_by_key_secret(key=new_params.get('key'), secret=new_params.get('secret')):
+                return Status(
+                    213, 'failure', 'KEY与SECRET已存在', {}).json()
+        # --------------------------------------- add model --------------------------------------
+        new_model = self.dtalk_robot_bo.new_mode()
+        new_model.rtx_id = new_params.get('rtx_id')
+        new_model.name = new_params.get('name')
+        md5_id = md5(new_params.get('key')+new_params.get('secret'))
+        new_model.md5_id = md5_id
+        new_model.key = new_params.get('key')
+        new_model.secret = new_params.get('secret')
+        new_model.select = new_params.get('select') or False
+        new_model.description = new_params.get('description')
+        new_model.create_time = get_now()
+        new_model.is_del = False
+        new_model.delete_time = ''
+        self.dtalk_robot_bo.add_model(new_model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()

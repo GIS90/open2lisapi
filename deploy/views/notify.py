@@ -194,3 +194,25 @@ def dtalk_robot_list():
         LOG.error("notify>dtalk robot list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/dtalk_robot_add/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_robot_add():
+    """
+    add new dtalk robot to db table one data
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}
+        ).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_robot_add(params)
+    except Exception as e:
+        LOG.error("authority>dtalk robot add is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

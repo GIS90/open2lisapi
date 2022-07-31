@@ -385,10 +385,10 @@ DROP TABLES IF EXISTS `dtalk_robot`;
 CREATE TABLE `dtalk_robot`  (
     `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
     `rtx_id` varchar(25) NULL COMMENT '用户RTX-ID',
-    `name` varchar(55) NULL COMMENT '机器人名称',
+    `name` varchar(30) NULL COMMENT '机器人名称',
     `md5_id` varchar(55) NULL COMMENT '数据记录record',
-    `key` varchar(80) NULL COMMENT '机器人APP-KEY',
-    `secret` varchar(80) NULL COMMENT '机器人APP-SECRET',
+    `key` varchar(30) NULL COMMENT '机器人APP-KEY',
+    `secret` varchar(70) NULL COMMENT '机器人APP-SECRET',
     `select` bool DEFAULT False COMMENT '是否当前为选择',
     `description`text COMMENT '描述',
     `create_time` datetime COMMENT '创建时间',
