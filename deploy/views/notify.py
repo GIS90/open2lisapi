@@ -216,3 +216,93 @@ def dtalk_robot_add():
         LOG.error("authority>dtalk robot add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/dtalk_robot_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_robot_delete():
+    """
+    delete one dtalk robot data by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_robot_delete(params)
+    except Exception as e:
+        LOG.error("office>delete one dtalk robot is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/dtalk_robot_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_robot_deletes():
+    """
+    delete many dtalk robot data by md5 list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_robot_deletes(params)
+    except Exception as e:
+        LOG.error("office>delete many dtalk robot is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/dtalk_robot_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_robot_detail():
+    """
+    get dtalk robot detail information, by file md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_robot_detail(params)
+    except Exception as e:
+        LOG.error("office>dtalk robot detail is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/dtalk_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_robot_update():
+    """
+    update dtalk robot information, contain:
+        - name 名称
+        - key
+        - secret
+        - description 描述
+        - select 选择
+    by file md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_robot_update(params)
+    except Exception as e:
+        LOG.error("office>dtalk robot update is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

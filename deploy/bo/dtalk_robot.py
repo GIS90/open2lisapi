@@ -36,6 +36,7 @@ from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.dtalk_robot import DtalkRobotModel
+from deploy.utils.utils import get_now
 
 
 class DtalkRobotBo(BOBase):
@@ -79,4 +80,21 @@ class DtalkRobotBo(BOBase):
         q = q.filter(DtalkRobotModel.rtx_id == rtx_id)
         q = q.filter(DtalkRobotModel.is_del != 1)
         q = q.update({DtalkRobotModel.select: False}, synchronize_session=False)
+        return q
+
+    def batch_delete_by_md5(self, params):
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(DtalkRobotModel)
+        q = q.filter(DtalkRobotModel.md5_id.in_(md5_list))
+        if rtx_id:
+            q = q.filter(DtalkRobotModel.rtx_id == rtx_id)
+        q = q.filter(DtalkRobotModel.is_del != 1)
+        q = q.update({DtalkRobotModel.is_del: True,
+                      DtalkRobotModel.delete_rtx: rtx_id,
+                      DtalkRobotModel.delete_time: get_now()},
+                     synchronize_session=False)
         return q

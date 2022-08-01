@@ -171,6 +171,16 @@ class NotifyService(object):
         'select'
     ]
 
+    req_dtalk_robot_update_attrs = [
+        'rtx_id',
+        'name',
+        'key',
+        'secret',
+        'description',
+        'select',
+        'md5'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -890,4 +900,195 @@ class NotifyService(object):
         self.dtalk_robot_bo.add_model(new_model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
+        ).json()
+
+    def dtalk_robot_delete(self, params):
+        """
+        delete one dtalk robot data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.dtalk_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # <update data>
+        model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
+        self.dtalk_robot_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def dtalk_robot_deletes(self, params):
+        """
+        delete many dtalk robot data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v: # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list': # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # << batch delete >>
+        res = self.dtalk_robot_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure',
+                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def dtalk_robot_detail(self, params):
+        """
+        get dtalk robot detail information, by file md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+
+        model = self.dtalk_robot_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._dtalk_robot_model_to_dict(model, _type='detail')
+        ).json()
+
+    def dtalk_robot_update(self, params):
+        """
+        update dtalk robot information, contain:
+            - name 名称
+            - key
+            - secret
+            - description 描述
+            - select 选择
+        by file md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_dtalk_robot_update_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k not in ['select']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # check: length
+            if k == 'rtx_id' and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'name' and not check_length(v, 30):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'key' and not check_length(v, 30):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'secret' and not check_length(v, 70):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'description' and not check_length(v, 120):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'select' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+
+        # ========= check data
+        model = self.dtalk_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+
+        # select default
+        if new_params.get('select'):
+            self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
+        # --------------------------------------- update model --------------------------------------
+        model.name = new_params.get('name')
+        model.key = new_params.get('key')
+        model.secret = new_params.get('secret')
+        model.description = new_params.get('description')
+        model.select = new_params.get('select') or False
+        self.dtalk_robot_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
