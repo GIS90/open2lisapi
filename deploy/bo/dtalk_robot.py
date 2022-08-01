@@ -66,10 +66,17 @@ class DtalkRobotBo(BOBase):
         q = q.filter(DtalkRobotModel.md5_id == str(md5))
         return q.first() if q else None
 
-    def get_model_by_key_secret(self, key, secret):
+    def get_model_by_key_secret(self, key, secret, rtx_id):
         q = self.session.query(DtalkRobotModel)
         q = q.filter(DtalkRobotModel.key == str(key))
         q = q.filter(DtalkRobotModel.secret == str(secret))
+        q = q.filter(DtalkRobotModel.rtx_id == str(rtx_id))
         q = q.filter(DtalkRobotModel.is_del != 1)
         return q.first() if q else None
 
+    def update_unselect_by_rtx(self, rtx_id):
+        q = self.session.query(DtalkRobotModel)
+        q = q.filter(DtalkRobotModel.rtx_id == rtx_id)
+        q = q.filter(DtalkRobotModel.is_del != 1)
+        q = q.update({DtalkRobotModel.select: False}, synchronize_session=False)
+        return q

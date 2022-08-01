@@ -868,9 +868,12 @@ class NotifyService(object):
 
         # check key and secret is or not repeat
         if new_params.get('key') and new_params.get('secret'):
-            if self.dtalk_robot_bo.get_model_by_key_secret(key=new_params.get('key'), secret=new_params.get('secret')):
+            if self.dtalk_robot_bo.get_model_by_key_secret(key=new_params.get('key'), secret=new_params.get('secret'), rtx_id=new_params.get('rtx_id')):
                 return Status(
                     213, 'failure', 'KEY与SECRET已存在', {}).json()
+        # select default
+        if new_params.get('select'):
+            self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
         # --------------------------------------- add model --------------------------------------
         new_model = self.dtalk_robot_bo.new_mode()
         new_model.rtx_id = new_params.get('rtx_id')
