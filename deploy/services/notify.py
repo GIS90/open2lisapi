@@ -181,6 +181,12 @@ class NotifyService(object):
         'md5'
     ]
 
+    req_dtalk_robot_select_attrs = [
+        'rtx_id',
+        'md5',
+        'select'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -1089,6 +1095,67 @@ class NotifyService(object):
         model.description = new_params.get('description')
         model.select = new_params.get('select') or False
         self.dtalk_robot_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def dtalk_robot_select(self, params):
+        """
+         set dtalk robot select status, by file md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_dtalk_robot_select_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k != 'select':
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k == 'select' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+
+        # ========= check data
+        model = self.dtalk_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+        # status
+        if new_params.get('select') != model.select:
+            return Status(
+                310, 'failure', '数据状态不一致，请刷新再设置' or StatusMsgs.get(310), {}).json()
+
+        # select set
+        """
+        设置选择分2种：
+            1.数据为选择状态，直接全都设置非选择
+            2.数据为非选择状态，先全部设置非选择状态，再把选择的数据设置为选择
+        """
+        self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
+        # --------------------------------------- update model --------------------------------------
+        if not new_params.get('select'):
+            model.select = True
+            self.dtalk_robot_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
