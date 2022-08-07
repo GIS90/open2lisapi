@@ -121,6 +121,10 @@ CONVERT_MULPRO = True
 AUTH_LIMIT = 15
 AUTH_NUM = 45
 
+# DINGTALK
+DTALK_BASE_URL = 'https://oapi.dingtalk.com/'
+DTALK_TOKEN_URL = 'gettoken'
+
 
 # others
 NOBN = 'NoNameBody'
@@ -210,3 +214,7 @@ with open(_config_file) as f:
 
     # options
     O_NOBN = _config_info['OTHERS']['NOBN'] or NOBN
+
+    # DINGTALK
+    DTALK_BASE_URL = _config_info['DINGTALK']['BASE_URL'] or DTALK_BASE_URL
+    DTALK_TOKEN_URL = _config_info['DINGTALK']['TOKEN_URL'] or DTALK_TOKEN_URL

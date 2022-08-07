@@ -187,6 +187,11 @@ class NotifyService(object):
         'select'
     ]
 
+    req_dtalk_send_init_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -1159,3 +1164,132 @@ class NotifyService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
+
+    def dtalk_send_init(self, params):
+        """
+        dtalk send message initialize data
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dtalk_send_init_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # ------------------------ dtalk data ------------------------
+        dtalk_model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
+        if not dtalk_model:
+            set_sheet_index = []
+            sheet_names = []
+        else:
+            set_sheet_index = [str(i) for i in str(dtalk_model.set_sheet).split(';')] if dtalk_model.set_sheet else ['0']  # 默认index为0
+            json_sheet_names = json.loads(dtalk_model.sheet_names)
+            sheet_names = list()
+            if json_sheet_names:
+                for k, v in json_sheet_names.items():
+                    sheet_names.append({'key': k, 'value': v})
+        # ========================= dtalk robot data =========================
+        robot_model = self.dtalk_robot_bo.get_model_by_rtx(new_params.get('rtx_id'))
+        if not robot_model:
+            select_robot_index = ''
+            robot_enums = []
+        else:
+            select_robot_index = ''
+            robot_enums = []
+            for r in robot_model:
+                if r.select:
+                    select_robot_index = r.key
+                robot_enums.append({'key': r.key, 'value': r.name})
+        _result = {
+            'sheet_index': set_sheet_index,
+            'sheet_names': sheet_names,
+            'robot_index': select_robot_index,
+            'robot_enums': robot_enums
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), _result
+        ).json()
+
+    def dtalk_send(self, params):
+        """
+        main entry
+        消息程序主入口，在运行之前需要完成数据采集与处理、配置修改2个部分。
+        1.数据采集与修改
+            数据需要按照在template目录下面模板文件进行数据采集，文件名称以及内容采用固定方式，统一使用文件模板。
+            - DingTalk User ID源于钉钉管理后台
+            - 采集其他消息数据
+            - 以模板内容为准，形成消息数据
+        2.配置
+            修改项目配置目录下的config.yaml文件，需要修改ROBOT配置下的APPKEY、APPSECRET，
+            具体DingTalk ROBOT的创建、配置请查看README.md文件
+        完成1&&2内容之后，运行此文件，其他文件内容无须更改
+        :return: json data
+
+        design:
+            +------------------------------------------------------+
+            | 1.Initialize source data:                            |
+            |   - bank staff information data from db              |
+            |   - salary data from db or bank (.xls or .xlsx)      |
+            +------------------------------------------------------+
+                      |
+                      v
+            +------------------------------------------------------+
+            | 2.modify config file at project root folder          |
+            +------------------------------------------------------+
+                      |
+                      v
+            +------------------------------------------------------+
+            | 3.run the main.py script file to send messages       |
+            +------------------------------------------------------+
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        #################### check parameters ====================
+
+
+
+
+        #
+        #
+        #
+        # # check template file and refer parameters
+        # excel_file = os.path.join(get_template_folder(), TEMPLATE_FILE)
+        # if not excel_file or not os.path.exists(excel_file) \
+        #         or not os.path.isfile(excel_file):
+        #     raise FileExistsError("Template file is not exist, please check file is or not exist.")
+        # try:
+        #     # xlrd读取excel数据时，sheet index是从0,1,2,3...开始算，配置中是从1,2,3开始算的，需要-1
+        #     sheet_index = int(TEMPLATE_SHEET_INDEX) - 1
+        # except:
+        #     sheet_index = 0
+        # excel_data = get_excel_data(excel_file=excel_file, sheet_index=sheet_index)
+        # if not excel_data:
+        #     raise ValueError("Template file not found data, please check template file content.")
+        #
+        # # DingTalk push message
+        # dtalk_lib = DingApi()
+        # if not dtalk_lib.is_avail():
+        #     raise Exception("DingTalk not found access token, please check configuration or try again later.")
+        # success_list = list()
+        # failure_list = list()
+        # for k, v in excel_data.items():
+        #     if not k or not v or k in MANAGE_CONTROL: continue
+        #     res = dtalk_lib.robot2send(__format_message_json(v), k)
+        #     success_list.append(k) if res.get('status_id') == 100 else failure_list.append(k)
+        #     LOG.info('%s: %s' % (k, res.get('msg')))
+        #     if DK_INTERVAL > 0:
+        #         time.sleep(random.uniform(0.1, DK_INTERVAL))
+        # else:
+        #     LOG.info('Success list[%s]: %s' % (len(success_list), ', '.join(success_list)))
+        #     LOG.info('Failure list[%s]: %s' % (len(failure_list), ', '.join(failure_list)))

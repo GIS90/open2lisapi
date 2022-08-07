@@ -71,5 +71,11 @@ AUTH:
   NUM: 45
 
 
+# dingTalk openApi url config
+DINGTALK:
+  BASE_URL: https://oapi.dingtalk.com/
+  TOKEN_URL: gettoken
+
+
 OTHERS:
   NOBN: NoNameBody

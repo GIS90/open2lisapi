@@ -59,3 +59,18 @@ class AppBaseClass(object):
 
     def run(self):
         pass
+
+
+class Singleton(object):
+
+    _instance = None
+    _instance_lock = threading.Lock()
+
+    def __init__(self):
+        super(Singleton, self).__init__()
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            with Singleton._instance_lock:
+                cls._instance = object.__new__(cls)
+        return cls._instance
