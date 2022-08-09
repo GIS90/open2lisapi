@@ -428,16 +428,25 @@ class NotifyService(object):
             elif attr == 'set_column':
                 _res[attr] = model.set_column if model.set_column else ""
             elif attr == 'set_title':
-                title_json = json.loads(model.set_title) if model.set_title else {}
-                flag = True
                 _title = '暂无消息标题'
-                if not title_json:
-                    flag = False
-                    title_json = json.loads(model.sheet_names)
+                title_json = json.loads(model.set_title) if model.set_title else {}
+                sheet_names_json = json.loads(model.sheet_names) or {}
+                # 无title and sheet names
+                if not title_json and not sheet_names_json:
+                    _res[attr] = _title
+                    continue
+                print('*' * 100)
                 _str_title = ''
-                for k, v in title_json.items():
-                    if not k: continue
-                    _str_title += '%s：%s｜' % (k, _title if not flag else v)
+                if sheet_names_json:
+                    print(1)
+                    for k, v in sheet_names_json.items():
+                        if not str(k): continue
+                        _str_title += '【%s】：%s｜' % (v or "Sheet", title_json.get(str(k)) or _title)
+                else:
+                    print(2)
+                    for k, v in title_json.items():
+                        if not str(k): continue
+                        _str_title += '【%s】：%s｜' % (k or "Sheet", title_json.get(str(k)) or _title)
                 if len(_str_title) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
                     _str_title = '%s...具体详情查看设置' % _str_title[0:SHEET_NAME_LIMIT]
                 _res[attr] = _str_title
@@ -754,9 +763,10 @@ class NotifyService(object):
         # current column title set
         all_column_json = json.loads(model.sheet_columns)
         _set_column_json = json.loads(model.set_column)
-        column = [] if not _set_column_json \
-            else _set_column_json.get(cur_sheet) or []
-        columns = all_column_json.get(cur_sheet) if all_column_json \
+        # 默认选择第一列，dtalk—user-id
+        column = [0] if not _set_column_json \
+            else _set_column_json.get(cur_sheet) or [0]
+        columns = all_column_json.get(cur_sheet) or [] if all_column_json \
             else []
         data = {
             'set_title': title,
@@ -902,7 +912,7 @@ class NotifyService(object):
         if new_params.get('key') and new_params.get('secret'):
             if self.dtalk_robot_bo.get_model_by_key_secret(key=new_params.get('key'), secret=new_params.get('secret'), rtx_id=new_params.get('rtx_id')):
                 return Status(
-                    213, 'failure', 'KEY与SECRET已存在', {}).json()
+                    213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
         # select default
         if new_params.get('select'):
             self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
@@ -910,7 +920,7 @@ class NotifyService(object):
         new_model = self.dtalk_robot_bo.new_mode()
         new_model.rtx_id = new_params.get('rtx_id')
         new_model.name = new_params.get('name')
-        md5_id = md5(new_params.get('key')+new_params.get('secret'))
+        md5_id = md5(new_params.get('rtx_id')+new_params.get('key')+new_params.get('secret')+get_now())
         new_model.md5_id = md5_id
         new_model.key = new_params.get('key')
         new_model.secret = new_params.get('secret')
@@ -1386,7 +1396,7 @@ class NotifyService(object):
         dtalk_api = DtalkLib(app_key=robot_model.key, app_secret=robot_model.secret)
         if not dtalk_api.is_avail():
             return Status(
-                601, 'failure', 'DingAPI初始化失败，请检查APPKEY或APPSECRET是否配置正确' or StatusMsgs.get(601), {}).json()
+                499, 'failure', 'DingAPI初始化失败，请检查APPKEY或APPSECRET是否配置正确' or StatusMsgs.get(499), {}).json()
         # =================================== start run, for循环 =====================================================
         set_columns_json = json.loads(dtalk_model.set_column) if dtalk_model.set_column else {}
         set_titles_json = json.loads(dtalk_model.set_title) if dtalk_model.set_title else {}
