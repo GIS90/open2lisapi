@@ -202,19 +202,16 @@ class ExcelLib(object):
             new_name = 'MERGE-%s%s' % (get_now(format="%Y-%m-%d-%H-%M-%S"), self.DEFAULT_PREFIX)
         if not file_list:
             return self.format_res(
-                212, '合并文件列表不存在', {}
-            )
+                212, '合并文件列表不存在', {})
         # check merge excel file list
         for _f in file_list:
             if not _f or not _f.get('file'): continue
             if not os.path.exists(_f.get('file')):
                 return self.format_res(
-                    302, '%s文件不存在，请重新上传' % _f.get('file'), {}
-                )
+                    302, '%s文件不存在，请重新上传' % _f.get('file'), {})
             if os.path.splitext(_f.get('file'))[-1] == '.xls':
                 return self.format_res(
-                    312, '%s不支持.xls格式' % _f.get('file'), {}
-                )
+                    312, '%s不支持.xls格式' % _f.get('file'), {})
         if os.path.splitext(new_name)[-1] not in self.prefix_list:
             new_name = '%s%s' % (new_name, self.DEFAULT_PREFIX)
         # 分割行数,默认为0
@@ -228,7 +225,7 @@ class ExcelLib(object):
                 if not f or not f.get('file'): continue
                 f_path = f.get('file')
                 if not os.path.exists(f_path): continue
-
+                # =============== start deal with data
                 sheet_index_list = f.get('sheets') if f.get('sheets') else [0]
                 reader_excel = openpyxl.load_workbook(f_path)
                 sheetnames = reader_excel.sheetnames
@@ -237,12 +234,12 @@ class ExcelLib(object):
                     index_int = int(index)
                     if index_int > max_nsheet: break
                     sheet = reader_excel.get_sheet_by_name(reader_excel.sheetnames[index_int])
-                    # 行写入
+                    # 以行为单位的方式进行写入
                     for row in sheet.values:
                         new_sheet.append(row)
                     if blank > 0:
                         for _ in range(0, blank, 1): new_sheet.append([])
-                    # 单元格写入
+                    # 单元格写入【与行的区别在于代码以及速率方面】
                     # sheet_row = sheet.max_row
                     # sheet_col = sheet.max_column
                     # for row in range(1, sheet_row+1, 1):
@@ -256,12 +253,10 @@ class ExcelLib(object):
             real_store_file, new_file_name = self.get_real_file(new_name)
             new_excel.save(real_store_file)
             return self.format_res(
-                100, 'success', {'name': new_file_name, 'path': real_store_file}
-            )
+                100, 'success', {'name': new_file_name, 'path': real_store_file})
         except Exception as e:
             return self.format_res(
-                998, str(e), {}
-            )
+                998, str(e), {})
 
     def merge_xlrw(self, new_name, file_list: list, **kwargs):
         """
@@ -288,15 +283,13 @@ class ExcelLib(object):
             new_name = 'MERGE-%s%s' % (get_now(format="%Y-%m-%d-%H-%M-%S"), self.DEFAULT_PREFIX)
         if not file_list:
             return self.format_res(
-                212, '合并文件列表不存在', {}
-            )
+                212, '合并文件列表不存在', {})
         # check merge excel file list
         for _f in file_list:
             if not _f or not _f.get('file'): continue
             if not os.path.exists(_f.get('file')):
                 return self.format_res(
-                    302, '%s文件不存在，请重新上传' % _f.get('file'), {}
-                )
+                    302, '%s文件不存在，请重新上传' % _f.get('file'), {})
         if os.path.splitext(new_name)[-1] not in self.prefix_list:
             new_name = '%s%s' % (new_name, self.DEFAULT_PREFIX)
         # 分割行数,默认为0
@@ -309,7 +302,7 @@ class ExcelLib(object):
                 if not f or not f.get('file'): continue
                 f_path = f.get('file')
                 if not os.path.exists(f_path): continue
-
+                # =============== start deal with data
                 sheet_index_list = f.get('sheets') if f.get('sheets') else [0]
                 reader_excel = xlrd.open_workbook(f_path)
                 max_nsheet = int(f.get('nsheet')) if f.get('nsheet') else len(reader_excel.sheet_names())
@@ -319,6 +312,7 @@ class ExcelLib(object):
                     sheet = reader_excel.sheet_by_index(index_int)
                     sheet_row = sheet.nrows
                     sheet_col = sheet.ncols
+                    ############### 单元格的方式写入
                     for row in range(0, sheet_row, 1):
                         for col in range(0, sheet_col, 1):
                             new_sheet.write((sum_row+row), col, label=sheet.cell_value(row, col))
@@ -326,12 +320,10 @@ class ExcelLib(object):
             real_store_file, new_file_name = self.get_real_file(new_name)
             new_excel.save(real_store_file)
             return self.format_res(
-                100, 'success', {'name': new_file_name, 'path': real_store_file}
-            )
+                100, 'success', {'name': new_file_name, 'path': real_store_file})
         except Exception as e:
             return self.format_res(
-                998, str(e), {}
-            )
+                998, str(e), {})
 
     def compress_zip(self, files, zip_name):
         """
@@ -372,8 +364,7 @@ class ExcelLib(object):
         """
         if not file or not os.path.exists(file):
             return self.format_res(
-                302, '文件不存在', {}
-            )
+                302, '文件不存在', {})
         name = kwargs.get('name')
         if not name:
             name = 'SPLIT-%s' % get_now(format="%Y-%m-%d-%H-%M-%S")
@@ -390,17 +381,14 @@ class ExcelLib(object):
             if kwargs.get('title') else '1'  # default is 1 有标题
         if str(rc) not in EXCEL_NUM:
             return self.format_res(
-                213, '请求参数split不合法', {}
-            )
+                213, '请求参数split不合法', {})
         if str(store) not in EXCEL_SPLIT_STORE:
             return self.format_res(
-                213, '请求参数store不合法', {}
-            )
+                213, '请求参数store不合法', {})
         if str(title) not in BOOL:
             return self.format_res(
-                213, '请求参数header不合法', {}
-            )
-
+                213, '请求参数header不合法', {})
+        ## ================ name check
         compress_name = name
         if os.path.splitext(compress_name)[-1] not in self.prefix_zip_list:
             compress_name = '%s%s' % (compress_name, self.DEFAULT_ZIP_PREFIX)
@@ -409,12 +397,10 @@ class ExcelLib(object):
         index_int = int(sheet)
         if index_int >= max_nsheet:
             return self.format_res(
-                229, '超出操作的sheet索引', {}
-            )
+                229, '超出操作的sheet索引', {})
         # 压缩 文件目录参数
         is_compress = False
         real_dir = ''
-
         # ======== start operation
         sheet = reader_excel.sheet_by_index(index_int)
         sheet_row = sheet.nrows
@@ -461,12 +447,10 @@ class ExcelLib(object):
                 real_store_file, new_excel_name = self.get_real_file(new_excel_name)
                 write_excel.save(real_store_file)
                 return self.format_res(
-                    100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False}
-                )
+                    100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False})
             else:
                 return self.format_res(
-                    213, '请求参数store不合法', {}
-                )
+                    213, '请求参数store不合法', {})
         # type 2 col 列拆分
         elif rc == '2':
             if store == '1':    # store: 1 多表一Sheet
@@ -515,19 +499,16 @@ class ExcelLib(object):
                 real_store_file, new_excel_name = self.get_real_file(new_excel_name)
                 write_excel.save(real_store_file)
                 return self.format_res(
-                    100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False}
-                )
+                    100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False})
         else:
             return self.format_res(
-                213, '请求参数store不合法', {}
-            )
+                213, '请求参数store不合法', {})
 
         # start compress
         if is_compress:
             if not os.path.exists(real_dir) or not os.path.isdir(real_dir):
                 return self.format_res(
-                    230, '文件存储目录不存在', {}
-                )
+                    230, '文件存储目录不存在', {})
             try:
                 zip_files = [os.path.join(real_dir, x) for x in os.listdir(real_dir)]
                 is_ok = self.compress_zip(files=zip_files,
@@ -540,10 +521,86 @@ class ExcelLib(object):
                     )
             except:
                 return self.format_res(
-                    234, '压缩文件有误', {}
-                )
+                    234, '压缩文件有误', {})
 
         return self.format_res(
-            999, '暂无其他处理方式', {}
-        )
+            999, '暂无其他处理方式', {})
+
+    def read(self, read_file: str, sheet: int = 0, rows: list = [], columns: list = [], **kwargs) -> dict:
+        """
+        read excel data
+        :param read_file: excel文件abs全路径
+        :param sheet: 读取的sheet数，从0开始，default value is 0
+        :param rows: 读取数据的rows行列表，如果为空，默认读取全部行
+        :param columns: 读取数据的columns列列表，如果为空，默认读取全部列
+        :param kwargs: 读取excel数据的其他参数配置
+            request_title: 读取的表格是否包含title行，默认是true（bool类型）
+            response_title: 返回的数据是否包含title说明，默认是true（bool类型）
+
+        :return: dict result
+        """
+        # ================== parameters check ==================
+        if not read_file or not os.path.exists(read_file) \
+                or not os.path.isfile(read_file):
+            return self.format_res(
+                206, '读取的excel数据不存在', {})
+        request_title = False if kwargs.get('request_title') is False else True
+        # 数据读取开始的行数
+        start_row = 1 if request_title else 0
+        response_title = False if kwargs.get('response_title') is False else True
+        excel_object = xlrd.open_workbook(filename=read_file)   # xlrd可以读取xls、xlsx
+        excel_sheet_names = excel_object.sheet_names()
+        if not str(sheet):          # 添加无sheet index，默认读取首页
+            sheet = 0
+        # 添加sheet为整型处理
+        try:
+            if not isinstance(sheet, int):
+                sheet = int(sheet)
+        except:
+            sheet = 0
+        if sheet > len(excel_sheet_names) or sheet < 0:
+            return self.format_res(
+                207, '读取的sheet页不存在', {})
+        excel_sheet = excel_object.sheet_by_index(sheet)
+        # 读取指定行
+        new_rows = list()
+        if rows:
+            for r in rows:
+                try:
+                    new_rows.append(int(r))
+                except:
+                    pass
+        # 读取指定列
+        new_cols = list()
+        if columns:
+            for c in columns:
+                try:
+                    new_cols.append(int(c))
+                except:
+                    pass
+
+        read_rows = new_rows if new_rows else range(start_row, excel_sheet.nrows, 1)
+        read_cols = new_cols if new_cols else range(0, excel_sheet.ncols, 1)
+        # 读取表头
+        resp_header = list()
+        if response_title and request_title:
+            for col in read_cols:
+                if col < 0: continue
+                # TODO 是否添加空标题、重复标题等标题判断
+                # 目前，定位空活着列值重复均可以
+                # if not excel_sheet.cell_value(0, col) or excel_sheet.cell_value(0, col) in resp_header:
+                #     return self.format_res(
+                #         208, '读取的第%s列值为空' % col, {})
+                resp_header.append(excel_sheet.cell_value(0, col))
+        # 读取表数据
+        resp_data = list()
+        for row in read_rows:
+            if not row: continue
+            _d = list()
+            for col in read_cols:
+                if col < 0: continue
+                _d.append(excel_sheet.cell_value(row, col))
+            if _d: resp_data.append(_d)
+        return self.format_res(
+            100, 'success', {'header': resp_header, 'data': resp_data})
 

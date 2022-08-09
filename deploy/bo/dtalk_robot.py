@@ -104,3 +104,10 @@ class DtalkRobotBo(BOBase):
         q = q.filter(DtalkRobotModel.rtx_id == str(rtx))
         q = q.filter(DtalkRobotModel.is_del != 1)
         return q.all()
+
+    def get_model_by_key_rtx(self, key, rtx):
+        q = self.session.query(DtalkRobotModel)
+        q = q.filter(DtalkRobotModel.rtx_id == str(rtx))
+        q = q.filter(DtalkRobotModel.key == str(key))
+        q = q.filter(DtalkRobotModel.is_del != 1)
+        return q.first()

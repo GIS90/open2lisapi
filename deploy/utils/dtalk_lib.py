@@ -132,11 +132,7 @@ class DtalkLib(Singleton):
         # check access token && parameters
         if not self.access_token:
             return Status(
-                202,
-                "failure",
-                "Not found access token.",
-                {}
-            ).status_body
+                202, "failure", "Not found access token.", {}).status_body
         batch_send_otoheaders = dingtalkrobot__1__0_models.BatchSendOTOHeaders()
         batch_send_otoheaders.x_acs_dingtalk_access_token = self.access_token
         batch_send_otorequest = dingtalkrobot__1__0_models.BatchSendOTORequest(
@@ -153,17 +149,9 @@ class DtalkLib(Singleton):
                 'control': response.body.flow_controlled_staff_id_list or []
             }
             return Status(
-                100,
-                "success",
-                "成功",
-                json_resp
-            ).status_body
+                100, "success", "成功", json_resp).status_body
         except Exception as e:
             msg = 'DingTalk send message to [%s] occur error: %s' % (to_id, e)
-            # LOG.error(msg)
+            LOG.error(msg)
             return Status(
-                601,
-                "failure",
-                msg,
-                {}
-            ).status_body
+                601, "failure", msg, {}).status_body

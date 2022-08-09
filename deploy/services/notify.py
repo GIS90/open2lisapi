@@ -34,6 +34,8 @@ Life is short, I use python.
 # ------------------------------------------------------------
 import os
 import json
+import time
+import random
 
 from deploy.utils.excel_lib import ExcelLib
 from deploy.utils.utils import get_now, d2s, check_length, md5
@@ -42,8 +44,10 @@ from deploy.bo.dtalk_robot import DtalkRobotBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
-    STORE_BASE_URL, STORE_SPACE_NAME, ADMIN
+    STORE_BASE_URL, STORE_SPACE_NAME, ADMIN, \
+    DTALK_CONTROL, DTALK_INTERVAL, DTALK_TITLE, DTALK_ADD_IMAGE
 from deploy.utils.store_lib import StoreLib
+from deploy.utils.dtalk_lib import DtalkLib
 
 
 class NotifyService(object):
@@ -189,6 +193,13 @@ class NotifyService(object):
 
     req_dtalk_send_init_attrs = [
         'rtx_id',
+        'md5'
+    ]
+
+    req_dtalk_send_attrs = [
+        'rtx_id',
+        'robot',
+        'sheet',
         'md5'
     ]
 
@@ -908,10 +919,16 @@ class NotifyService(object):
         new_model.create_time = get_now()
         new_model.is_del = False
         new_model.delete_time = ''
-        self.dtalk_robot_bo.add_model(new_model)
-        return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
-        ).json()
+        try:
+            self.dtalk_robot_bo.add_model(new_model)
+            return Status(
+                100, 'success', StatusMsgs.get(100), {'md5': md5_id}
+            ).json()
+        except:
+            return Status(
+                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}
+            ).json()
+
 
     def dtalk_robot_delete(self, params):
         """
@@ -1219,6 +1236,74 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), _result
         ).json()
 
+    def _dtalk_get_excel_data(self, excel_file: str, sheet_index: int = 0, columns: list = []) -> json:
+        """
+        获取源数据，主要操作有2步:
+            第一获取excel表格数据
+            第二对数据进行格式化，形成key: value格式
+
+        :excel_file 文件
+        :sheet_index sheet索引
+        :columns 索引sheet需要格式化的列索引
+        """
+        ret_data = list()
+        excel_json_data = self.excel_lib.read(read_file=excel_file, sheet=sheet_index,
+                            request_title=True, response_title=True)
+        if excel_json_data.get('status_id') != 100:
+            return ret_data
+
+        titles = excel_json_data.get('data').get('header')
+        for _d in excel_json_data.get('data').get('data'):
+            if not _d: continue
+            ######### dtalk user id 为模板默认第一列
+            dtalk_user_id = _d[0]
+            if not dtalk_user_id: continue
+            _unit = dict()
+            for col in columns:
+                col = int(col)
+                if col < 0: continue
+                if not titles[col] and not _d[col]: continue    # 没有title也没有data，直接pass
+                _unit[titles[col]] = _d[col] or "/"    # 无内容的部分暂时用/代替
+            ret_data.append({'id': dtalk_user_id, 'data': _unit})
+        return ret_data
+
+    def __format_message_json(self, content: dict, title: str) -> dict:
+        """
+        格式化推送的信息，string -> json
+        获取config是否添加额外的图片
+        后续定制专门的markdown信息，待开发TODO
+        DingTalk 消息格式：
+            {
+                "title": "2021-12绩效明细",
+                "text": "#### 2021-11绩效明细  \n  - 个人存款绩效：278  \n  - 贷款绩效：278  \n  - 部门履职绩效：278  \n  - 合规履职绩效：278  \n  - 存款下降扣发：278  \n  - ![screenshot](https://img.alicdn.com/tfs/TB1NwmBEL9TBuNjy1zbXXXpepXa-2400-1218.png)"
+            }
+        支持markdown语法
+        \n代表换行，建议\n前后分别加2个空格
+        参考：https://developers.dingtalk.com/document/app/message-types-and-data-format
+
+        名称          类型          是否必填          示例值          描述
+        msgtype      String        是               markdown      消息类型，Markdown类型为：markdown。
+                                                                  消息链接跳转，请参考消息链接说明。
+        title        String        是               测试标题        首屏会话透出的展示内容。
+        text         String        是               测试内容        markdown格式的消息，建议500字符以内。
+        """
+        title = title if title else '%s自动化提醒' % get_now()
+        text = '### %s' % title
+        if DTALK_ADD_IMAGE:
+            text += '  \n  - ![](%s)' % DTALK_ADD_IMAGE
+        for _k, _v in content.items():
+            if not _k and not _v: continue
+            # TODO 只有数值型才为空才设置0
+            if not _v: _v = 0
+            if isinstance(_v, float):
+                _v = round(_v, 2)
+            text += '  \n  - %s: %s' % (_k, _v)
+        ding_msg = {
+            "title": '%s    详情...' % title,
+            "text": text,
+        }
+        return ding_msg
+
     def dtalk_send(self, params):
         """
         main entry
@@ -1256,40 +1341,122 @@ class NotifyService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
 
         #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dtalk_send_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k == 'sheet' and not isinstance(v, list):
+                return Status(
+                    210, 'failure', u'请求参数%s为类型为List' % k, {}).json()
+            new_params[k] = str(v) if k != 'sheet' else v
 
+        """ dtalk check """
+        dtalk_model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not dtalk_model:
+            return Status(
+                302, 'failure', 'dtalk数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if dtalk_model and dtalk_model.is_del:
+            return Status(
+                302, 'failure', 'dtalk数据已删除' or StatusMsgs.get(302), {}).json()
+        """ dtalk robot check """
+        robot_model = self.dtalk_robot_bo.get_model_by_key_rtx(new_params.get('robot'), new_params.get('rtx_id'))
+        if not robot_model:
+            return Status(
+                302, 'failure', 'robot数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if robot_model and robot_model.is_del:
+            return Status(
+                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
 
+        # check template file and refer parameters
+        dtalk_file = dtalk_model.file_local_url
+        if not dtalk_file or not os.path.exists(dtalk_file) \
+                or not os.path.isfile(dtalk_file):
+            return Status(
+                302, 'failure', '文件不存在，请删除重新上传' or StatusMsgs.get(226), {}).json()
+        # -------------------------------- check end --------------------------------
+        ####### dtalk api test to ping
+        dtalk_api = DtalkLib(app_key=robot_model.key, app_secret=robot_model.secret)
+        if not dtalk_api.is_avail():
+            return Status(
+                601, 'failure', 'DingAPI初始化失败，请检查APPKEY或APPSECRET是否配置正确' or StatusMsgs.get(601), {}).json()
+        # =================================== start run, for循环 =====================================================
+        set_columns_json = json.loads(dtalk_model.set_column) if dtalk_model.set_column else {}
+        set_titles_json = json.loads(dtalk_model.set_title) if dtalk_model.set_title else {}
+        _res_data = list()  # 采用list类型，记录每个sheet数据状态
+        """
+        元素为dict，格式：
+        sheet：sheet_index，
+        ok：True or False
+        message：result message
+        """
+        n = 0  # 记录发送次数
+        for sheet_index in new_params.get('sheet'):
+            if not str(sheet_index): continue
+            _d = dict()
+            _d['sheet'] = str(sheet_index)
+            """
+            excel data:
+            [{'id': dtalk_user_id, 'data': _unit}, {'id': dtalk_user_id, 'data': _unit}, ......]
+            """
+            excel_data = self._dtalk_get_excel_data(excel_file=dtalk_file, sheet_index=int(sheet_index),
+                                                    columns=set_columns_json.get(str(sheet_index)))
+            if not excel_data:
+                _d['message'] = '文件第%sSheet无数据' % (int(sheet_index) + 1)
+                _d['ok'] = False
+                _res_data.append(_d)
+                continue
+                # TODO 做成空数据直接return，但是有的执行了，需要优化
+                # return Status(
+                #     302, 'failure', '文件第%sSheet无数据' % (int(sheet_index) + 1), {}).json()
 
+            # DingTalk push message
+            s_l = list()
+            f_l = list()
+            for d in excel_data:
+                if not d: continue
+                if d.get('id') in DTALK_CONTROL: continue   #### 添加发送控制，配置文件
+                dtalk_user_id = d.get('id')
+                res = dtalk_api.robot2send(
+                    self.__format_message_json(content=d.get('data'), title=set_titles_json.get(str(sheet_index))),
+                    dtalk_user_id)
+                s_l.append(dtalk_user_id) if res.get('status_id') == 100 \
+                    else f_l.append(dtalk_user_id)
+                if DTALK_INTERVAL > 0:
+                    time.sleep(random.uniform(0.1, DTALK_INTERVAL))
+                n += 1
+            _d['message'] = "成功：%s，失败：%s" % (len(s_l), len(f_l))
+            _d['ok'] = True
+            _res_data.append(_d)
 
-        #
-        #
-        #
-        # # check template file and refer parameters
-        # excel_file = os.path.join(get_template_folder(), TEMPLATE_FILE)
-        # if not excel_file or not os.path.exists(excel_file) \
-        #         or not os.path.isfile(excel_file):
-        #     raise FileExistsError("Template file is not exist, please check file is or not exist.")
-        # try:
-        #     # xlrd读取excel数据时，sheet index是从0,1,2,3...开始算，配置中是从1,2,3开始算的，需要-1
-        #     sheet_index = int(TEMPLATE_SHEET_INDEX) - 1
-        # except:
-        #     sheet_index = 0
-        # excel_data = get_excel_data(excel_file=excel_file, sheet_index=sheet_index)
-        # if not excel_data:
-        #     raise ValueError("Template file not found data, please check template file content.")
-        #
-        # # DingTalk push message
-        # dtalk_lib = DingApi()
-        # if not dtalk_lib.is_avail():
-        #     raise Exception("DingTalk not found access token, please check configuration or try again later.")
-        # success_list = list()
-        # failure_list = list()
-        # for k, v in excel_data.items():
-        #     if not k or not v or k in MANAGE_CONTROL: continue
-        #     res = dtalk_lib.robot2send(__format_message_json(v), k)
-        #     success_list.append(k) if res.get('status_id') == 100 else failure_list.append(k)
-        #     LOG.info('%s: %s' % (k, res.get('msg')))
-        #     if DK_INTERVAL > 0:
-        #         time.sleep(random.uniform(0.1, DK_INTERVAL))
-        # else:
-        #     LOG.info('Success list[%s]: %s' % (len(success_list), ', '.join(success_list)))
-        #     LOG.info('Failure list[%s]: %s' % (len(failure_list), ', '.join(failure_list)))
+        # ================= update dtalk count and number =================
+        dtalk_model.count = dtalk_model.count + 1
+        dtalk_model.number = dtalk_model.number + n
+        self.dtalk_bo.merge_model(dtalk_model)
+        # ================= return data message =================
+        _ret_message = ''
+        _ret_flag = True
+        sheet_names_json = json.loads(dtalk_model.sheet_names) if dtalk_model.sheet_names else {}
+        if sheet_names_json:
+            for _d in _res_data:
+                if not _d: continue
+                if not _d.get('ok'): _ret_flag = False
+                _ret_message += '【%s】：%s' % (sheet_names_json.get(str(_d.get('sheet'))) or "Sheet", _d.get('message'))
+        else:
+            for _d in _res_data:
+                if not _d: continue
+                if not _d.get('ok'): _ret_flag = False
+                _ret_message += '【%s】：%s' % (str(_d.get('sheet')) or "Sheet", _d.get('message'))
+        # if not _ret_flag:
+        #     return Status(
+        #         101, 'success', _ret_message, {}).json()
+        return Status(
+            100, 'success', _ret_message, {}).json()
+

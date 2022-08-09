@@ -76,6 +76,10 @@ AUTH:
 DINGTALK:
   BASE_URL: https://oapi.dingtalk.com/
   TOKEN_URL: gettoken
+  TITLE: True
+  ADD_IMAGE:
+  CONTROL: []
+  INTERVAL: 0.5
 
 
 OTHERS:

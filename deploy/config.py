@@ -124,7 +124,10 @@ AUTH_NUM = 45
 # DINGTALK
 DTALK_BASE_URL = 'https://oapi.dingtalk.com/'
 DTALK_TOKEN_URL = 'gettoken'
-
+DTALK_TITLE = True
+DTALK_ADD_IMAGE = ''
+DTALK_CONTROL = []
+DTALK_INTERVAL = 0.5
 
 # others
 NOBN = 'NoNameBody'
@@ -218,3 +221,7 @@ with open(_config_file) as f:
     # DINGTALK
     DTALK_BASE_URL = _config_info['DINGTALK']['BASE_URL'] or DTALK_BASE_URL
     DTALK_TOKEN_URL = _config_info['DINGTALK']['TOKEN_URL'] or DTALK_TOKEN_URL
+    DTALK_TITLE = _config_info['DINGTALK']['TITLE'] or DTALK_TITLE
+    DTALK_ADD_IMAGE = _config_info['DINGTALK']['ADD_IMAGE'] or DTALK_ADD_IMAGE
+    DTALK_CONTROL = _config_info['DINGTALK']['CONTROL'] or DTALK_CONTROL
+    DTALK_INTERVAL = _config_info['DINGTALK']['INTERVAL'] or DTALK_INTERVAL
