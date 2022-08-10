@@ -23,12 +23,12 @@ base_info:
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2liapi"
 ------------------------------------------------
 -- 创建数据库、用户、授权
-create database twtoolbox default character set utf8 collate utf8_general_ci;
-create user 'twtoolbox'@'%' IDENTIFIED BY '2dcc0521bd32dc5100c6d65a1effa8e6';
-grant all on twtoolbox.* to 'twtoolbox';
+create database open2lbox default character set utf8 collate utf8_general_ci;
+create user 'open2lbox'@'%' IDENTIFIED BY 'ea077a5c91d84162819b755116774c21';
+grant all on open2lbox.* to 'open2lbox';
 flush  privileges;
 
 use twtoolbox;
@@ -127,8 +127,29 @@ CREATE TABLE `menu`  (
 
 -- insert default menu
 delete from menu;
+CREATE TABLE `request`  (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+  `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx唯一标识',
+  `ip` varchar(15) NOT NULL COMMENT '用户IP',
+  `blueprint` varchar(25) NULL COMMENT 'API地址blueprint',
+  `endpoint` varchar(35) NULL COMMENT 'API地址endpoint',
+  `method` varchar(10) NULL COMMENT 'API请求method',
+  `path` varchar(35) NULL COMMENT 'API地址path',
+  `full_path` varchar(85) NULL COMMENT 'API地址full_path',
+  `host_url` varchar(55) NULL COMMENT 'API地址host_url',
+  `url` varchar(120) NULL COMMENT 'API地址url',
+  `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '请求时间点',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
+) COMMENT='系统API请求记录表';
+
+
+
+
+-- create request && index
+DROP TABLES IF EXISTS `request`;
 insert into
-menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `cache`, `affix`, `breadcrumb`, `order_id`, `create_rtx`, `is_del`)
+    menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `cache`, `affix`, `breadcrumb`, `order_id`, `create_rtx`, `is_del`)
 VALUES
 -- root
 (0, '首页', 'Home', '/', 0, 0, '5ecb64c5576af2642f7eacb4679c8fda', 'layout', FALSE, '/', '', TRUE, FALSE, TRUE, 0, 'admin', FALSE),
@@ -159,27 +180,6 @@ VALUES
 (19, '个人设置', 'Setter', '/setter', 0, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'i_setter', TRUE, FALSE, TRUE, 19, 'admin', FALSE),
 (20, '个人中心', 'SetterProfile', 'profile', 19, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setterProfile', FALSE, '', 'i_user', TRUE, FALSE, TRUE, 20, 'admin', FALSE),
 (21, '系统向导', 'SetterGuide', 'guide', 19, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setterGuide', FALSE, '', 'guide', TRUE, FALSE, TRUE, 21, 'admin', FALSE);
-
-
-
-
--- create request && index
-DROP TABLES IF EXISTS `request`;
-CREATE TABLE `request`  (
-  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-  `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx唯一标识',
-  `ip` varchar(15) NOT NULL COMMENT '用户IP',
-  `blueprint` varchar(25) NULL COMMENT 'API地址blueprint',
-  `endpoint` varchar(35) NULL COMMENT 'API地址endpoint',
-  `method` varchar(10) NULL COMMENT 'API请求method',
-  `path` varchar(35) NULL COMMENT 'API地址path',
-  `full_path` varchar(85) NULL COMMENT 'API地址full_path',
-  `host_url` varchar(55) NULL COMMENT 'API地址host_url',
-  `url` varchar(120) NULL COMMENT 'API地址url',
-  `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '请求时间点',
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
-) COMMENT='系统API请求记录表';
 
 
 

@@ -15,7 +15,7 @@ base_info:
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2lisapi"
 
 usage:
 
@@ -89,7 +89,7 @@ class WebFlaskServer(WebBaseClass):
         if not self.app:
             LOG.info('Web server initialize is failure......')
             sys.exit(1)
-
+        # flask base config
         _realpath = os.path.dirname(os.path.realpath(__file__))
         self.app.template_folder = _realpath + '/templates/'
         self.app.secret_key = SECRET_KEY or 'python'
