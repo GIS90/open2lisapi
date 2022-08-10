@@ -435,18 +435,16 @@ class NotifyService(object):
                 if not title_json and not sheet_names_json:
                     _res[attr] = _title
                     continue
-                print('*' * 100)
                 _str_title = ''
                 if sheet_names_json:
-                    print(1)
                     for k, v in sheet_names_json.items():
                         if not str(k): continue
                         _str_title += '【%s】：%s｜' % (v or "Sheet", title_json.get(str(k)) or _title)
                 else:
-                    print(2)
                     for k, v in title_json.items():
                         if not str(k): continue
                         _str_title += '【%s】：%s｜' % (k or "Sheet", title_json.get(str(k)) or _title)
+                _str_title = _str_title[0:-1]   # 去掉尾部｜
                 if len(_str_title) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
                     _str_title = '%s...具体详情查看设置' % _str_title[0:SHEET_NAME_LIMIT]
                 _res[attr] = _str_title
