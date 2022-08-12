@@ -76,11 +76,11 @@ def info():
     """
     login to system get user information
     :return: json data
+    token is user md5-id
     """
     if request.method == 'POST':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         token = request.args.get('token')
@@ -100,8 +100,7 @@ def auth():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         data_json = request.get_json() or {}
@@ -117,13 +116,12 @@ def auth():
 @timeer
 def update():
     """
-    update user info
+    update login user information
     :return: json data
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         data_json = request.get_json() or {}
@@ -138,17 +136,16 @@ def update():
 @timeer
 def timeline():
     """
-    login to system get user timeline
+    login to system get user log timeline
     :return: json data
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         params = request.get_json() or {}
-        return RequestService().get_by_rtx(params)
+        return RequestService().get_by_rtx(params)  # 直接RequestService获取
     except Exception as e:
         LOG.error("user>timeline is error: %s" % e)
         return Status(501, 'failure',
@@ -167,8 +164,7 @@ def password():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         data_json = request.get_json() or {}
@@ -189,8 +185,7 @@ def avatar():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         form = request.form
@@ -199,8 +194,7 @@ def avatar():
         files = request.files
         if not files or (files and not files.get('avatar')):
             return Status(
-                216, 'failure', StatusMsgs.get(216), {}
-            ).json()
+                216, 'failure', StatusMsgs.get(216), {}).json()
 
         return SysUserService().update_avatar_by_rtx(rtx_id, files.get('avatar'))
     except Exception as e:

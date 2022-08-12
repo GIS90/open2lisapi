@@ -1018,6 +1018,8 @@ class AuthorityService(object):
                     ).json()
                 # TODO 可以加上role验证
                 new_params[k] = ';'.join(v)
+            elif k == 'rtx_id':
+                new_params[k] = str(v).strip()    # rtx_id 去空格
             else:
                 new_params[k] = str(v)
 

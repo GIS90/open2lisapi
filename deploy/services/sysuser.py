@@ -144,6 +144,8 @@ class SysUserService(object):
         """
         get user model by token
         return dict object data
+
+        token is user md5-id
         """
         user_res = dict()
         if not token:
@@ -162,6 +164,8 @@ class SysUserService(object):
             return Status(
                 200, 'failure', StatusMsgs.get(200) or u'用户未登录', {}
             ).json()
+
+        # -------------------- check data --------------------
         user_model = self.get_user_by_token(token, is_vue=True)
         # user model is not exist
         if not user_model:
@@ -189,11 +193,13 @@ class SysUserService(object):
         get login auth model by rtx
         rtx_id: user rtx id
         """
+        # ==================== check parameters ====================
         # not rtx_id parameter, return
         if not rtx_id:
             return Status(
                 212, 'failure', u'缺少rtx_id请求参数', {}
             ).json()
+        # -------------------- check user data --------------------
         rtx_id = rtx_id.strip()  # 去空格
         # get user by rtx
         user = self.sysuser_bo.get_auth_by_rtx(rtx_id)
@@ -208,6 +214,8 @@ class SysUserService(object):
             return Status(
                 203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
             ).json()
+
+        # -------------------- user auth --------------------
         # 判断是否管理员，如果是管理员是全部菜单权限
         # 多角色，if包含管理员，直接是管理员权限
         is_admin = True if ADMIN in user_res.get('role')\
@@ -239,46 +247,38 @@ class SysUserService(object):
         # check parameters
         if not data:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
         rtx_id = data.get('rtx_id')
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}
-            ).json()
+                212, 'failure', u'缺少rtx_id请求参数', {}).json()
         new_data = dict()
         for k, v in data.items():
             if not v or k == 'rtx_id': continue
             if k not in self.update_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['email', 'introduction']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             # check: length
             if k == 'name' and not check_length(v, 30):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'phone' and len(v) != 11:
                 return Status(
-                    213, 'failure', u'正确电话为11位' % k, {}
-                ).json()
+                    213, 'failure', u'正确电话为11位' % k, {}).json()
             elif k == 'email' and not check_length(v, 35):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'introduction' and not check_length(v, 255):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             if k == 'name':
                 new_data['fullname'] = v
             elif k == 'rtx_id':
-                new_data[k] = str(v).strip()
+                new_data[k] = str(v).strip()    # rtx_id 去空格
             else:
                 new_data[k] = v
 
@@ -286,12 +286,13 @@ class SysUserService(object):
         # user model is not exist
         if not user_model:
             return Status(
-                302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}).json()
+        # TODO 添加注销用户判断
         for _k, _v in new_data.items():
             if not _k: continue
             setattr(user_model, _k, _v)
         self.sysuser_bo.merge_model_no_trans(user_model)
+        # update user data return latest data information
         new_user_model = self._model_to_dict(user_model) or {}
         # delete password information
         if new_user_model.get('password'):
@@ -311,43 +312,41 @@ class SysUserService(object):
         # check parameters
         if not data:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
         rtx_id = data.get('rtx_id')
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}
-            ).json()
+                212, 'failure', u'缺少rtx_id请求参数', {}).json()
+        # ---------------- parameters format ------------------
         new_data = dict()
         for k, v in data.items():
             if not v or k == 'rtx_id': continue
             if k not in self.password_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_data[k] = v
 
+        # get user model
         user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
         if not user_model:
             return Status(
-                302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}).json()
         # 老密码、新密码、确认密码进行验证
         old_password = new_data.get('old_password')
         new_password = new_data.get('new_password')
         con_password = new_data.get('con_password')
+        # 老密码不同
         if old_password != user_model.password:
             return Status(
-                232, 'failure', u'输入的旧密码有误' or StatusMsgs.get(232), {}
-            ).json()
+                232, 'failure', u'输入的旧密码有误' or StatusMsgs.get(232), {}).json()
+        # 2次新密码不一致
         if new_password != con_password:
             return Status(
-                233, 'failure', u'两次新密码不一致' or StatusMsgs.get(233), {}
-            ).json()
+                233, 'failure', u'两次新密码不一致' or StatusMsgs.get(233), {}).json()
+        # update user password
         setattr(user_model, 'password', new_password)
         self.sysuser_bo.merge_model_no_trans(user_model)
         new_user_model = self._model_to_dict(user_model) or {}
@@ -366,20 +365,18 @@ class SysUserService(object):
         # check parameters
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}
-            ).json()
+                212, 'failure', u'缺少rtx_id请求参数', {}).json()
         if not image_file:
             return Status(
-                212, 'failure', u'缺少上传文件', {}
-            ).json()
+                212, 'failure', u'缺少上传文件', {}).json()
 
         try:
             image_name = image_file.filename
+            # ============= image format check =============
             if not self.image_lib.allow_format_img(image_name):
                 return Status(
-                    401, 'failure', u'图片格式不支持' or StatusMsgs.get(401), {}
-                ).json()
-            # 本地存储
+                    401, 'failure', u'图片格式不支持' or StatusMsgs.get(401), {}).json()
+            # ============= local store =============
             local_res = self.image_lib.store_local(image_file, compress=False)
             if local_res.get('status_id') != 100:
                 return Status(local_res.get('status_id'),
@@ -390,7 +387,7 @@ class SysUserService(object):
             # TODO 判断图片大小限制
             # image_info = self.image_lib.scan(local_image_file)
             
-            # 上传store
+            # ============= upload store =============
             store_image_name = '%s/%s' % (get_now(format="%Y%m%d"), local_res.get('data').get('name'))
             store_res = self.store_lib.upload(store_name=store_image_name, local_file=local_image_file)
             if store_res.get('status_id') != 100:
@@ -398,7 +395,7 @@ class SysUserService(object):
                               'failure',
                               store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
                               {}).json()
-
+            # ---------------- update user model ----------------
             user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
             avatar = store_res.get('data').get('url')
             setattr(user_model, 'avatar', avatar)

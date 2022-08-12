@@ -163,19 +163,18 @@ class RequestService(object):
         many request dict data
 
         return json data
+        采用分页方式
         """
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数', {}
-            ).json()
+                212, 'failure', u'缺少请求参数', {}).json()
         # check parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
             if k not in self.req_list_attrs and v:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -197,8 +196,7 @@ class RequestService(object):
         # print('=' * 30)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'timeline': [], 'total': 0}
-            ).json()
+                101, 'failure', StatusMsgs.get(101), {'timeline': [], 'total': 0}).json()
 
         data_list = list()
         for d in res:
