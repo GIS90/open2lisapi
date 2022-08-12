@@ -386,8 +386,8 @@ class OfficeService(object):
         if not store:
             return False
 
+        is_compress = store.get('compress') or False
         try:
-            is_compress = store.get('compress') or False
             # 获取文件header
             excel_headers = self.get_excel_headers(store.get('path')) \
                 if not is_compress else {}
@@ -402,9 +402,9 @@ class OfficeService(object):
             new_model.store_url = store.get('store_name')
             new_model.nfile = store.get('nfile') or 1
             new_model.is_compress = is_compress
-            new_model.row = excel_headers.get('sheets')[0].get('row') \
+            new_model.row = excel_headers.get('sheets').get('0').get('row') \
                 if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else 0
-            new_model.col = excel_headers.get('sheets')[0].get('col') \
+            new_model.col = excel_headers.get('sheets').get('0').get('col') \
                 if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else 0
             new_model.nsheet = excel_headers.get('nsheet') \
                 if (int(store.get('type')) == int(FileTypeEnum.EXCEL_MERGE.value) or not is_compress) and excel_headers else 0
