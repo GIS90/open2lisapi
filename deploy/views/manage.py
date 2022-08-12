@@ -57,7 +57,7 @@ def login_in():
     """
     if request.method == 'POST':
         data_json = request.get_json() or {}
-        rtx_id = data_json.get('username')
+        rtx_id = data_json.get('username')  # 支持用户rtx_id、phone、email登录
         user_pwd = data_json.get('password')
         if not rtx_id:
             return Status(
@@ -67,7 +67,7 @@ def login_in():
                 212, 'failure', u'缺少password请求参数', {}).json()
         # 支持用户phone、email登录
         rtx_id = rtx_id.strip()  # 去空格
-        user_model = SysUserService().get_login_by_rtx(rtx_id)
+        user_model = SysUserService().get_login_by_rtx(rtx_id)  # 用户多参登录
         # user is not exist
         if not user_model:
             return Status(

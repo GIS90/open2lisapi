@@ -131,12 +131,13 @@ class SysUserService(object):
         """
         get login user by rtx id
         return dict object data
+        rtx_id参数为rtx_id、phone、email
         """
         user_res = dict()
         if not rtx_id:
             return user_res
 
-        user = self.sysuser_bo.get_user_by_params(rtx_id)
+        user = self.sysuser_bo.get_user_by_params(rtx_id)   # 用户多参登录方法
         return self._model_to_dict(user, _type='base') if user else user_res
 
     def get_user_by_token(self, token: str, is_vue: bool = False) -> dict:
