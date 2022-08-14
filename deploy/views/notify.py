@@ -4,7 +4,13 @@
 ------------------------------------------------
 
 describe: 
-    message views
+    notify views
+    通知模块
+
+content：
+    - 钉钉绩效
+    - 短信通知
+    详情API请查阅代码，主要包含list、detail、add、update、delete
 
 base_info:
     __author__ = "PyGo"
@@ -71,6 +77,7 @@ def dtalk_list():
 @timeer
 def dtalk_delete():
     """
+    软删除
     delete one dtalk data by md5
     :return: json data
     """
@@ -92,6 +99,7 @@ def dtalk_delete():
 @timeer
 def dtalk_deletes():
     """
+    软删除
     delete many dtalk data by md5 list
     :return: json data
     """
@@ -113,7 +121,7 @@ def dtalk_deletes():
 @timeer
 def dtalk_detail():
     """
-    get dtalk detail information, by file md5
+    get the latest dtalk message detail information, by file md5
     :return: json data
     """
     if request.method == 'GET':
@@ -159,7 +167,7 @@ def dtalk_update():
 @timeer
 def dtalk_change_sheet():
     """
-    dtalk change sheet by sheet index
+    dtalk change sheet by sheet index 设置中切换sheet展示的内容切换
     :return: json data
     """
     if request.method == 'GET':

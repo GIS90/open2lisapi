@@ -471,7 +471,7 @@ class NotifyService(object):
         else:
             return _res
 
-    def dtalk_list(self, params):
+    def dtalk_list(self, params: dict):
         """
         get dtalk list by params
         params is dict
@@ -501,7 +501,7 @@ class NotifyService(object):
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
-
+        # ================= 遍历数据 ==================
         new_res = list()
         n = 1
         for _d in res:
@@ -515,7 +515,7 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def dtalk_delete(self, params):
+    def dtalk_delete(self, params: dict):
         """
         delete one dtalk data by params
         params is dict
@@ -551,7 +551,7 @@ class NotifyService(object):
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
-        # <update data>
+        # <update data> 软删除
         model.is_del = True
         model.delete_rtx = rtx_id
         model.delete_time = get_now()
@@ -560,7 +560,7 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dtalk_deletes(self, params):
+    def dtalk_deletes(self, params: dict):
         """
         delete many dtalk data by params
         params is dict
@@ -593,9 +593,9 @@ class NotifyService(object):
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
-    def dtalk_detail(self, params):
+    def dtalk_detail(self, params: dict):
         """
-        get dtalk detail information, by file md5
+        get the latest dtalk message detail information, by file md5
         :return: json data
         """
         if not params:
@@ -623,12 +623,12 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
-
+        # return
         return Status(
             100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model, _type='detail')
         ).json()
 
-    def dtalk_update(self, params):
+    def dtalk_update(self, params: dict):
         """
         update dtalk information, contain:
             - name 文件名称
@@ -724,17 +724,18 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dtalk_change_sheet(self, params):
+    def dtalk_change_sheet(self, params: dict):
         """
         dtalk change sheet by sheet index
         params is dict
+        设置中切换sheet展示的内容切换
         """
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
 
-        # check parameters
+        # -------------------------- check parameters --------------------------
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -816,7 +817,7 @@ class NotifyService(object):
         else:
             return _res
 
-    def dtalk_robot_list(self, params):
+    def dtalk_robot_list(self, params: dict):
         """
         get dtalk robot list by params
         params is dict
@@ -826,7 +827,6 @@ class NotifyService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -846,7 +846,7 @@ class NotifyService(object):
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
-
+        # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
         new_res = list()
         n = 1
         for _d in res:
@@ -860,7 +860,7 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def dtalk_robot_add(self, params):
+    def dtalk_robot_add(self, params: dict):
         """
         add new dtalk robot, information contain:
         name: 机器人名称
@@ -927,18 +927,16 @@ class NotifyService(object):
         new_model.create_time = get_now()
         new_model.is_del = False
         new_model.delete_time = ''
+        # 添加try异常处理，防止数据库add失败
         try:
             self.dtalk_robot_bo.add_model(new_model)
             return Status(
-                100, 'success', StatusMsgs.get(100), {'md5': md5_id}
-            ).json()
+                100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}
-            ).json()
+                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}).json()
 
-
-    def dtalk_robot_delete(self, params):
+    def dtalk_robot_delete(self, params: dict):
         """
         delete one dtalk robot data by params
         params is dict
@@ -983,7 +981,7 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dtalk_robot_deletes(self, params):
+    def dtalk_robot_deletes(self, params: dict):
         """
         delete many dtalk robot data by params
         params is dict
@@ -1016,7 +1014,7 @@ class NotifyService(object):
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
-    def dtalk_robot_detail(self, params):
+    def dtalk_robot_detail(self, params: dict):
         """
         get dtalk robot detail information, by file md5
         :return: json data
@@ -1046,12 +1044,12 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
-
+        # return data
         return Status(
             100, 'success', StatusMsgs.get(100), self._dtalk_robot_model_to_dict(model, _type='detail')
         ).json()
 
-    def dtalk_robot_update(self, params):
+    def dtalk_robot_update(self, params: dict):
         """
         update dtalk robot information, contain:
             - name 名称
@@ -1129,7 +1127,7 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dtalk_robot_select(self, params):
+    def dtalk_robot_select(self, params: dict):
         """
          set dtalk robot select status, by file md5
         :return: json data
@@ -1190,7 +1188,7 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dtalk_send_init(self, params):
+    def dtalk_send_init(self, params: dict):
         """
         dtalk send message initialize data
         :return: json data
@@ -1312,7 +1310,7 @@ class NotifyService(object):
         }
         return ding_msg
 
-    def dtalk_send(self, params):
+    def dtalk_send(self, params: dict):
         """
         main entry
         消息程序主入口，在运行之前需要完成数据采集与处理、配置修改2个部分。
