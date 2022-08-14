@@ -5,6 +5,9 @@
 
 describe:
     common apis
+    通用API模块
+    - upload 上传单文件
+    - upload 多文件上传
 
 base_info:
     __author__ = "PyGo"
@@ -51,9 +54,10 @@ CORS(common, supports_credentials=True)
 @timeer
 def upload():
     """
-    one file upload to server(file store object)
+    单文件上传：one file upload to server(file store object)
     :return: json data
-    单文件上传
+
+    前端form表单上传文件input name：files
     """
     if request.method == 'GET':
         return Status(
@@ -79,9 +83,10 @@ def upload():
 @timeer
 def uploads():
     """
-    many file upload to server(file store object)
+    多文件上传：many file upload to server(file store object)
     :return: json data
-    多文件上传
+
+    前端form表单上传文件input name：files
     """
     if request.method == 'GET':
         return Status(
