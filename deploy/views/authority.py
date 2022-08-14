@@ -5,6 +5,10 @@
 
 describe:
     authority views
+    权限管理
+        - 用户管理
+        - 角色管理
+        - 菜单管理
 
 base_info:
     __author__ = "PyGo"
@@ -57,8 +61,7 @@ def role_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -79,8 +82,7 @@ def role_detail():
     """
     if request.method == 'POST':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -101,8 +103,7 @@ def role_add():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -126,8 +127,7 @@ def role_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -149,8 +149,7 @@ def role_batch_delete():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -173,8 +172,7 @@ def role_delete():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -199,8 +197,7 @@ def role_auth():
     """
     if request.method == 'POST':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -222,8 +219,7 @@ def role_save_tree():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -245,8 +241,7 @@ def role_select_list():
     """
     if request.method == 'POST':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 无参数

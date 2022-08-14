@@ -451,7 +451,7 @@ class AuthorityService(object):
         else:
             return _res
 
-    def role_list(self, params):
+    def role_list(self, params: dict) -> dict:
         """
         get role list, many parameters
         return json data
@@ -463,7 +463,7 @@ class AuthorityService(object):
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
 
-        # parameters check
+        # ------------------ parameters check -------------------
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -483,6 +483,7 @@ class AuthorityService(object):
                 v = str(v)
             new_params[k] = v
 
+        # ///////////////// get data ///////////////////
         res, total = self.role_bo.get_all(new_params)
         if not res:
             return Status(
@@ -493,7 +494,7 @@ class AuthorityService(object):
         for _d in res:
             if not _d: continue
             _res_dict = self._role_model_to_dict(_d)
-            if _res_dict:
+            if _res_dict:       # 添加额外自定义ID序列
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
                 n += 1
@@ -501,50 +502,46 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def role_detail(self, params):
+    def role_detail(self, params: dict) -> dict:
         """
         get role detail information
         by rtx id
         :return: json data
         """
+        # =================== check parameters ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         role_md5 = params.get('md5')
         if not role_md5:
             return Status(
-                212, 'failure', "缺少md5参数", {}
-            ).json()
+                212, 'failure', "缺少md5参数", {}).json()
 
         model = self.role_bo.get_model_by_md5(role_md5)
         # not exist
         if not model:
             return Status(
-                302, 'failure', '角色不存在' or StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', '角色不存在' or StatusMsgs.get(302), {}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '角色已删除' or StatusMsgs.get(302), {}
-            ).json()
-
+                302, 'failure', '角色已删除' or StatusMsgs.get(302), {}).json()
+        # return
         return Status(
             100, 'success', StatusMsgs.get(100), self._role_model_to_dict(model, is_detail=True)
         ).json()
 
-    def role_add(self, params):
+    def role_add(self, params: dict) -> dict:
         """
         add new role, information contain: english name, chinese name, introduction
         :return: json data
 
-        new data
+        new role model data
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         # parameters check
         new_params = dict()
@@ -553,35 +550,29 @@ class AuthorityService(object):
             # check: not allow parameters
             if k not in self.req_role_add_attrs and v:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             # check: length
             if k == 'engname' and not check_length(v, 25):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'engname' and not check_length(v, 35):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'introduction' and not check_length(v, 55):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             new_params[k] = str(v)
 
-        # check engname is or not repeat
+        # ******************** check engname is or not repeat **********************
         model = self.role_bo.get_model_by_engname(new_params.get('engname'))
         if model:
             return Status(
-                213, 'failure', '角色RTX已存在，请重新输入', {}
-            ).json()
-
+                213, 'failure', '角色RTX已存在，请重新输入', {}).json()
+        # ///////////////// add new model 、、、、、、、、、、
         new_model = self.role_bo.new_mode()
         new_model.engname = new_params.get('engname')
         new_model.chnname = new_params.get('chnname')
@@ -597,7 +588,7 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
 
-    def role_update(self, params):
+    def role_update(self, params: dict) -> dict:
         """
         update role, information contain:
             - chnname
@@ -607,8 +598,7 @@ class AuthorityService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         # parameters check, engname is not allow update
         new_params = dict()
@@ -617,50 +607,41 @@ class AuthorityService(object):
             # check: not allow parameters
             if k not in self.req_role_update_attrs and v:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             # check: length
             if k == 'engname' and not check_length(v, 25):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'chnname' and not check_length(v, 35):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             elif k == 'introduction' and not check_length(v, 55):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             new_params[k] = str(v)
 
-        if new_params.get('engname') == ADMIN:  # 管理员角色不允许更新
+        if new_params.get('engname') == ADMIN:  # ***** 管理员角色不允许更新 *****
             return Status(
-                213, 'failure', u'AMDIN角色为系统默认角色，不允许操作', {}
-            ).json()
-
+                213, 'failure', u'AMDIN角色为系统默认角色，不允许操作', {}).json()
+        """ 其他特殊检查 """
         # check engname is or not repeat
         model = self.role_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在', {}
-            ).json()
+                302, 'failure', '数据不存在', {}).json()
         # data is delete
         if model and model.is_del:
             return Status(
-                304, 'failure', '数据已删除，不允许更新', {}
-            ).json()
+                304, 'failure', '数据已删除，不允许更新', {}).json()
         # role engname is not allow to update
         if str(model.engname).strip() != str(new_params.get('engname')).strip():
             return Status(
-                304, 'failure', '角色RTX不允许更新', {}
-            ).json()
+                304, 'failure', '角色RTX不允许更新', {}).json()
 
         model.chnname = new_params.get('chnname')
         model.introduction = new_params.get('introduction')
@@ -669,7 +650,7 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def role_batch_delete(self, params):
+    def role_batch_delete(self, params: dict) -> dict:
         """
         batch delete many role data, from role table
         post request and json parameters
@@ -677,44 +658,41 @@ class AuthorityService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         # parameters check
         new_params = dict()
         for k, v in params.items():
             if not k: continue
+            # request parameters check
             if k not in self.req_role_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # request value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            # list check
             if k == 'list':
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
-
+        # ------------------- 检查批量删除的对象 -----------------------
         all_data = self.role_bo.get_models_by_md5list(new_params.get('list'))
         # not exist
         if not all_data:
             return Status(
-                302, 'failure', u'请求删除数据不存在', {}
-            ).json()
+                302, 'failure', u'请求删除数据不存在', {}).json()
         # 管理员角色不允许删除
         for _d in all_data:
             if not _d: continue
             if _d.engname == ADMIN:
                 return Status(
-                    302, 'failure', u'Admin角色不允许操作，请重新选择', {}
-                ).json()
-
+                    302, 'failure', u'Admin角色不允许操作，请重新选择', {}).json()
+        # ------------------- batch delete data -----------------------
         res = self.role_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
@@ -722,7 +700,7 @@ class AuthorityService(object):
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
-    def role_delete(self, params):
+    def role_delete(self, params: dict) -> dict:
         """
         one delete many role data
         from role table
@@ -731,40 +709,36 @@ class AuthorityService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         # parameters check
         new_params = dict()
         for k, v in params.items():
             if not k: continue
+            # 不合法的参数检查
             if k not in self.req_role_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v:
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
-
+        # <<<<<<<<<<<< data model by md5 >>>>>>>>>>>>>
         model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
+                306, 'failure', StatusMsgs.get(306), {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # /////////////// 软删除数据
         model.is_del = True
         model.delete_rtx = rtx_id
         model.delete_time = get_now()
@@ -773,33 +747,30 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def role_auth_tree(self, params):
+    def role_auth_tree(self, params: dict) -> dict:
         """
         get the role authority list
         :return: json data
         authority is tree
         """
+        # ------------------- check parameters --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
         if not params.get('md5'):
             return Status(
-                214, 'failure', '缺少md5请求参数', {}
-            ).json()
-
+                214, 'failure', '缺少md5请求参数', {}).json()
+        # ==================== check data ======================
         role_model = self.role_bo.get_model_by_md5(
             md5=params.get('md5'))
         # not exist
         if not role_model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # data is deleted
         if role_model and role_model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
+                306, 'failure', StatusMsgs.get(306), {}).json()
         # authority
         auths = str(role_model.authority).split(';') \
             if role_model.authority else []
@@ -808,9 +779,9 @@ class AuthorityService(object):
         # not menu data
         if not all_menus:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {}
-            ).json()
+                101, 'failure', StatusMsgs.get(101), {}).json()
 
+        """ 权限树 """
         _res = list()
         template_list = list()
         one_menus = dict()
@@ -833,7 +804,7 @@ class AuthorityService(object):
                 _d['children'] = list(group)
                 _res.append(_d)
 
-        del template_list
+        del template_list   # 处理临时变量
         """
         menus: 菜单
         auths: 角色的权限列表
@@ -852,8 +823,7 @@ class AuthorityService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         # parameters check
         new_params = dict()
@@ -861,12 +831,10 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_role_auth_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if not v:       # value is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'keys':     # 菜单ID，也就是权限列表，List类型
                 if not isinstance(v, list):
                     return Status(
@@ -876,18 +844,17 @@ class AuthorityService(object):
                 # new_v = list(set(new_v))      # 去重
                 v = ';'.join(new_v)
             new_params[k] = str(v)
+        """ model """
         model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
-        # authority
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # save authority
         model.authority = new_params.get('keys')
         self.role_bo.merge_model(model)
         return Status(
