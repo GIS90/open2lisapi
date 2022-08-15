@@ -118,17 +118,17 @@ class ImageLib(object):
             )
 
         try:
-            # 文件存储初始化
+            # ================= 文件存储初始化 =================
             now_date = get_now(format="%Y%m%d")
             real_store_dir = os.path.join(STORE_CACHE, now_date)
             if not os.path.exists(real_store_dir):
                 mk_dirs(real_store_dir)
-
+            # <<<<<<<<<<<<<<<<<< save image >>>>>>>>>>>>>>>>>>
             image_name = image_file.filename
             _, store_name_md5 = filename2md5(file_name=image_name, _type='image')
             image_real_file = os.path.join(real_store_dir, store_name_md5)
             image_file.save(image_real_file)
-            # 压缩
+            # 是否进行图片压缩
             if compress:
                 small_img = Image.open(image_real_file)
                 w_percent = IMAGE_WIDTH / float(small_img.size[0])
@@ -142,11 +142,13 @@ class ImageLib(object):
             return self.format_res(998, '图片存储失败', {})
 
     def update_size(self, image_file, length=280, width=280):
+        """
+        update image size: length with
+        """
         if not image_file or \
                 not os.path.exists(image_file):
             return self.format_res(
-                216, '文件不存在', {}
-            )
+                216, '文件不存在', {})
 
         try:
             image_dir, image_name = os.path.split(image_file)
@@ -157,10 +159,8 @@ class ImageLib(object):
             upsize_image = im.resize((length, width), Image.ANTIALIAS)
             upsize_image.save(out_image_file)
             return self.format_res(
-                100, 'success', {'md5': out_file_md5, 'name': out_file_name}
-            )
+                100, 'success', {'md5': out_file_md5, 'name': out_file_name})
         except:
             return self.format_res(
-                998, '图片更新大小失败', {}
-            )
+                998, '图片更新大小失败', {})
 

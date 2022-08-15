@@ -21,7 +21,7 @@ import threading
 
 
 class WebBaseClass(object):
-
+    """单例模式+WEB"""
     _instance = None
     _instance_lock = threading.Lock()
 
@@ -40,7 +40,7 @@ class WebBaseClass(object):
 
 
 class AppBaseClass(object):
-
+    """单例模式+APP[任务脚本]"""
     _instance = None
     _instance_lock = threading.Lock()
 
@@ -62,7 +62,7 @@ class AppBaseClass(object):
 
 
 class Singleton(object):
-
+    """单例模式"""
     _instance = None
     _instance_lock = threading.Lock()
 
