@@ -1,4 +1,40 @@
-> ## 简介
+> ## OPENTOOL-Z介绍
+
+![](https://img.shields.io/badge/前端-VUE-FFFF00)
+![](https://img.shields.io/badge/后台-PYTHON-red)
+
+***OPENTOOL-Z【开源智行工具箱】***   
+一款工具流程化的网站，值得收藏。
+
+### 项目地址
+前端 **_open2lbox_**：https://github.com/GIS90/open2lui.git  
+后台 **_open2lbox_**：https://github.com/GIS90/open2lisapi.git  
+后台WIKI设计说明：https://github.com/GIS90/open2lisapi/wiki
+
+
+### 线上地址
+
+```
+线上地址：http://2l.pygo2.top/  
+测试账号：tester  
+密码：123456
+```
+
+### 开发进度记录
+
+记录信息采用了腾讯共享文档的方式记录API接口、数据库模型、开发周期、测试记录等信息。
+
+- 开发周期  
+  https://docs.qq.com/sheet/DZmJZUlBuS1dla0Vw?tab=BB08J2
+
+- 数据模型  
+  https://docs.qq.com/sheet/DZmtvY2xTUE9LdlND?tab=BB08J2
+
+- 测试记录  
+  https://docs.qq.com/sheet/DZmNNd2hpV3RBeFVw?tab=BB08J2
+
+
+> ## 后台架构
 
 ![](https://img.shields.io/badge/Language-Python-red)
 ![](https://img.shields.io/badge/DevStructure-Flask-0000FF)
@@ -9,21 +45,9 @@
 项目简称：**_open2lisapi_**  
 Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 
-前端 **_open2lbox_**：https://github.com/GIS90/open2lui.git
-
-WIKI：https://github.com/GIS90/open2lisapi/wiki
-
-### 平台地址
-
-```
-线上地址：http://tool.pygo2.top/  
-测试账号：test  
-密码：123456
-```
-
 ### 项目架构
 
-项目基于**python3+flask+mysql+gunicorn+supervisor**进行搭建的一个web服务项目，备具Restful API、验证session、模板开发等功能。  
+后台项目基于**python3+flask+mysql+gunicorn+supervisor**进行搭建的一个web服务项目，备具Restful API、验证session、模板开发等功能。  
 上个版本的脚手架可以使用模板功能，这个open2lisapi主要用来做API对接，所以只保留了API接口功能，如果想使用前端模板功能，直接在deploy目录下的templates、static下写入html、js等文件即可。  
 ***git clone***之后修改配置即可运行，在此基础上可进行二次开发，可以前端/后台独立、也可以运用flask的jinja2模板。
 
@@ -35,17 +59,8 @@ WIKI：https://github.com/GIS90/open2lisapi/wiki
   
 项目可以运行于Linux、Windows、Macos等系统上，建议使用Centos7.5，支持性较好，默认端口9999（可以etc中的config.yaml配置中进行更改，配置有开发模式配置与线上配置，后面有详细介绍）。
 
-### 开发进度记录
 
-记录信息采用了腾讯共享文档的方式记录API接口、数据库模型、开发周期等信息。
-
-- 开发周期记录  
-  https://docs.qq.com/sheet/DZmJZUlBuS1dla0Vw?tab=BB08J2
-
-- 数据模型说明  
-  https://docs.qq.com/sheet/DZmtvY2xTUE9LdlND?tab=BB08J2
-
-> ## 项目说明
+> ## 运维
 
 ### 配置说明
 
