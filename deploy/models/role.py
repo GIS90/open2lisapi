@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    role table
+    role
 
 base_info:
     __author__ = "PyGo"
@@ -54,10 +54,10 @@ class RoleModel(base.ModelBase):
     engname = Column(String(25))
     chnname = Column(String(35))
     md5_id = Column(String(55))
-    authority = Column(String(255))
+    authority = Column(String(120))
     introduction = Column(Text)
     create_time = Column(TIMESTAMP())
     create_rtx = Column(String(25))
-    is_del = Column(Boolean())
     delete_time = Column(TIMESTAMP())
     delete_rtx = Column(String(25))
+    is_del = Column(Boolean())

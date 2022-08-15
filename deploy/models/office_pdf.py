@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe:
-    office pdf model
+    office pdf
 
 base_info:
     __author__ = "PyGo"
@@ -65,7 +65,7 @@ class OfficePDFModel(base.ModelBase):
     mode = Column(Boolean())
     start = Column(Integer)
     end = Column(Integer)
-    pages = Column(String(100))
+    pages = Column(String(120))
     create_time = Column(TIMESTAMP)
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)

@@ -3,7 +3,8 @@
 """
 ------------------------------------------------
 
-describe: 
+describe:
+    dtalk-message
 
 base_info:
     __author__ = "PyGo"

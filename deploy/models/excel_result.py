@@ -3,7 +3,8 @@
 """
 ------------------------------------------------
 
-describe: 
+describe:
+    excel-result
 
 base_info:
     __author__ = "PyGo"

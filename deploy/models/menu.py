@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    menu
 
 base_info:
     __author__ = "PyGo"
@@ -52,13 +53,13 @@ class MenuModel(base.ModelBase):
     id = Column(Integer, primary_key=True)
     name = Column(String(25))
     path = Column(String(35))
-    title = Column(String(35))
+    title = Column(String(25))
     pid = Column(Integer)
     level = Column(Integer)
     md5_id = Column(String(55))
     component = Column(String(25))
     hidden = Column(Boolean())
-    redirect = Column(String(55))
+    redirect = Column(String(35))
     icon = Column(String(25))
     cache = Column(Boolean())
     affix = Column(Boolean())
@@ -66,6 +67,6 @@ class MenuModel(base.ModelBase):
     order_id = Column(Integer)
     create_time = Column(TIMESTAMP())
     create_rtx = Column(String(25))
-    is_del = Column(Boolean())
     delete_time = Column(TIMESTAMP())
     delete_rtx = Column(String(25))
+    is_del = Column(Boolean())

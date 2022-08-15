@@ -3,7 +3,7 @@
 """
 ------------------------------------------------
 describe:
-    sysuser table
+    sysuser
 
 base_info:
     __author__ = "PyGo"
@@ -49,15 +49,15 @@ class SysUserModel(base.ModelBase):
     md5_id = Column(String(55))
     fullname = Column(String(30))
     password = Column(String(30))
-    email = Column(String(25))
+    email = Column(String(35))
     phone = Column(String(15))
-    avatar = Column(String(255))
+    avatar = Column(String(120))
     introduction = Column(Text)
+    role = Column(String(80))
     department = Column(String(55))
-    role = Column(String(55))
     create_time = Column(TIMESTAMP())
     create_rtx = Column(String(25))
-    is_del = Column(Boolean())
     delete_time = Column(TIMESTAMP())
     delete_rtx = Column(String(25))
+    is_del = Column(Boolean())
 

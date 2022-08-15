@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    enum
 
 base_info:
     __author__ = "PyGo"
@@ -55,8 +56,8 @@ class EnumModel(base.ModelBase):
     key = Column(String(25))
     value = Column(String(55))
     description = Column(Text)
-    create_rtx = Column(String(30))
+    create_rtx = Column(String(25))
     create_time = Column(TIMESTAMP)
-    delete_rtx = Column(String(30))
+    delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
