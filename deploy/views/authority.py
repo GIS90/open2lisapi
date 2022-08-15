@@ -515,8 +515,7 @@ def menu_status():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数

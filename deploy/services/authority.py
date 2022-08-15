@@ -1249,7 +1249,7 @@ class AuthorityService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
-    def menu_list(self, params):
+    def menu_list(self, params: dict) -> dict:
         """
         get menu list from db table menu
         return json data
@@ -1279,6 +1279,7 @@ class AuthorityService(object):
 
         难点：数据结构
         """
+        # ///////////////// check parameters \\\\\\\\\\\\\\\\\
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -1286,12 +1287,12 @@ class AuthorityService(object):
         if not rtx_id:
             return Status(
                 214, 'failure', u'缺少rtx_id请求参数', {}).json()
-
+        # ------------------ get all menus ------------------
         all_menus = self.menu_bo.get_all_no(root=True)   # 全部数据，包含禁用菜单 过滤根节点0
         if not all_menus:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {}).json()
-
+        # 格式化菜单
         _res = list()
         template_list = list()  # 二级临时菜单
         one_menus = dict()  # 一级菜单
@@ -1343,7 +1344,7 @@ class AuthorityService(object):
             100, 'success', StatusMsgs.get(100), {'list': sort_res, 'keys': one_menus_keys}
         ).json()
 
-    def menu_detail(self, params):
+    def menu_detail(self, params: dict) -> dict:
         """
         get menu detail information from db table menu, menu is dict object
         :return: json data
@@ -1352,7 +1353,7 @@ class AuthorityService(object):
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
 
-        # parameters check
+        # ------------ parameters check ---------------
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1363,7 +1364,7 @@ class AuthorityService(object):
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
-
+        # <<<<<<<<<<<< model >>>>>>>>>>>>>
         model = self.menu_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
@@ -1405,24 +1406,23 @@ class AuthorityService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), data).json()
 
-    def menu_add(self, params):
+    def menu_add(self, params: dict) -> dict:
         """
         add new menu information to db table menu
         menu is dict object
         :return: json data
         """
+        # ===== check parameters && format parameters ======
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
-        # parameters check
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_menu_add_attrs:
+            if k not in self.req_menu_add_attrs:    # illegal
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v and k not in self.req_menu_no_need_attrs:
+            if not v and k not in self.req_menu_no_need_attrs:  # is not null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             # parameters length check
@@ -1468,7 +1468,7 @@ class AuthorityService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
-    def menu_add_init(self):
+    def menu_add_init(self) -> dict:
         """
         initialize add menu information from db table menu, menu is dict object
         no parameters
@@ -1507,7 +1507,7 @@ class AuthorityService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), data).json()
 
-    def menu_update(self, params):
+    def menu_update(self, params: dict) -> dict:
         """
         update menu detail information from db table menu, menu is dict object
         :return: json data
@@ -1516,14 +1516,14 @@ class AuthorityService(object):
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
 
-        # parameters check
+        # parameters check && format parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_menu_update_attrs:
+            if k not in self.req_menu_update_attrs:     # illegal parameters
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v and k not in self.req_menu_no_need_attrs:
+            if not v and k not in self.req_menu_no_need_attrs:  # value is not null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             # parameters length check
@@ -1546,13 +1546,14 @@ class AuthorityService(object):
             else:
                 v = str(v)
             new_params[k] = v
-
+        # <<<<<<<<<<<<< ======== model by md5 ======== >>>>>>>>>>>>>>
         model = self.menu_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
                 302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
-
+        # update model
+        # 只有新旧值不一致更新
         if model.name != new_params.get('name'):
             model.name = new_params.get('name')
         if model.path != new_params.get('path'):
@@ -1584,7 +1585,7 @@ class AuthorityService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
-    def menu_status(self, params):
+    def menu_status(self, params: dict) -> dict:
         """
         change menu data status, from menu table
         post request and json parameters
@@ -1596,26 +1597,22 @@ class AuthorityService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
 
         # parameters check
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_menu_status_attrs:
+            if k not in self.req_menu_status_attrs: # 不合法请求参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if not v and k != 'status':     # value check, is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'status':   # status check: 只允许为bool类型
                 if not isinstance(v, bool):
                     return Status(
-                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}
-                    ).json()
+                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}).json()
                 new_params[k] = v
             else:
                 new_params[k] = str(v)
@@ -1624,8 +1621,7 @@ class AuthorityService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
         # change status
         model.is_del = new_params.get('status')
         if new_params.get('status'):
