@@ -262,8 +262,7 @@ def user_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -284,8 +283,7 @@ def user_add():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -306,8 +304,7 @@ def user_detail():
     """
     if request.method == 'POST':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -329,8 +326,7 @@ def user_batch_delete():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -352,8 +348,7 @@ def user_status():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -374,8 +369,7 @@ def user_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
@@ -391,14 +385,13 @@ def user_update():
 @timeer
 def user_reset_pw():
     """
-    reset user password
+    reset user password：重置用户默认密码
     default is abc1234
     :return: json data
     """
     if request.method == 'POST':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}
-        ).json()
+            211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
         # 参数
