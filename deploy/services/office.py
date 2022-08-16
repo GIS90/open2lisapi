@@ -1574,6 +1574,9 @@ class OfficeService(object):
                         if not str(_v).isdigit():
                             return Status(
                                 213, 'failure', u'请检查指定分页数据，用英文,分割', {}).json()
+                    if not check_length(v, 120):
+                        return Status(
+                            213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
                     new_params[k] = str(v)
                 else:
                     new_params[k] = ''
@@ -1749,6 +1752,9 @@ class OfficeService(object):
                         if not str(_v).isdigit():
                             return Status(
                                 213, 'failure', u'请检查指定分页数据，用英文,分割', {}).json()
+                    if not check_length(v, 120):
+                        return Status(
+                            213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
                     new_params[k] = str(v)
                 else:
                     new_params[k] = ''
