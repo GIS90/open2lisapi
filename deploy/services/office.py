@@ -873,11 +873,11 @@ class OfficeService(object):
         
         return json result
         """
-        # check no parameters
+        """ =========================== merge: 1.parameters check and format=========================== """
         if not params:
             return Status(
                 212, 'failure', u'缺少请求参数', {}).json()
-        # ------------- format parameters --------------
+        # new parameters format
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -901,6 +901,7 @@ class OfficeService(object):
                 new_params[k] = int(v) if v else 0
             else:
                 new_params[k] = str(v)
+        """ =========================== merge: 2.get and format data=========================== """
         # <<<<<<<<<<<< get batch merge model >>>>>>>>>>>>>>>
         res = self.excel_source_bo.get_model_by_md5_list(md5_list=new_params.get('list'))
         if not res:
@@ -923,6 +924,7 @@ class OfficeService(object):
                 'sheets': str(_r.set_sheet).split(';') if _r.set_sheet else [0],
                 'nsheet': int(_r.nsheet),
             })
+        """ =========================== merge: 3.merge=========================== """
         # <<<<<<<<<<<<<<< merge >>>>>>>>>>>>>>>
         # many file to merge
         # extend parameter:
@@ -932,6 +934,7 @@ class OfficeService(object):
         if merge_res.get('status_id') != 100:
             return Status(
                 merge_res.get('status_id'), 'failure', merge_res.get('message'), {}).json()
+        """ =========================== merge: 4.store and update =========================== """
         # store message to store and local db
         store_msg = {
             'name': merge_res.get('data').get('name'),
