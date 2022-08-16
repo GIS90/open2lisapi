@@ -618,7 +618,7 @@ class OfficeService(object):
         else:
             return _res
 
-    def excel_source_list(self, params):
+    def excel_source_list(self, params: dict) -> dict:
         """
         get excel source excel list by params
         params is dict
@@ -626,20 +626,17 @@ class OfficeService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # ================= parameters check and format =================
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_source_list_attrs and v:
+            if k not in self.req_source_list_attrs and v:   # illegal
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'type' and int(v) not in [FileTypeEnum.EXCEL_MERGE.value, FileTypeEnum.EXCEL_SPLIT.value]:
                 return Status(
-                    213, 'failure', u'请求参数type值不合法', {}
-                ).json()
+                    213, 'failure', u'请求参数type值不合法', {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -647,13 +644,13 @@ class OfficeService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+        # <<<<<<<<<<<<<<< models >>>>>>>>>>>>>>>>
         new_params['enum_name'] = 'excel-type'
         res, total = self.excel_source_bo.get_all(new_params)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
-            ).json()
-
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # format return data
         new_res = list()
         n = 1
         for _d in res:
@@ -714,7 +711,7 @@ class OfficeService(object):
             'store_url': new_store_url
         }
 
-    def excel_source_update(self, params):
+    def excel_source_update(self, params: dict) -> dict:
         """
         update excel source file information, contain:
             - name 文件名称
@@ -725,59 +722,50 @@ class OfficeService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check and format
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_source_update_attrs and v:
+            if k not in self.req_source_update_attrs and v:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             # parameters check
             if k == 'set_sheet':    # parameter type check
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
-                    ).json()
-                new_params[k] = ';'.join(v) # 格式化成字符串存储
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = ';'.join(v)     # 格式化成字符串存储
             elif k == 'name':   # file name check
                 new_names = os.path.splitext(str(v))
                 if new_names[-1] not in self.EXCEL_FORMAT:
                     return Status(
-                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}
-                    ).json()
+                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}).json()
                 if not check_length(v, 80):  # length check
                     return Status(
-                        213, 'failure', u'请求参数%s长度超限制' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
                 new_params[k] = str(v)
             else:
                 new_params[k] = str(v)
-
+        """       =============get model============       """
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}
-            ).json()
+                304, 'failure', StatusMsgs.get(304), {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}
-            ).json()
+                310, 'failure', StatusMsgs.get(310), {}).json()
 
         is_update = False
         # file name to rename
@@ -801,46 +789,41 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def excel_source_delete(self, params):
+    def excel_source_delete(self, params: dict) -> dict:
         """
         delete one excel source excel file by params
         params is dict
         """
+        # '''''''''''''''''' parameters check ''''''''''''''''
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_delete_attrs:
+            if k not in self.req_delete_attrs:      # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v:
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
-
+        # <<<<<<<<<<<<<<<    get model   >>>>>>>>>>>>>>>>
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
+                306, 'failure', StatusMsgs.get(306), {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # 软删除
         model.is_del = True
         model.delete_rtx = rtx_id
         model.delete_time = get_now()
@@ -849,36 +832,32 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def excel_source_deletes(self, params):
+    def excel_source_deletes(self, params: dict) -> dict:
         """
         delete many excel source excel file by params
         params is dict
         """
+        # parameters check and format
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_deletes_attrs:
+            if k not in self.req_deletes_attrs:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if not v: # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
-            if k == 'list': # check type
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
-
+        # 批量软删除
         res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
@@ -886,7 +865,7 @@ class OfficeService(object):
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
-    def excel_merge(self, params):
+    def excel_merge(self, params: dict) -> dict:
         """
         many excel file to merge one excel file,
         many file list by file md5 list
@@ -894,45 +873,44 @@ class OfficeService(object):
         
         return json result
         """
+        # check no parameters
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数', {}
-            ).json()
-
+                212, 'failure', u'缺少请求参数', {}).json()
+        # ------------- format parameters --------------
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_merge_attrs:
+            if k not in self.req_merge_attrs:       # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k != 'blank':
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             # check: length
             if k == 'name' and not check_length(v, 80):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}
-                ).json()
-
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             elif k == 'blank':
                 new_params[k] = int(v) if v else 0
             else:
                 new_params[k] = str(v)
-
+        # <<<<<<<<<<<< get batch merge model >>>>>>>>>>>>>>>
         res = self.excel_source_bo.get_model_by_md5_list(md5_list=new_params.get('list'))
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {}
-            ).json()
+                101, 'failure', StatusMsgs.get(101), {}).json()
+        """
+        格式化数据
+        1.格式化指定格式
+        2.判断如果包含.xls就用merge_xlrw方法，否则用merge_openpyxl
+        """
         all_merge_files = list()
         # data structure: {'file': f, 'sheets': set_sheet, 'nsheet': n}
         is_openpyxl = True
@@ -945,6 +923,7 @@ class OfficeService(object):
                 'sheets': str(_r.set_sheet).split(';') if _r.set_sheet else [0],
                 'nsheet': int(_r.nsheet),
             })
+        # <<<<<<<<<<<<<<< merge >>>>>>>>>>>>>>>
         # many file to merge
         # extend parameter:
         #   - blank: 文件合并之间的空格数
@@ -952,14 +931,14 @@ class OfficeService(object):
             if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank'))
         if merge_res.get('status_id') != 100:
             return Status(
-                merge_res.get('status_id'), 'failure', merge_res.get('message'), {}
-            ).json()
+                merge_res.get('status_id'), 'failure', merge_res.get('message'), {}).json()
+        # store message to store and local db
         store_msg = {
             'name': merge_res.get('data').get('name'),
             'store_name': '%s/%s' % (get_now(format='%Y%m%d'), merge_res.get('data').get('name')),
             'path': merge_res.get('data').get('path')
         }
-        # file upload to store object, manual control
+        # file upload to store object, manual control【上传云服务器存储】
         if OFFICE_STORE_BK:
             store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
                                               local_file=store_msg.get('path'))
@@ -968,12 +947,12 @@ class OfficeService(object):
                               'failure',
                               store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
                               {}).json()
-        # file to db
+        # file to db【本地化数据库存储】
         store_msg['rtx_id'] = new_params.get('rtx_id')
         store_msg['type'] = FileTypeEnum.EXCEL_MERGE.value
         store_msg['md5'] = md5(store_msg.get('name'))
         is_to_db = self.store_excel_result_to_db(store_msg)
-        if not is_to_db:
+        if not is_to_db:        # 本地化存储失败
             return Status(
                 225, 'failure', StatusMsgs.get(225), {}).json()
 
@@ -987,26 +966,24 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), merge_res.get('data')
         ).json()
 
-    def excel_history_list(self, params):
+    def excel_history_list(self, params: dict) -> dict:
         """
         get result excel list by params
         params is dict
 
         return json data
         """
+        # ---------- no params -----------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check and format
         new_params = dict()
-        # parameters check
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_result_list_attrs and v:
+            if k not in self.req_result_list_attrs and v:   # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -1014,8 +991,7 @@ class OfficeService(object):
             elif k == 'type':      # filter: check parameter type, format is [1, 2]
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s必须为list类型' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s必须为list类型' % k, {}).json()
                 v = [str(i) for i in v] if v else []
             elif k == 'name' and v:     # filter: like search
                 v = '%' + str(v) + '%'
@@ -1028,13 +1004,13 @@ class OfficeService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+        """     ============ get models list ==========    """
         new_params['enum_name'] = 'excel-type'
         res, total = self.excel_result_bo.get_all(new_params)
-        if not res:
+        if not res:         # 无数据
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
-            ).json()
-
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # format data
         new_res = list()
         n = 1
         for _d in res:
@@ -1048,60 +1024,54 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
-    def excel_result_update(self, params):
+    def excel_result_update(self, params: dict) -> dict:
         """
         update result excel file, only update file name
         params is dict
         """
+        # no params
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
-
+        # parameters check and format
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_result_update_attrs and v:
+            if k not in self.req_result_update_attrs and v:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if not v:       # value check, is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             if k == 'name':     # check name and length
                 new_names = os.path.splitext(str(v))
                 if new_names[-1] not in self.EXCEL_FORMAT:
                     return Status(
-                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}
-                    ).json()
+                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}).json()
                 if not check_length(v, 80):  # check: length
                     return Status(
-                        213, 'failure', u'请求参数%s长度超限制' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
                 v = str(v)
             else:
                 v = str(v)
             new_params[k] = v
-
+        """     get model    """
         model = self.excel_result_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}
-            ).json()
+                304, 'failure', StatusMsgs.get(304), {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}
-            ).json()
-
+                310, 'failure', StatusMsgs.get(310), {}).json()
+        """ update model """
         is_update = False
         if new_params.get('name') and str(new_params.get('name')) != str(model.name):
             res = self._update_file_name(model, new_params.get('name'))
@@ -1117,47 +1087,43 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def excel_result_delete(self, params):
+    def excel_result_delete(self, params: dict) -> dict:
         """
         delete one result excel file by params
         params is dict
         """
+        # no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
-
+        # parameters check && format
         new_params = dict()
-        # parameters check
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_delete_attrs:
+            if k not in self.req_delete_attrs:      # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v:
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
-
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>
         model = self.excel_result_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}
-            ).json()
+                306, 'failure', StatusMsgs.get(306), {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # 软删除
         model.is_del = True
         model.delete_rtx = rtx_id
         model.delete_time = get_now()
@@ -1166,37 +1132,32 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def excel_result_deletes(self, params):
+    def excel_result_deletes(self, params: dict) -> dict:
         """
         delete many excel result excel file by params
         params is dict
         """
+        # ================= parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
         new_params = dict()
-        # parameters check
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_deletes_attrs:
+            if k not in self.req_deletes_attrs:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v:
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # type check
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
-
+        # 批量软删除
         res = self.excel_result_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
@@ -1204,7 +1165,7 @@ class OfficeService(object):
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
-    def excel_init_split_params(self, params):
+    def excel_init_split_params(self, params: dict) -> dict:
         """
         initialize the result excel file split parameter
         params is dict
@@ -1216,32 +1177,28 @@ class OfficeService(object):
             - split_type
             - bool_type
         """
+        # ------------- parameters check and format ---------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
-        # check parameters
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_init_split_attrs:
+            if k not in self.req_init_split_attrs:      # 不合法的参数key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v:
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value不允许为空
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
-
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        """ ------ 格式化数据 ------ """
         # data info
         sheet_names = list()
         sheet_index = str(model.set_sheet) if model.set_sheet else '0'
@@ -1277,37 +1234,34 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), data
         ).json()
 
-    def excel_sheet_header(self, params):
+    def excel_sheet_header(self, params: dict) -> dict:
         """
         get sheet headers by sheet index
         params is dict
         """
+        # ------------ parameters check and format --------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
-        # check parameters
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_sheet_header_attrs:
+            if k not in self.req_sheet_header_attrs:    # 不合法key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             v = str(v)
             if not v:       # check value is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
 
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # format return data
         headers = list()
         headers.append({'label': '序号自增', 'value': '9999'})
         sheet_columns_json = json.loads(model.sheet_columns)
@@ -1328,12 +1282,13 @@ class OfficeService(object):
         function: one file to split many file
         one excel file to split many file
         """
+        # no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
-
-        # init enums info
+        """ 参数check """
+        # ====================== init enums info ======================
         names = ['excel-split-store', 'excel-num', 'bool-type']
         excel_split_store = list()
         excel_num = list()
@@ -1354,63 +1309,54 @@ class OfficeService(object):
         bool_type = bool_type \
             if bool_type else BOOL
         new_params = dict()
-        # parameters check
+        # ====================== parameters common check ======================
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_split_attrs:
+            if k not in self.req_split_attrs:       # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if k == 'columns':
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if k == 'columns':      # columns字段列检查
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
-                    ).json()
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
             if k != 'name' and not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'store' and v not in excel_split_store:
                 return Status(
-                    213, 'failure', u'请求参数%s值不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s值不合法' % k, {}).json()
             elif k == 'split' and v not in excel_num:
                 return Status(
-                    213, 'failure', u'请求参数%s值不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s值不合法' % k, {}).json()
             elif k == 'header' and v not in bool_type:
                 return Status(
-                    213, 'failure', u'请求参数%s值不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s值不合法' % k, {}).json()
 
             new_params[k] = str(v) if k != 'columns' else v
         if not new_params.get('sheet'):
             new_params['sheet'] = '0'
-
+        # ---------------------- check params ok...... -----------------------
+        # <<<<<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>>>
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}
-            ).json()
+                302, 'failure', StatusMsgs.get(302), {}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}
-            ).json()
+                304, 'failure', StatusMsgs.get(304), {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}
-            ).json()
+                311, 'failure', StatusMsgs.get(311), {}).json()
         # file not exist
         if not model.local_url or \
                 not os.path.exists(model.local_url):
             return Status(
-                226, 'failure', StatusMsgs.get(226), {}
-            ).json()
-
+                226, 'failure', StatusMsgs.get(226), {}).json()
+        """ =================== split ===================="""
         # 无新文件名称，以原始文件为名称
         if not new_params.get('name'):
             new_params['name'] = model.name
@@ -1429,14 +1375,12 @@ class OfficeService(object):
                 sheet_header = sheets.get(int(sheet))
                 if sheet_header:
                     row = sheet_header.get('row')
-        if row == 0:
+        if row == 0:        # 0行无数据
             return Status(
-                227, 'failure', StatusMsgs.get(227), {}
-            ).json()
-        if row >= 65535:
+                227, 'failure', StatusMsgs.get(227), {}).json()
+        if row >= 65535:        # 最大行数65535
             return Status(
-                228, 'failure', StatusMsgs.get(228), {}
-            ).json()
+                228, 'failure', StatusMsgs.get(228), {}).json()
         # =========================== main method ===========================
         try:
             resp_json = self.excel_lib.split_xlrw(file=model.local_url,
@@ -1447,18 +1391,19 @@ class OfficeService(object):
                                                   rule=new_params.get('columns'),
                                                   title=new_params.get('header'))
         except Exception as e:
+            # 异常处理
             print('ExcelLib split excel error: %s' % e)
             return Status(
                 307, 'failure', 'Excel处理split失败', {}
             ).json()
 
-        # failure
+        # ---------------- split failure ----------------
         if resp_json.get('status_id') != 100:
             return Status(
-                307, 'failure', resp_json.get('message'), {}
-            ).json()
+                307, 'failure', resp_json.get('message'), {}).json()
+        # ---------------- split success ----------------
         data = resp_json.get('data')
-        # file upload to store object, manual control
+        # file upload to store object, manual control【存储云服务器】
         store_name = '%s/%s' % (get_now('%Y%m%d'), data.get('name'))
         if OFFICE_STORE_BK:
             store_res = self.store_lib.upload(store_name=store_name, local_file=data.get('path'))
@@ -1467,7 +1412,7 @@ class OfficeService(object):
                               'failure',
                               store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
                               {}).json()
-        # file to db
+        # file to db【存储到数据库】
         new_data = {
             'name': data.get('name'),
             'rtx_id': new_params.get('rtx_id'),
@@ -1491,23 +1436,24 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {}
         ).json()
 
-    def pdf2word_list(self, params):
+    def pdf2word_list(self, params: dict) -> dict:
         """
         get pdf2word file list by params
         params is dict
         return json data
         """
+        # no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # ================= parameters check and format =================
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_pdf2word_list_attrs and v:
+            if k not in self.req_pdf2word_list_attrs and v:     # illegal key
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if k == 'type' and int(v) != FileTypeEnum.PDF.value:
+            if k == 'type' and int(v) != FileTypeEnum.PDF.value:    # value is not null
                 return Status(
                     213, 'failure', u'请求参数type值不合法', {}).json()
             if k == 'limit':
@@ -1521,7 +1467,7 @@ class OfficeService(object):
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
-
+        # format return data
         new_res = list()
         n = 1
         for _d in res:
@@ -1540,22 +1486,23 @@ class OfficeService(object):
         get office pdf file detail information, by file md5
         :return: json data
         """
+        # =================== parameters check and format ===================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
-        # parameters check
+        # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_detail_attrs:
+            if k not in self.req_detail_attrs:      # illegal key
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v:
+            if not v:       # value is not null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
-
+        # =================== parameters ok.......... ===================
+        # <<<<<<<<<<< get model >>>>>>>>>>>>
         model = self.office_pdf_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
@@ -1565,7 +1512,7 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
-
+        # return
         return Status(
             100, 'success', StatusMsgs.get(100), self._office_pdf_model_to_dict(model, _type='detail')
         ).json()
@@ -1581,6 +1528,7 @@ class OfficeService(object):
         by file md5
         :return: json data
         """
+        # --------------- parameters check and format ---------------
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -1588,16 +1536,15 @@ class OfficeService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_pdf_update_attrs and v:
+            if k not in self.req_pdf_update_attrs and v:        # illegal key
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            # parameters check
             if k == 'mode':  # parameter pages
                 if not isinstance(v, bool):
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是Boolean' % k, {}).json()
                 new_params[k] = v
-            elif k in ['start', 'end']:     # check integer
+            elif k in ['start', 'end']:     # special check
                 if v:
                     try:
                         v_int = int(v)
@@ -1633,7 +1580,8 @@ class OfficeService(object):
             if new_params.get('start') > new_params.get('end'):
                 return Status(
                     213, 'failure', u'起始页码不得大于结束页码', {}).json()
-
+        # ================= check ok......... =================
+        # <<<<<<<< get model >>>>>>>>>>
         model = self.office_pdf_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
@@ -1659,30 +1607,27 @@ class OfficeService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def office_pdf_delete(self, params):
+    def office_pdf_delete(self, params: dict) -> dict:
         """
         delete one office pdf file by md5
         :return: json data
         """
+        # ================ check parameters ++================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters format
         new_params = dict()
-        # parameters check
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_delete_attrs:
+            if k not in self.req_delete_attrs:      # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v:
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
-
+        # # # # # # # # get model # # # # # # # #
         model = self.office_pdf_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
@@ -1697,6 +1642,7 @@ class OfficeService(object):
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
+        # 软删除
         model.is_del = True
         model.delete_rtx = rtx_id
         model.delete_time = get_now()
@@ -1710,23 +1656,20 @@ class OfficeService(object):
         delete many office pdf file by md5 list
         :return: json data
         """
+        # ------------------ check parameters -----------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
-
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters format
         new_params = dict()
-        # parameters check
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_deletes_attrs:
+            if k not in self.req_deletes_attrs:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v:
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}
-                ).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'list':  # type check
                 if not isinstance(v, list):
                     return Status(
@@ -1735,7 +1678,7 @@ class OfficeService(object):
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
-
+        # 批量软删除
         res = self.office_pdf_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
@@ -1759,6 +1702,7 @@ class OfficeService(object):
         by file md5
         :return: json data
         """
+        # no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
