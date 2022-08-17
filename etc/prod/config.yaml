@@ -33,7 +33,7 @@ MAIL:
 USER:
   AVATAR: http://2lstore.pygo2.top/avatars/default.png
   PASSWORD: abc1234
-  TIMELINE: 12
+  TIMELINE: 10
   INTRODUCTION: 这家伙很懒，什么也没留下......
   STORE_BASE_URL: http://avatar.pygo2.top
   STORE_NAME: avatar-default
