@@ -27,7 +27,31 @@ base_info:
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
     __project__ = "open2liapi"
+
+常用命令:
+远程连接: mysql -h 127.0.0.1 -P 3306  -u root -p
+授权: grant all on *.* to '用户名'@'%' identified by '密码';
+删除授权: revoke all privileges on *.* from '用户名'@'%';
+刷新: flush privileges;
+查询版本: select version(),current_date;;
+显示所有数据库:  show databases;
+显示当前数据库包含的表: show tables;
+查看数据库字符集: show variables like '%char%';
+查看mysql实例的端口: show variables like 'port';
+用户重命名: RENAME USER '老名'@'%' TO '新名'@'%';
+锁表:  flush tables with read lock;
+查看当前用户:  select user();
+查看所有用户: SELECT User, Host, Password FROM mysql.user;
+显示表结构和列结构的命令: desc tablename;
+查看master状态: show master status;
+查看slave状态: show slave status ;
+查看所有的log文件: show master logs;在主服务器上执行(即查看所有binlog日志列表)
+显示最近的警告详情:
+
+导出工具:
+    mysqldump
 ------------------------------------------------
+
 -- 创建数据库、用户、授权
 create database opentool default character set utf8 collate utf8_general_ci;
 create user 'opentool'@'%' IDENTIFIED BY 'ed39def30b9110d6668013133def82a3';
