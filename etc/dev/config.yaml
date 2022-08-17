@@ -1,3 +1,4 @@
+# 基础版本信息配置
 SERVER:
   NAME: open2lisapi
   VERSION: v1.0.1
@@ -6,6 +7,7 @@ SERVER:
   ADMIN: admin
 
 
+# 日志
 LOG:
   LOG_DIR: log
   LOG_LEVEL: debug
@@ -13,10 +15,12 @@ LOG:
   LOG_FILENAME_PREFIX: open2lisapi
 
 
+# 数据库
 DB:
   DB_LINK: mysql+pymysql://twtoolbox:2dcc0521bd32dc5100c6d65a1effa8e6@121.4.56.169:3306/twtoolbox?charset=utf8
 
 
+# email
 MAIL:
   MAIL_SERVER: smtp.163.com
   MAIL_PORT: 25
@@ -25,6 +29,7 @@ MAIL:
   MAIL_PASSWORD: XXXXXX
 
 
+# 用户配置
 USER:
   AVATAR: http://store.pygo2.top/w.jpg
   PASSWORD: abc1234
@@ -34,6 +39,7 @@ USER:
   STORE_NAME: avatar-default
 
 
+# 云对象存储
 STORE:
   CACHE: /Users/gaomingliang/Downloads/_CACHE
   BASE_URL: http://store.pygo2.top
@@ -42,20 +48,24 @@ STORE:
   SPACE_NAME: twtoolbox
 
 
+# 菜单
 MENU:
   MENU_ROOT_ID: 0
   MENU_ONE_LEVEL: 1
 
 
+# 图片
 IMAGE:
   QUALITY: 100
   WIDTH: 700
 
 
+# 文章
 ARTICLE:
   LIMIT: 10
 
 
+# 文档基础配置
 OFFICE:
   STORE_BK: True
   LIMIT: 15
@@ -63,16 +73,18 @@ OFFICE:
   SHEET_NAME_LIMIT: 65
 
 
+# PDF2WORD
 CONVERT:
   MULPRO: True
 
 
+# 权限基础配置
 AUTH:
   LIMIT: 15
   NUM: 45
 
 
-# dingTalk openApi url config
+# dingTalk配置
 DINGTALK:
   BASE_URL: https://oapi.dingtalk.com/
   TOKEN_URL: gettoken
@@ -82,5 +94,6 @@ DINGTALK:
   INTERVAL: 0.5
 
 
+# 其他配置
 OTHERS:
   NOBN: NoNameBody
