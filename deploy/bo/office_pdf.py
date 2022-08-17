@@ -35,7 +35,6 @@ Life is short, I use python.
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.office_pdf import OfficePDFModel
-from deploy.models.enum import EnumModel
 from deploy.utils.utils import get_now
 
 

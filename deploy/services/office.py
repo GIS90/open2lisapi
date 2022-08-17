@@ -644,6 +644,9 @@ class OfficeService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
         # <<<<<<<<<<<<<<< models >>>>>>>>>>>>>>>>
         new_params['enum_name'] = 'excel-type'
         res, total = self.excel_source_bo.get_all(new_params)
@@ -761,7 +764,7 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -818,7 +821,7 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -857,6 +860,9 @@ class OfficeService(object):
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
         # 批量软删除
         res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
@@ -1007,6 +1013,10 @@ class OfficeService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
+
         """     ============ get models list ==========    """
         new_params['enum_name'] = 'excel-type'
         res, total = self.excel_result_bo.get_all(new_params)
@@ -1069,7 +1079,7 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -1121,7 +1131,7 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -1160,6 +1170,9 @@ class OfficeService(object):
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
         # 批量软删除
         res = self.excel_result_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
@@ -1195,12 +1208,21 @@ class OfficeService(object):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
-
+        # <<<<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
         """ ------ 格式化数据 ------ """
         # data info
         sheet_names = list()
@@ -1258,12 +1280,21 @@ class OfficeService(object):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
-
+        # <<<<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
         # format return data
         headers = list()
         headers.append({'label': '序号自增', 'value': '9999'})
@@ -1349,11 +1380,11 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                309, 'failure', StatusMsgs.get(309), {}).json()
         # file not exist
         if not model.local_url or \
                 not os.path.exists(model.local_url):
@@ -1466,6 +1497,10 @@ class OfficeService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
+        # <<<<<<<<<<<<<< get all models >>>>>>>>>>>>>>>
         res, total = self.office_pdf_bo.get_all(new_params)
         if not res:
             return Status(
@@ -1515,6 +1550,11 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
         # return
         return Status(
             100, 'success', StatusMsgs.get(100), self._office_pdf_model_to_dict(model, _type='detail')
@@ -1597,7 +1637,7 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -1643,7 +1683,7 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -1684,6 +1724,9 @@ class OfficeService(object):
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
         # 批量软删除
         res = self.office_pdf_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
@@ -1774,11 +1817,11 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}).json()
+                309, 'failure', StatusMsgs.get(309), {}).json()
 
         """ ************************************* convert: 2.convert ***************************************** """
         # 初始化数据

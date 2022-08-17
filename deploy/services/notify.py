@@ -495,6 +495,9 @@ class NotifyService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
 
         # <get data>
         res, total = self.dtalk_bo.get_all(new_params)
@@ -546,7 +549,7 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -575,16 +578,19 @@ class NotifyService(object):
             if k not in self.req_deletes_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v: # parameter is not allow null
+            if not v:   # parameter is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
-            if k == 'list': # check type
+            if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
         # << batch delete >>
         res = self.dtalk_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
@@ -598,11 +604,10 @@ class NotifyService(object):
         get the latest dtalk message detail information, by file md5
         :return: json data
         """
+        # ================== parameters check && format ==================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
-        # parameters check
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -613,7 +618,7 @@ class NotifyService(object):
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
-
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
@@ -623,6 +628,11 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
         # return
         return Status(
             100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model, _type='detail')
@@ -637,11 +647,11 @@ class NotifyService(object):
         by file md5
         :return: json data
         """
-        # ====================== parameters check ======================
+        # ====================== parameters check and format ======================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -691,7 +701,7 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -753,6 +763,15 @@ class NotifyService(object):
         if not model:
             return Status(
                 302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
 
         ######################### get data
         cur_sheet = str(new_params.get('sheet')) if new_params.get('sheet') else "0"
@@ -840,7 +859,9 @@ class NotifyService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
-
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
         # <get data>
         res, total = self.dtalk_robot_bo.get_all(new_params)
         if not res:
@@ -967,7 +988,7 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -1006,6 +1027,9 @@ class NotifyService(object):
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
         # << batch delete >>
         res = self.dtalk_robot_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
@@ -1034,7 +1058,7 @@ class NotifyService(object):
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
-
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
         model = self.dtalk_robot_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
@@ -1044,6 +1068,11 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
         # return data
         return Status(
             100, 'success', StatusMsgs.get(100), self._dtalk_robot_model_to_dict(model, _type='detail')
@@ -1107,7 +1136,7 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -1163,7 +1192,7 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
-        # authority
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
@@ -1371,6 +1400,11 @@ class NotifyService(object):
         if dtalk_model and dtalk_model.is_del:
             return Status(
                 302, 'failure', 'dtalk数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and dtalk_model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
         """ dtalk robot check """
         robot_model = self.dtalk_robot_bo.get_model_by_key_rtx(new_params.get('robot'), new_params.get('rtx_id'))
         if not robot_model:
