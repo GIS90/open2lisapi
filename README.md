@@ -95,7 +95,8 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 
   - pip install -r requirements.txt
 
-此程序运行于python3，其中requirements.txt项目所需要的包，已固定版本，如果使用了***install_env.py***一键式部署，则无须单独安装包。
+此程序运行于python3，其中requirements.txt项目所需要的包，已固定版本，如果使用了***install_env.py***一键式部署，则无须单独安装包。  
+一键部署需要服务器有python3环境【部署前提】。
 
 ### 手动启动
 
@@ -106,6 +107,35 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 5.如果手动启动模式开启，在gunicorn进行启动，会error: [Errno 48] Address already in use.
 
 注意：启动项目一定要用virtualenv安装的python环境进行启动（source .venv/bin/activate）
+
+### 数据库
+
+sql：dbsql>sql.sql，直接执行即可，包含创建数据库、用户、表、索引等。
+常用mysql命令：
+```
+远程连接: mysql -h 127.0.0.1 -P 3306  -u root -p
+授权: grant all on *.* to '用户名'@'%' identified by '密码';
+删除授权: revoke all privileges on *.* from '用户名'@'%';
+刷新: flush privileges;
+查询版本: select version(),current_date;;
+显示所有数据库:  show databases;
+显示当前数据库包含的表: show tables;
+查看数据库字符集: show variables like '%char%';
+查看mysql实例的端口: show variables like 'port';
+用户重命名: RENAME USER '老名'@'%' TO '新名'@'%';
+锁表:  flush tables with read lock;
+查看当前用户:  select user();
+查看所有用户: SELECT User, Host, Password FROM mysql.user;
+显示表结构和列结构的命令: desc tablename;
+查看master状态: show master status;
+查看slave状态: show slave status ;
+查看所有的log文件: show master logs;在主服务器上执行(即查看所有binlog日志列表)
+显示最近的警告详情:
+```
+导出工具
+```
+mysqldump
+```
 
 > ## 开发特定点
 
@@ -146,10 +176,6 @@ https://github.com/GIS90/open2lui/issues
   - prod：etc/prod/gunicorn.conf
 
 如需特别项目启动信息，可以加入gunicorn.conf或者更改命令行gunicorn启动方式加入参数即可
-
-### sql
-
-sql：dbsql>sql.sql，直接执行即可，包含创建数据库、用户、表、索引等
 
 ### crontab
 
