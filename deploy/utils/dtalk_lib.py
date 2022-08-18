@@ -79,6 +79,12 @@ class DtalkLib(Singleton):
         """
         return True if self.access_token else False
 
+    def close(self):
+        """
+        关闭实例，清除access token
+        """
+        self.access_token = ''
+
     def get_token(self) -> str:
         """
         获取唯一access token，2h有效期

@@ -337,6 +337,27 @@ def dtalk_robot_select():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
+@notify.route('/dtalk_robot_ping/', methods=['GET', 'POST'], strict_slashes=False)
+@timeer
+def dtalk_robot_ping():
+    """
+    dtalk robot test to ping
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().dtalk_robot_ping(params)
+    except Exception as e:
+        LOG.error("office>dtalk robot ping is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
 @notify.route('/dtalk_send_init/', methods=['GET', 'POST'], strict_slashes=False)
 @timeer
 def dtalk_send_init():

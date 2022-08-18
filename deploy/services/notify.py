@@ -191,6 +191,11 @@ class NotifyService(object):
         'select'
     ]
 
+    req_dtalk_robot_ping_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     req_dtalk_send_init_attrs = [
         'rtx_id',
         'md5'
@@ -1371,11 +1376,11 @@ class NotifyService(object):
             | 3.run the main.py script file to send messages       |
             +------------------------------------------------------+
         """
+        # no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
-        #################### check parameters ====================
+        # ====================check parameters ====================
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1414,6 +1419,10 @@ class NotifyService(object):
         if robot_model and robot_model.is_del:
             return Status(
                 302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+        # not key or not secret
+        if not robot_model.key or not robot_model.secret:
+            return Status(
+                214, 'failure', "缺少key或者secret，请完善配置信息", {}).json()
 
         # check template file and refer parameters
         dtalk_file = dtalk_model.file_local_url
@@ -1426,7 +1435,7 @@ class NotifyService(object):
         dtalk_api = DtalkLib(app_key=robot_model.key, app_secret=robot_model.secret)
         if not dtalk_api.is_avail():
             return Status(
-                499, 'failure', 'DingAPI初始化失败，请检查APPKEY或APPSECRET是否配置正确' or StatusMsgs.get(499), {}).json()
+                499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
         # =================================== start run, for循环 =====================================================
         set_columns_json = json.loads(dtalk_model.set_column) if dtalk_model.set_column else {}
         set_titles_json = json.loads(dtalk_model.set_title) if dtalk_model.set_title else {}
@@ -1475,10 +1484,11 @@ class NotifyService(object):
             _d['message'] = "成功：%s，失败：%s" % (len(s_l), len(f_l))
             _d['ok'] = True
             _res_data.append(_d)
-
+        dtalk_api.close()       # 关闭dtalk api
         # ================= update dtalk count and number =================
         dtalk_model.count = dtalk_model.count + 1
         dtalk_model.number = dtalk_model.number + n
+        dtalk_model.robot = robot_model.md5_id
         self.dtalk_bo.merge_model(dtalk_model)
         # ================= return data message =================
         _ret_message = ''
@@ -1500,3 +1510,54 @@ class NotifyService(object):
         return Status(
             100, 'success', _ret_message, {}).json()
 
+    def dtalk_robot_ping(self, params: dict) -> dict:
+        """
+        dtalk robot test to ping
+        :return: json data
+        """
+        # ==================== parameters check and format ====================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_dtalk_robot_ping_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+
+        # <<<<<<<<<<<<<<<<<<<<< get data >>>>>>>>>>>>>>>>>>>>>
+        model = self.dtalk_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+        # not key or not secret
+        if not model.key or not model.secret:
+            return Status(
+                214, 'failure', "缺少KEY或SECRET，请完善配置信息", {}).json()
+        # ping test
+        dtalk_api = DtalkLib(app_key=model.key, app_secret=model.secret)
+        if not dtalk_api.is_avail():
+            return Status(
+                499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
+        dtalk_api.close()
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
