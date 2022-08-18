@@ -90,7 +90,7 @@ CREATE UNIQUE INDEX sysuser_rtx_id_index ON sysuser (`rtx_id`);
 insert into
 sysuser(rtx_id, md5_id, fullname, `password`, email , phone, avatar, introduction, role, create_rtx, is_del)
 VALUES
-('admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '1', 'gaoming971366@163.com', '13051355646',
+('admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '1234567', 'gaoming971366@163.com', '13051355646',
 'http://pygo2.top/images/article_github.jpg', 'ADMIN系统管理员', 'admin', 'admin', FALSE);
 
 
