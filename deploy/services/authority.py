@@ -493,6 +493,7 @@ class AuthorityService(object):
         n = 1
         for _d in res:
             if not _d: continue
+            # if getattr(_d, 'engname') == ADMIN: continue     # 不显示管理员角色
             _res_dict = self._role_model_to_dict(_d)
             if _res_dict:       # 添加额外自定义ID序列
                 _res_dict['id'] = n
@@ -527,6 +528,10 @@ class AuthorityService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '角色已删除' or StatusMsgs.get(302), {}).json()
+        # check rtx-id and md5-id
+        if not model.engname or not model.md5_id:
+            return Status(
+                313, 'failure', '角色信息不完整' or StatusMsgs.get(313), {}).json()
         # return
         return Status(
             100, 'success', StatusMsgs.get(100), self._role_model_to_dict(model, is_detail=True)
@@ -638,6 +643,10 @@ class AuthorityService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', '数据已删除，不允许更新', {}).json()
+        # ADMIN用户不允许更新
+        if model and model.engname == ADMIN:
+            return Status(
+                304, 'failure', '管理员角色不允许更新', {}).json()
         # role engname is not allow to update
         if str(model.engname).strip() != str(new_params.get('engname')).strip():
             return Status(
@@ -691,7 +700,7 @@ class AuthorityService(object):
             if not _d: continue
             if _d.engname == ADMIN:
                 return Status(
-                    302, 'failure', u'Admin角色不允许操作，请重新选择', {}).json()
+                    302, 'failure', u'管理员角色不允许操作，请重新选择', {}).json()
         # ------------------- batch delete data -----------------------
         res = self.role_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
@@ -733,6 +742,10 @@ class AuthorityService(object):
         if model and model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
+        # ADMIN用户不允许删除
+        if model and model.engname == ADMIN:
+            return Status(
+                304, 'failure', '管理员角色不允许删除', {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
@@ -771,7 +784,11 @@ class AuthorityService(object):
         if role_model and role_model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
-        # authority
+        # ADMIN用户不允许设置
+        if role_model and role_model.engname == ADMIN:
+            return Status(
+                304, 'failure', '管理员角色不允许设置', {}).json()
+        # <<<<<<<<<<<<<<<<<< authority >>>>>>>>>>>>>>>>>>>>>>
         auths = str(role_model.authority).split(';') \
             if role_model.authority else []
         auth_list = [int(x) for x in auths if x]
@@ -915,6 +932,7 @@ class AuthorityService(object):
         new_res = list()
         for _d in res:
             if not _d: continue
+            # if getattr(_d, 'rtx_id') == ADMIN: continue     # 不显示管理员
             _res_dict = self._user_model_to_dict(_d)
             if _res_dict:
                 new_res.append(_res_dict)
@@ -1050,7 +1068,7 @@ class AuthorityService(object):
             if not _d: continue
             if _d.rtx_id == ADMIN:
                 return Status(
-                    302, 'failure', u'Admin用户不允许注销，请重新选择', {}).json()
+                    302, 'failure', u'管理员用户不允许注销，请重新选择', {}).json()
         # batch注销
         res = self.sysuser_bo.batch_delete_by_md5_list(params=new_params)
         return Status(100, 'success', '用户注销成功' or StatusMsgs.get(100), {}).json() \
@@ -1080,7 +1098,7 @@ class AuthorityService(object):
             if k not in self.req_user_status_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v and k != 'status': # value check, is not allow null
+            if not v and k != 'status':     # value check, is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'status':   # status check: 只允许为bool类型
@@ -1096,7 +1114,11 @@ class AuthorityService(object):
         if not model:
             return Status(
                 302, 'failure', '用户不存在' or StatusMsgs.get(302), {}).json()
-        # change status
+        # 管理员不允许操作
+        if model.rtx_id == ADMIN:
+            return Status(
+                300, 'failure', '管理员用户不允许操作' or StatusMsgs.get(300), {}).json()
+        # ----------- change status -----------
         model.is_del = new_params.get('status')
         if new_params.get('status'):
             model.delete_rtx = new_params.get('rtx_id')
@@ -1204,6 +1226,10 @@ class AuthorityService(object):
         # if model and model.is_del:
         #     return Status(
         #         304, 'failure', '数据已删除，不允许更新', {}).json()
+        # 管理员不允许操作
+        if model.rtx_id == ADMIN:
+            return Status(
+                300, 'failure', '管理员用户不允许操作' or StatusMsgs.get(300), {}).json()
 
         # <<<<<<<<<<<<<<<< update user model >>>>>>>>>>>>>>>>>>
         model.fullname = new_params.get('name')
