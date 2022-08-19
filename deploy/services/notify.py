@@ -214,7 +214,7 @@ class NotifyService(object):
 
     def __init__(self):
         """
-        common service class initialize
+        notify service class initialize
         """
         super(NotifyService, self).__init__()
         self.excel_lib = ExcelLib()

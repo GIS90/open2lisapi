@@ -251,7 +251,7 @@ class OfficeService(object):
 
     def __init__(self):
         """
-        excel service class initialize
+        office service class initialize
         """
         super(OfficeService, self).__init__()
         self.excel_lib = ExcelLib()

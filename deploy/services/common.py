@@ -49,6 +49,7 @@ class CommonService(object):
     """
     common service
     """
+
     req_upload_attrs = [
         'rtx_id',
         'file_type'

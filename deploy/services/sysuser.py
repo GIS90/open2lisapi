@@ -43,10 +43,13 @@ from deploy.utils.image_lib import ImageLib
 
 
 class SysUserService(object):
+    """
+    sysuser service
+    """
 
     def __init__(self):
         """
-        instance initialize
+        sysuser service class initialize
         """
         super(SysUserService, self).__init__()
         self.sysuser_bo = SysUserBo()

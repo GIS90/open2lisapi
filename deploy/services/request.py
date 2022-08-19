@@ -42,6 +42,9 @@ from deploy.utils.status_msg import StatusMsgs
 
 
 class RequestService(object):
+    """
+    request service
+    """
 
     req_list_attrs = [
         'rtx_id',
@@ -51,7 +54,7 @@ class RequestService(object):
 
     def __init__(self):
         """
-        initialize
+        request service class initialize
         """
         super(RequestService, self).__init__()
         self.request_bo = RequestBo()

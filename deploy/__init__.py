@@ -45,9 +45,10 @@ from flask import (Flask, make_response,
                    url_for,
                    g,
                    request)
-# 系统包
+
 from deploy.config import VERSION, NAME, SECRET_KEY
 from deploy.models.base import get_session
+# build-in package
 from deploy.utils.base_class import WebBaseClass
 from deploy.utils.logger import logger as LOG
 from deploy.utils.utils import get_user_id, timeer, get_real_ip
@@ -60,6 +61,7 @@ from deploy.views.office import office
 from deploy.views.authority import auth
 from deploy.views.notify import notify
 from deploy.views.common import common
+from deploy.views.dashboard import dashboard
 # services
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
@@ -190,6 +192,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('auth', auth)
         self.register_blueprint('notify', notify)
         self.register_blueprint('common', common)
+        self.register_blueprint('dashboard', dashboard)
 
     def init_run(self):
         LOG.debug('Server is initializing......')

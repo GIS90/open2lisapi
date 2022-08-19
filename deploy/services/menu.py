@@ -41,7 +41,13 @@ from deploy.config import MENU_ROOT_ID, MENU_ONE_LEVEL
 
 
 class MenuService(object):
+    """
+    menu service
+    """
     def __init__(self):
+        """
+        menu service class initialize
+        """
         super(MenuService, self).__init__()
         self.menu_bo = MenuBo()
         self.all_attrs = [
