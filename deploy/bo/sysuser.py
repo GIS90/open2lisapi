@@ -123,3 +123,11 @@ class SysUserBo(BOBase):
         q = self.session.query(SysUserModel)
         q = q.filter(SysUserModel.email == email)
         return q.first() if q.first() else None
+
+    def get_count(self, is_del=False, is_admin=False):
+        q = self.session.query(SysUserModel)
+        if not is_del:
+            q = q.filter(SysUserModel.is_del != 1)
+        if not is_admin:
+            q = q.filter(SysUserModel.rtx_id != ADMIN)
+        return len(q.all())
