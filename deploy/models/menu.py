@@ -70,3 +70,4 @@ class MenuModel(base.ModelBase):
     delete_time = Column(TIMESTAMP())
     delete_rtx = Column(String(25))
     is_del = Column(Boolean())
+    is_shortcut = Column(Boolean())

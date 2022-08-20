@@ -228,11 +228,9 @@ class SysUserService(object):
             # get authority by role list
             # user is admin, not get role, all authority menu
             role_models = self.role_bo.get_models_by_engnames(user_res.get('role'))
-            auth_list_str = ''
             for _r in role_models:
                 if not _r or not _r.authority: continue
-                auth_list_str += _r.authority
-            auth_list = [int(x) for x in auth_list_str.split(';') if x]
+                auth_list.extend([int(x) for x in _r.authority.split(';') if x])
             auth_list = list(set(auth_list))    # 去重
         # get authority menu tree
         user_auth = self.menu_service.get_routes(auth_list, is_admin) or []

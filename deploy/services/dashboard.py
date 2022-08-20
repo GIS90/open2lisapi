@@ -38,8 +38,11 @@ from deploy.utils.utils import get_now, get_day_week_date, get_now_date, \
     d2s
 from deploy.bo.sysuser import SysUserBo
 from deploy.bo.request import RequestBo
+from deploy.bo.menu import MenuBo
+from deploy.bo.role import RoleBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
+from deploy.config import ADMIN
 
 
 class DashboardService(object):
@@ -60,12 +63,18 @@ class DashboardService(object):
         'type'
     ]
 
+    req_shortcut_chart_attrs = [
+        'rtx_id'
+    ]
+
     def __init__(self):
         """
         dashboard service class initialize
         """
         self.sysuser_bo = SysUserBo()
         self.request_bo = RequestBo()
+        self.menu_bo = MenuBo()
+        self.role_bo = RoleBo()
 
     def pan(self, params: dict) -> dict:
         """
@@ -250,6 +259,92 @@ class DashboardService(object):
         else:
             pass
 
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), ret_res_json
+        ).json()
+
+    def shortcut(self, params: dict) -> dict:
+        """
+        dashboard short cut data
+        :return: json data
+
+        根据用户的角色权限，展示二级菜单快捷入口。
+        思路：
+        1.参数check
+        2.用户数据获取role，可以是多个角色
+        3.获取多个role的权限id集合
+        4.所有的menu获取
+        5.只取二级菜单 && 在权限id集合的菜单
+        """
+        # ================= 1 - parameters check and format ====================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_shortcut_chart_attrs:     # illegal key
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+        # -------------------- 2 - check user data --------------------
+        rtx_id = new_params.get('rtx_id').strip()  # 去空格
+        # get user by rtx
+        user = self.sysuser_bo.get_auth_by_rtx(rtx_id)
+        # user model is not exist
+        if not user:
+            return Status(
+                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
+        # user model is deleted
+        if user.is_del:
+            return Status(
+                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
+        # -------------------- 3 - user auth --------------------
+        # 判断是否管理员，如果是管理员是全部菜单权限
+        # 多角色，if包含管理员，直接是管理员权限
+        roles = str(user.role).split(';') if user.role else []  # 分割多角色
+        is_admin = True if ADMIN in roles \
+            else False
+        auth_list = list()
+        if not is_admin:
+            # get authority by role list
+            # user is admin, not get role, all authority menu
+            role_models = self.role_bo.get_models_by_engnames(roles)
+            for _r in role_models:
+                if not _r or not _r.authority: continue
+                auth_list.extend([int(x) for x in _r.authority.split(';') if x])
+            auth_list = list(set(auth_list))  # 去重
+        # -------------------- 4 - menu --------------------
+        """目的是与二级菜单拼接path"""
+        ret_res_json = []
+        _res = self.menu_bo.get_all(root=False)
+        # 一级菜单 path
+        _one_level_menu = dict()
+        for _r in _res:
+            if not _r: continue
+            if _r.level != 1: continue
+            _one_level_menu[_r.id] = _r.path
+        # --------------- 5.return legal path ---------------
+        for _r in _res:
+            if not _r: continue
+            if _r.level != 2: continue     # 去掉根、一级菜单，只留二级菜单
+            if is_admin:        # 具备管理员角色
+                ret_res_json.append({
+                    'name': _r.title,
+                    'icon': _r.icon,
+                    'path': "%s/%s" % (_one_level_menu.get(_r.pid), _r.path)
+                })
+            elif int(_r.id) in auth_list:    # 用户权限
+                ret_res_json.append({
+                    'name': _r.title,
+                    'icon': _r.icon,
+                    'path': "%s/%s" % (_one_level_menu.get(_r.pid), _r.path)
+                })
         # return data
         return Status(
             100, 'success', StatusMsgs.get(100), ret_res_json
