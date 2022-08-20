@@ -46,6 +46,12 @@ class EnumBo(BOBase):
     def new_mode(self):
         return EnumModel()
 
+    def execute_sql(self, sql):
+        if not sql:
+            return None
+        q = self.session.execute(sql)
+        return q
+
     def get_model_by_name(self, name):
         if not name:
             return None

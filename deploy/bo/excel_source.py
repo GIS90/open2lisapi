@@ -46,6 +46,12 @@ class ExcelSourceBo(BOBase):
 
     def new_mode(self):
         return ExcelSourceModel()
+
+    def execute_sql(self, sql):
+        if not sql:
+            return None
+        q = self.session.execute(sql)
+        return q
     
     def get_all(self, params: dict):
         q = self.session.query(ExcelSourceModel.id,

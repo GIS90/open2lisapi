@@ -44,6 +44,12 @@ class SysUserBo(BOBase):
     def new_mode(self):
         return SysUserModel()
 
+    def execute_sql(self, sql):
+        if not sql:
+            return None
+        q = self.session.execute(sql)
+        return q
+
     def get_user_by_params(self, user_id):
         if not user_id:
             return None

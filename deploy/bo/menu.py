@@ -47,6 +47,12 @@ class MenuBo(BOBase):
     def new_mode(self):
         return MenuModel()
 
+    def execute_sql(self, sql):
+        if not sql:
+            return None
+        q = self.session.execute(sql)
+        return q
+
     def get_all(self, root=False):
         q = self.session.query(MenuModel)
         if not root:

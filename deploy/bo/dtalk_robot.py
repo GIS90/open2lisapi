@@ -47,6 +47,12 @@ class DtalkRobotBo(BOBase):
     def new_mode(self):
         return DtalkRobotModel()
 
+    def execute_sql(self, sql):
+        if not sql:
+            return None
+        q = self.session.execute(sql)
+        return q
+
     def get_all(self, params: dict):
         q = self.session.query(DtalkRobotModel)
         q = q.filter(DtalkRobotModel.is_del != 1)

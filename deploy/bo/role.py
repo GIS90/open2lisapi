@@ -49,6 +49,12 @@ class RoleBo(BOBase):
     def new_mode(self):
         return RoleModel()
 
+    def execute_sql(self, sql):
+        if not sql:
+            return None
+        q = self.session.execute(sql)
+        return q
+
     def get_all(self, params):
         q = self.session.query(RoleModel)
         q = q.filter(RoleModel.is_del != True)
