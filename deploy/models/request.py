@@ -39,7 +39,8 @@ from sqlalchemy import (
         Integer,
         Boolean,
         TIMESTAMP,
-        Text
+        Text,
+        Date
 )
 from deploy.models import base
 
@@ -61,4 +62,5 @@ class RequestModel(base.ModelBase):
     host_url = Column(String(55))
     url = Column(String(120))
     create_time = Column(TIMESTAMP())
+    create_date = Column(Date())
 

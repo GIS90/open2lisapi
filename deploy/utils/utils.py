@@ -25,7 +25,7 @@ import sys
 import inspect
 import hashlib
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import session
 from deploy.utils.logger import logger as LOG
@@ -265,3 +265,33 @@ def check_length(data, limit=10):
     if not data:
         return True
     return True if len(data) <= limit else False
+
+
+def get_day_week_date(query_date):
+    """
+    get query day current week
+    :param query_date: query day, is str
+
+    return dict
+    format:
+        - start_time
+        - end_time
+        - [星期一date, 星期二date, 星期三date, 星期四date, 星期五date, 星期六date, 星期日date]
+    """
+    if not query_date:
+        query_date = get_now_date()
+    if isinstance(query_date, str):
+        query_date = s2d(query_date, fmt="%Y-%m-%d")
+    current_week = query_date.isoweekday()  # 当前时间所在本周第几天
+    start_week_date = (query_date - timedelta(days=current_week - 1))
+    end_week_date = (query_date + timedelta(days=7 - current_week))
+    _week = list()
+    for day_num in range(0, 7, 1):
+        _week.append(d2s(start_week_date + timedelta(days=day_num), fmt="%Y-%m-%d"))
+    _res = {
+        "start_week_date": start_week_date,  # 本周起始日期
+        "end_week_date": end_week_date,      # 本周结束日期
+        "week_date": _week                   # 本周日期列表
+
+    }
+    return _res

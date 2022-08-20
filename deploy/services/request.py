@@ -158,6 +158,7 @@ class RequestService(object):
         new_model.host_url = request.host_url if request.host_url else ''
         new_model.url = request.url if request.url else ''
         new_model.create_time = get_now()
+        new_model.create_date = get_now(format="%Y-%m-%d")
         self.request_bo.add_model(new_model)
 
     def get_by_rtx(self, params) -> dict:

@@ -205,6 +205,7 @@ CREATE TABLE `request`  (
     `host_url` varchar(55) NULL COMMENT 'API地址host_url',
     `url` varchar(120) NULL COMMENT 'API地址url',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '请求时间点',
+    `create_date` date COMMENT '请求日期',
 
     PRIMARY KEY (`id`),
     UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
