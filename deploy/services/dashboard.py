@@ -333,6 +333,7 @@ class DashboardService(object):
         for _r in _res:
             if not _r: continue
             if _r.level != 2: continue     # 去掉根、一级菜单，只留二级菜单
+            if not _r.is_shortcut: continue     # 去掉快捷入口设置不显示菜单
             if is_admin:        # 具备管理员角色
                 ret_res_json.append({
                     'name': _r.title,
