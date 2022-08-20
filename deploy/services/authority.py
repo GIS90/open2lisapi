@@ -186,7 +186,8 @@ class AuthorityService(object):
         'create_rtx',
         'is_del',
         'delete_time',
-        'delete_rtx'
+        'delete_rtx',
+        'shortcut'
     ]
 
     req_menu_info_attrs = [
@@ -210,6 +211,7 @@ class AuthorityService(object):
         'cache',
         'affix',
         'breadcrumb',
+        'shortcut'
     ]
 
     req_menu_no_need_attrs = [
@@ -226,7 +228,8 @@ class AuthorityService(object):
         'hidden',
         'cache',
         'affix',
-        'breadcrumb'
+        'breadcrumb',
+        'shortcut'
     ]
 
     req_menu_add_attrs = [
@@ -243,6 +246,7 @@ class AuthorityService(object):
         'cache',
         'affix',
         'breadcrumb',
+        'shortcut'
     ]
 
     req_menu_status_attrs = [
@@ -448,6 +452,11 @@ class AuthorityService(object):
                     _res[attr] = model.delete_time or ''
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx or ""
+            elif attr == 'shortcut':
+                if info:
+                    _res[attr] = '1' if model.is_shortcut else '0'
+                else:
+                    _res[attr] = '是' if model.is_shortcut else '否'
         else:
             return _res
 
@@ -1314,7 +1323,7 @@ class AuthorityService(object):
             return Status(
                 214, 'failure', u'缺少rtx_id请求参数', {}).json()
         # ------------------ get all menus ------------------
-        all_menus = self.menu_bo.get_all_no(root=True)   # 全部数据，包含禁用菜单 过滤根节点0
+        all_menus = self.menu_bo.get_all_no(root=True)   # 全部数据，包含禁用菜单 根节点0
         if not all_menus:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {}).json()
@@ -1478,10 +1487,14 @@ class AuthorityService(object):
                 302, 'failure', '菜单RTX名称已存在' or StatusMsgs.get(302), {}).json()
         # create new model
         new_model = self.menu_bo.new_mode()
+        # 默认值
         new_params['md5_id'] = md5(new_params.get('name'))
         new_params['create_time'] = get_now()
         new_params['is_del'] = False
         new_params['order_id'] = 0
+        # shortcut 特殊处理
+        new_params['is_shortcut'] = new_params.get('shortcut')
+        new_params.pop('shortcut')
         for key, value in new_params.items():
             if not key: continue
             if key == 'rtx_id':
@@ -1606,6 +1619,8 @@ class AuthorityService(object):
             model.breadcrumb = new_params.get('breadcrumb')
         if model.order_id != new_params.get('order_id'):
             model.order_id = new_params.get('order_id')
+        if model.is_shortcut != new_params.get('shortcut'):
+            model.is_shortcut = new_params.get('shortcut')
         self.menu_bo.merge_model(model)
 
         return Status(
