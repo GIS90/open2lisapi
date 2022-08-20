@@ -55,6 +55,11 @@ class DashboardService(object):
         'type'
     ]
 
+    req_index_chart_attrs = [
+        'rtx_id',
+        'type'
+    ]
+
     def __init__(self):
         """
         dashboard service class initialize
@@ -64,8 +69,9 @@ class DashboardService(object):
 
     def pan(self, params: dict) -> dict:
         """
-        get dashboard pan base information
+        dashboard pan chart data
         contain:
+        pan:
             - user 用户
             - click 点击率
         """
@@ -91,12 +97,12 @@ class DashboardService(object):
             "start_time": "%s 00:00:00" % now_date,
             "end_time": "%s 23:59:59" % now_date
         }
-        # <<<<<<<<<<<<<<<< get return user >>>>>>>>>>>>>>>
+        # <<<<<<<<<<<<<<<< get return pan: user >>>>>>>>>>>>>>>
         # 总用户数
         # user = self.sysuser_bo.get_count() or 1
         # 当日登录用户数
-        user = self.request_bo.get_user_count_by_time(date_params) or 0
-        # <<<<<<<<<<<<<<<< get return click >>>>>>>>>>>>>>>
+        user = self.request_bo.get_user_count_by_time(date_params) or 1
+        # <<<<<<<<<<<<<<<< get return pan: click >>>>>>>>>>>>>>>
         request = self.request_bo.get_req_count_by_time(date_params) or 0
         ret_res_json = {
             'user': user,
@@ -177,10 +183,74 @@ class DashboardService(object):
                 _date = _r[0]
                 if not isinstance(_date, str):      # 转换日期为str类型
                     _date = d2s(_date, fmt="%Y-%m-%d")
-                if _date in _ret_week_dict.keys():  # 更新
+                if _date in _ret_week_dict.keys():  # 存在 && 更新
                     _ret_week_dict[_date] = _r[1]
         # return data
         return Status(
             100, 'success', StatusMsgs.get(100), list(_ret_week_dict.values())
         ).json()
 
+    def _get_index_one(self):
+        func_names = {
+            'office.excel_merge': "表格合并",
+            'office.excel_split': "表格拆分",
+            'office.office_pdf_to': "PDF转WORD",
+            'notify.dtalk_send': "钉钉绩效"
+        }
+        _res = self.request_bo.get_func_count(params={'func_names': list(func_names.keys())})
+        _ret_dict = OrderedDict()
+        for key in func_names.keys():  # 初始化数据，默认为0
+            if not key: continue
+            _ret_dict[key] = 0
+        """ ======== 在ret_res不为空情况下进行遍历 ======== """
+        if _res:
+            for _r in _res:  # 遍历每一个指定格式数据：date count
+                if not _r: continue
+                _k = _r[0]
+                if _k in _ret_dict.keys():  # 存在 && 更新
+                    _ret_dict[_k] = _r[1]
+        _ret_res = list()
+        for k, v in _ret_dict.items():
+            if not k: continue
+            _ret_res.append({"name": func_names.get(k), "value": v})
+        return _ret_res
+
+    def index(self, params: dict) -> dict:
+        """
+        dashboard index chart data initialize
+        指标数据 contain:
+        index one 指标一：功能使用率
+        index two 指标二：
+        index three 指标三：
+        """
+        # ================= parameters check and format ====================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_index_chart_attrs:     # illegal key
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # value is not null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+        # ---------------- parameter initialize ----------------
+        rtx_id = new_params.get('rtx_id')
+        _type = new_params.get('type')
+        ret_res_json = list()
+        # <<<<<<<<<<<<<<<< get return index: 功能使用率 >>>>>>>>>>>>>>>
+        if _type == '1':
+            ret_res_json = self._get_index_one()
+        elif _type == '2':
+            pass
+        else:
+            pass
+
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), ret_res_json
+        ).json()

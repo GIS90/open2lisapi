@@ -86,9 +86,9 @@ class RequestBo(BOBase):
         # print(q)
         return q.all(), total
 
-    def get_user_count_by_time(self, time_params):
-        start_time = time_params.get('start_time')
-        end_time = time_params.get('end_time')
+    def get_user_count_by_time(self, params):
+        start_time = params.get('start_time')
+        end_time = params.get('end_time')
         q = self.session.query(distinct(RequestModel.rtx_id))
         if start_time:
             q = q.filter(RequestModel.create_time >= start_time)
@@ -96,9 +96,9 @@ class RequestBo(BOBase):
             q = q.filter(RequestModel.create_time <= end_time)
         return len(q.all())
 
-    def get_req_count_by_time(self, time_params):
-        start_time = time_params.get('start_time')
-        end_time = time_params.get('end_time')
+    def get_req_count_by_time(self, params):
+        start_time = params.get('start_time')
+        end_time = params.get('end_time')
         q = self.session.query(RequestModel)
         if start_time:
             q = q.filter(RequestModel.create_time >= start_time)
@@ -106,9 +106,9 @@ class RequestBo(BOBase):
             q = q.filter(RequestModel.create_time <= end_time)
         return len(q.all())
 
-    def get_req_count_by_week(self, week_params):
-        start_date = week_params.get('start_date')
-        end_date = week_params.get('end_date')
+    def get_req_count_by_week(self, params):
+        start_date = params.get('start_date')
+        end_date = params.get('end_date')
         # 方式一
         nums = func.count(1).label('count')
         q = self.session.query(RequestModel.create_date, nums).group_by(RequestModel.create_date)
@@ -120,4 +120,18 @@ class RequestBo(BOBase):
         if end_date:
             q = q.filter(RequestModel.create_date <= end_date)
         q = q.order_by(RequestModel.create_date.asc())
+        return q.all()
+
+    def get_func_count(self, params):
+        start_time = params.get('start_time')
+        end_time = params.get('end_time')
+        func_names = params.get('func_names')
+        q = self.session.query(RequestModel.endpoint, func.count(1).label('count')).\
+            group_by(RequestModel.endpoint)
+        if start_time:
+            q = q.filter(RequestModel.create_time >= start_time)
+        if end_time:
+            q = q.filter(RequestModel.create_time <= end_time)
+        if func_names:
+            q = q.filter(RequestModel.endpoint.in_(func_names))
         return q.all()
