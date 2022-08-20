@@ -289,8 +289,8 @@ def get_day_week_date(query_date):
     for day_num in range(0, 7, 1):
         _week.append(d2s(start_week_date + timedelta(days=day_num), fmt="%Y-%m-%d"))
     _res = {
-        "start_week_date": start_week_date,  # 本周起始日期
-        "end_week_date": end_week_date,      # 本周结束日期
+        "start_week_date": d2s(start_week_date, fmt="%Y-%m-%d"),  # 本周起始日期
+        "end_week_date": d2s(end_week_date, fmt="%Y-%m-%d"),      # 本周结束日期
         "week_date": _week                   # 本周日期列表
 
     }

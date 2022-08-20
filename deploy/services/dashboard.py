@@ -139,7 +139,7 @@ class DashboardService(object):
         }
         if _type == 'user':
             # <<<<<<<<<<<<<<<< get return user 本周 >>>>>>>>>>>>>>>
-            # 当日登录用户数
+            # 当日登录用户数 用sql进行查询
             _sql = """
             select 
                 create_date, count(1)
