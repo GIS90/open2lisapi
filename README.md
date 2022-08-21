@@ -33,6 +33,8 @@
 - 测试记录  
   https://docs.qq.com/sheet/DZmNNd2hpV3RBeFVw?tab=BB08J2
 
+- 前端组件说明  
+  https://docs.qq.com/sheet/DZmt3SmtGb3BveURG?tab=BB08J2
 
 > ## 后台架构
 
@@ -203,6 +205,7 @@ crontab简单功能：
 * ***Github:*** https://github.com/GIS90
 * ***Email:*** gaoming971366@163.com
 * ***Blog:*** http://pygo2.top
+* ***OPENTOOL-Z:*** http://2l.pygo2.top/
 * ***WeChat:*** PyGo90
 
 
