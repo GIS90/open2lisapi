@@ -40,9 +40,13 @@ from deploy.bo.sysuser import SysUserBo
 from deploy.bo.request import RequestBo
 from deploy.bo.menu import MenuBo
 from deploy.bo.role import RoleBo
+from deploy.bo.shortcut import ShortCutBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import ADMIN
+
+
+MAX = 15
 
 
 class DashboardService(object):
@@ -63,8 +67,17 @@ class DashboardService(object):
         'type'
     ]
 
-    req_shortcut_chart_attrs = [
+    req_shortcut_attrs = [
         'rtx_id'
+    ]
+
+    req_shortcut_edit_attrs = [
+        'rtx_id'
+    ]
+
+    req_shortcut_save_attrs = [
+        'rtx_id',
+        'select'
     ]
 
     def __init__(self):
@@ -75,6 +88,7 @@ class DashboardService(object):
         self.request_bo = RequestBo()
         self.menu_bo = MenuBo()
         self.role_bo = RoleBo()
+        self.shortcut_bo = ShortCutBo()
 
     def pan(self, params: dict) -> dict:
         """
@@ -271,11 +285,17 @@ class DashboardService(object):
 
         根据用户的角色权限，展示二级菜单快捷入口。
         思路：
-        1.参数check
-        2.用户数据获取role，可以是多个角色
-        3.获取多个role的权限id集合
-        4.所有的menu获取
-        5.只取二级菜单 && 在权限id集合的菜单
+        1.参数check and format
+        2.获取全部菜单
+        3.shortcut数据获取
+        4.依据是否有shortcut数据进行情况判断
+            4.1 有：直接格式化数据返回
+            4.2 无：
+                4.2.1 用户数据与用户权限数据check
+                4.2.2 只取二级菜单 && 在权限id集合的菜单，如果shortcut为空，展示所有数据
+        最多15个
+
+        之所以这么做的原因在于如果设置了shortcut可以直接格式化数据进行返回，省去每次都需要判断用户、角色的情况
         """
         # ================= 1 - parameters check and format ====================
         if not params:
@@ -285,15 +305,56 @@ class DashboardService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_shortcut_chart_attrs:     # illegal key
+            if k not in self.req_shortcut_attrs:     # illegal key
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if not v:       # value is not null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
-        # -------------------- 2 - check user data --------------------
+
+        # >>>>>>>>> 定义结果数据
+        count = 0  # 最多展示15个快捷菜单
+        ret_res_json = []
         rtx_id = new_params.get('rtx_id').strip()  # 去空格
+
+        # -------------------- 2 - menu --------------------
+        """目的是与二级菜单拼接"""
+        _res = self.menu_bo.get_all(root=False)
+        # 一级菜单【id-path】
+        _one_level_menu = dict()
+        for _r in _res:
+            if not _r: continue
+            if _r.level != 1: continue
+            _one_level_menu[_r.id] = _r.path
+        # -------------------- 3 - user shortcut --------------------
+        shortcut = self.shortcut_bo.get_model_by_rtx(rtx_id)
+        shortcut_list = list()
+        if shortcut and shortcut.shortcut:
+            shortcut_list = [int(x) for x in shortcut.shortcut.split(';') if x]
+        # -------------------- 4 - 依据是否有shortcut数据进行情况判断 --------------------
+        """ <<<<<<<<<<<<<<<<<<<<<<<<<<< 情况一 >>>>>>>>>>>>>>>>>>>>>>>>>>>"""
+        if shortcut_list:
+            for _r in _res:
+                """ 过滤无数据/根节点/一级菜单/MENU不显示快捷入口"""
+                if not _r: continue
+                if _r.level != 2: continue  # 去掉根、一级菜单，只留二级菜单
+                if not _r.is_shortcut: continue  # 去掉快捷入口设置不显示菜单
+                if int(_r.id) in shortcut_list:
+                    count += 1
+                    ret_res_json.append({
+                        'name': _r.title,
+                        'icon': _r.icon,
+                        'path': "%s/%s" % (_one_level_menu.get(_r.pid), _r.path)
+                    })
+                if count >= MAX:
+                    break
+            # return data
+            return Status(
+                100, 'success', StatusMsgs.get(100), ret_res_json).json()
+
+        """ <<<<<<<<<<<<<<<<<<<<<<<<<<< 情况二 >>>>>>>>>>>>>>>>>>>>>>>>>>>"""
+        # -------------------- 4.2.1 - check user and roles --------------------
         # get user by rtx
         user = self.sysuser_bo.get_auth_by_rtx(rtx_id)
         # user model is not exist
@@ -304,7 +365,6 @@ class DashboardService(object):
         if user.is_del:
             return Status(
                 203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
-        # -------------------- 3 - user auth --------------------
         # 判断是否管理员，如果是管理员是全部菜单权限
         # 多角色，if包含管理员，直接是管理员权限
         roles = str(user.role).split(';') if user.role else []  # 分割多角色
@@ -319,34 +379,224 @@ class DashboardService(object):
                 if not _r or not _r.authority: continue
                 auth_list.extend([int(x) for x in _r.authority.split(';') if x])
             auth_list = list(set(auth_list))  # 去重
-        # -------------------- 4 - menu --------------------
-        """目的是与二级菜单拼接path"""
-        ret_res_json = []
-        _res = self.menu_bo.get_all(root=False)
-        # 一级菜单 path
-        _one_level_menu = dict()
+            # auth_list.sort()   # 排序
+        # --------------- 4.2.2.return legal data ---------------
         for _r in _res:
+            """ 过滤无数据/根节点/一级菜单/MENU不显示快捷入口"""
             if not _r: continue
-            if _r.level != 1: continue
-            _one_level_menu[_r.id] = _r.path
-        # --------------- 5.return legal path ---------------
-        for _r in _res:
-            if not _r: continue
-            if _r.level != 2: continue     # 去掉根、一级菜单，只留二级菜单
-            if not _r.is_shortcut: continue     # 去掉快捷入口设置不显示菜单
+            if _r.level != 2: continue  # 去掉根、一级菜单，只留二级菜单
+            if not _r.is_shortcut: continue  # 去掉快捷入口设置不显示菜单
             if is_admin:        # 具备管理员角色
+                count += 1
                 ret_res_json.append({
                     'name': _r.title,
                     'icon': _r.icon,
                     'path': "%s/%s" % (_one_level_menu.get(_r.pid), _r.path)
                 })
             elif int(_r.id) in auth_list:    # 用户权限
+                count += 1
                 ret_res_json.append({
                     'name': _r.title,
                     'icon': _r.icon,
                     'path': "%s/%s" % (_one_level_menu.get(_r.pid), _r.path)
                 })
+            if count >= MAX:
+                break
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), ret_res_json
+            100, 'success', StatusMsgs.get(100), ret_res_json).json()
+
+    def shortcut_edit(self, params: dict) -> dict:
+        """
+        dashboard short cut edit data list
+        :return: json data
+
+        1.参数检查 && 新参数格式化
+        2.用户角色数据判断，获取角色权限数据
+        3.shortcut数据
+        4.全部菜单数据
+        5.按shortcut数据进行分组，返回UnSelect【未选】，Select【已选】2组数据
+        条件：在shortcut列表中 && 在角色权限中
+        """
+        # ================= 1 - parameters check and format ====================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_shortcut_edit_attrs:  # illegal key
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:  # value is not null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+        # -------------------- 2 - check user data and roles --------------------
+        rtx_id = new_params.get('rtx_id').strip()  # 去空格
+        # get user by rtx
+        user = self.sysuser_bo.get_auth_by_rtx(rtx_id)
+        # user model is not exist
+        if not user:
+            return Status(
+                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
+        # user model is deleted
+        if user.is_del:
+            return Status(
+                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
+        # 判断是否管理员，如果是管理员是全部菜单权限
+        # 多角色，if包含管理员，直接是管理员权限
+        roles = str(user.role).split(';') if user.role else []  # 分割多角色
+        is_admin = True if ADMIN in roles \
+            else False
+        auth_list = list()
+        if not is_admin:
+            # get authority by role list
+            # user is admin, not get role, all authority menu
+            role_models = self.role_bo.get_models_by_engnames(roles)
+            for _r in role_models:
+                if not _r or not _r.authority: continue
+                auth_list.extend([int(x) for x in _r.authority.split(';') if x])
+            auth_list = list(set(auth_list))  # 去重
+        # -------------------- 3 - user shortcut --------------------
+        shortcut = self.shortcut_bo.get_model_by_rtx(rtx_id)
+        shortcut_list = list()
+        # 只有设置了shortcut才有数据
+        if shortcut and shortcut.shortcut:
+            shortcut_list = [int(x) for x in shortcut.shortcut.split(';') if x]
+        # -------------------- 4 - menu --------------------
+        """目的是与二级菜单拼接"""
+        _res = self.menu_bo.get_all(root=False)
+        # 一级菜单【只存储了id-title】
+        _one_level_menu = dict()
+        for _r in _res:
+            if not _r: continue
+            if _r.level != 1: continue
+            _one_level_menu[_r.id] = _r.title or _r.name
+        # --------------- 5.return UnSelect && Select ---------------
+        select = list()
+        unselect = list()
+        # >>>>>>>>>>>>> 菜单数据过滤
+        for _r in _res:
+            """ 过滤无数据/根节点/一级菜单/MENU不显示快捷入口"""
+            if not _r: continue
+            if _r.level != 2: continue  # 去掉root、一级菜单，只留二级菜单
+            if not _r.is_shortcut: continue  # 去掉menu快捷入口设置不显示菜单【管理员设置】
+            """
+            TODO: 加入一下角色权限判断
+            菜单只有2种情况：
+            1.select【已选】:
+                数据加入select
+            2.unselect【未选】
+                2.1 如果是管理员，全部加入unselect
+                2.2 如果非管理员，判断是否有role权限，如果有加入unselect
+            """
+            if int(_r.id) in shortcut_list:
+                select.append({
+                    "id": _r.id,
+                    "name": "%s > %s" % (_one_level_menu.get(_r.pid), _r.title or _r.name)
+                })
+            else:
+                if is_admin:  # 具备管理员角色
+                    unselect.append({
+                        "id": _r.id,
+                        "name": "%s > %s" % (_one_level_menu.get(_r.pid), _r.title or _r.name)
+                    })
+                elif not is_admin and int(_r.id) in auth_list:  # 用户权限
+                    unselect.append({
+                        "id": _r.id,
+                        "name": "%s > %s" % (_one_level_menu.get(_r.pid), _r.title or _r.name)
+                    })
+                else:   # 其他情况不加入
+                    pass
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100),
+            {"select": select, "unselect": unselect}
+        ).json()
+
+    def shortcut_save(self, params: dict) -> dict:
+        """
+        dashboard short cut edit data save
+        :return: json data
+        """
+        # ================= parameters check and format ====================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_shortcut_save_attrs:  # illegal key
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:  # value is not null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'select':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                if len(v) > 15:
+                    return Status(
+                        213, 'failure', u'超出设置上限，最多设置15个', {}).json()
+                new_params[k] = ';'.join(v)  # 格式化成字符串存储
+                new_params['select_list'] = v
+            else:
+                new_params[k] = str(v).strip()
+
+        # -------------------- check user --------------------
+        rtx_id = new_params.get('rtx_id').strip()  # 去空格
+        # get user by rtx
+        user = self.sysuser_bo.get_auth_by_rtx(rtx_id)
+        # user model is not exist
+        if not user:
+            return Status(
+                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
+        # user model is deleted
+        if user.is_del:
+            return Status(
+                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
+        # 判断是否管理员，如果是管理员是全部菜单权限
+        # 多角色，if包含管理员，直接是管理员权限
+        roles = str(user.role).split(';') if user.role else []  # 分割多角色
+        is_admin = True if ADMIN in roles \
+            else False
+        auth_list = list()
+        if not is_admin:
+            # get authority by role list
+            # user is admin, not get role, all authority menu
+            role_models = self.role_bo.get_models_by_engnames(roles)
+            for _r in role_models:
+                if not _r or not _r.authority: continue
+                auth_list.extend([int(x) for x in _r.authority.split(';') if x])
+            auth_list = list(set(auth_list))  # 去重
+            # >>>>>>>>> 加入一层角色权限判断，不在角色权限的去掉菜单ID
+            new_select = list()
+            for _mid in new_params.get('select_list'):
+                if int(_mid) in auth_list:
+                    new_select.append(_mid)
+            new_params['select'] = ';'.join(new_select)
+        # -------------------- shortcut model --------------------
+        """
+        2种情况：
+        - 新增
+        - 更新
+        """
+        shortcut = self.shortcut_bo.get_model_by_rtx(rtx_id)
+        if not shortcut:        # 新增
+            new_shortcut_model = self.shortcut_bo.new_mode()
+            new_shortcut_model.rtx_id = rtx_id
+            new_shortcut_model.shortcut = new_params['select']
+            new_shortcut_model.create_time = get_now()
+            new_shortcut_model.is_del = False
+            self.shortcut_bo.add_model(new_shortcut_model)
+        else:                   # 更新
+            setattr(shortcut, 'shortcut', new_params['select'])
+            self.shortcut_bo.merge_model(shortcut)
+            # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}
         ).json()
