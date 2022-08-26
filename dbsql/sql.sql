@@ -63,24 +63,24 @@ use opentool;
 -- create user
 DROP TABLES IF EXISTS `sysuser`;
 CREATE TABLE `sysuser` (
-	`id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-	`rtx_id` varchar(25) not null COMMENT '用户rtx唯一标识',
-	`md5_id` varchar(55) not null COMMENT 'rtx-md5标识',
-	`fullname` varchar(30) not null COMMENT '用户名称',
-	`password` varchar(30) not null COMMENT '用户明文密码',
-	`email` varchar(35)  COMMENT '邮箱',
-	`phone` varchar(15)  COMMENT '电话',
-	`avatar` varchar(120)  COMMENT '头像URL',
-	`introduction` text  COMMENT '用户描述',
-	`role` varchar(80) not null COMMENT '用户角色rtx-id值，关联role表，多角色用;分割',
-	`department` varchar(55) null COMMENT '用户部门md5值，关联department表',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`create_rtx` varchar(25) default 'admin' COMMENT '创建人',
-	`delete_time` timestamp COMMENT '删除时间',
-	`delete_rtx` varchar(25) COMMENT '删除操作人',
-	`is_del` bool default False COMMENT '是否已删除',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `rtx_id` varchar(25) not null COMMENT '用户rtx唯一标识',
+    `md5_id` varchar(55) not null COMMENT 'rtx-md5标识',
+    `fullname` varchar(30) not null COMMENT '用户名称',
+    `password` varchar(30) not null COMMENT '用户明文密码',
+    `email` varchar(35)  COMMENT '邮箱',
+    `phone` varchar(15)  COMMENT '电话',
+    `avatar` varchar(120)  COMMENT '头像URL',
+    `introduction` text  COMMENT '用户描述',
+    `role` varchar(80) not null COMMENT '用户角色rtx-id值，关联role表，多角色用;分割',
+    `department` varchar(55) null COMMENT '用户部门md5值，关联department表',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `delete_time` timestamp COMMENT '删除时间',
+    `delete_rtx` varchar(25) COMMENT '删除操作人',
+    `is_del` bool default False COMMENT '是否已删除',
 
-	PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`)
 ) COMMENT='用户基础信息表';
 
 -- create index
@@ -105,15 +105,15 @@ CREATE TABLE `role`  (
     `md5_id` varchar(55) NOT NULL COMMENT 'md5值',
     `authority` varchar(120) NULL COMMENT '角色权限ID集合，用英文；分割',
     `introduction` text NULL COMMENT '角色描述',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`create_rtx` varchar(25) default 'admin' COMMENT '创建人',
-	`delete_time` timestamp COMMENT '删除时间',
-	`delete_rtx` varchar(25) COMMENT '删除操作人',
-	`is_del` bool default False COMMENT '是否已删除',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `delete_time` timestamp COMMENT '删除时间',
+    `delete_rtx` varchar(25) COMMENT '删除操作人',
+    `is_del` bool default False COMMENT '是否已删除',
 
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `role_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
-  UNIQUE INDEX `role_engname_index`(`engname`) USING HASH COMMENT 'engname唯一索引'
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `role_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
+    UNIQUE INDEX `role_engname_index`(`engname`) USING HASH COMMENT 'engname唯一索引'
 ) COMMENT='角色权限表';
 -- insert default role
 insert into
@@ -138,20 +138,20 @@ CREATE TABLE `menu`  (
     `hidden` bool default False COMMENT '是否在SideBar显示，默认为false',
     `redirect` varchar(35) COMMENT '菜单重定向，主要用于URL一级菜单跳转',
     `icon` varchar(25) COMMENT '图标',
-	`cache` bool default true COMMENT '页面是否进行cache，默认True缓存',
-	`affix` bool default false  COMMENT '是否在tags-view固定，默认false',
-	`breadcrumb` bool default true COMMENT '是否breadcrumb中显示，默认true',
+    `cache` bool default true COMMENT '页面是否进行cache，默认True缓存',
+    `affix` bool default false  COMMENT '是否在tags-view固定，默认false',
+    `breadcrumb` bool default true COMMENT '是否breadcrumb中显示，默认true',
     `order_id` int COMMENT '排序ID',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`create_rtx` varchar(25) default 'admin' COMMENT '创建人',
-	`delete_time` timestamp COMMENT '删除时间',
-	`delete_rtx` varchar(25) COMMENT '删除操作人',
-	`is_del` bool default False COMMENT '是否已删除',
-	`is_shortcut` bool default True COMMENT 'Dashboard快捷入口是否显示',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `delete_time` timestamp COMMENT '删除时间',
+    `delete_rtx` varchar(25) COMMENT '删除操作人',
+    `is_del` bool default False COMMENT '是否已删除',
+    `is_shortcut` bool default True COMMENT 'Dashboard快捷入口是否显示',
 
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `menu_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
-  UNIQUE INDEX `menu_name_index`(`name`) USING HASH COMMENT 'name唯一索引'
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `menu_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
+    UNIQUE INDEX `menu_name_index`(`name`) USING HASH COMMENT 'name唯一索引'
 ) COMMENT='系统菜单表';
 
 -- insert default menu
@@ -235,8 +235,8 @@ CREATE TABLE `api`  (
     `delete_rtx` varchar(25) COMMENT '删除操作人',
     `is_del` bool default FALSE COMMENT '是否已删除',
 
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
 ) COMMENT='API接口说明表';
 -- delete
 delete from api;
@@ -261,8 +261,8 @@ CREATE TABLE `enum`  (
     `delete_rtx` varchar(25) COMMENT '删除操作人',
     `is_del` bool default FALSE COMMENT '是否已删除',
 
-  PRIMARY KEY (`id`),
-  UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
 ) COMMENT='ENUM枚举表';
 -- delete
 delete from enum;
@@ -300,26 +300,26 @@ VALUES
 DROP TABLES IF EXISTS `excel_source`;
 
 CREATE TABLE `excel_source` (
-	`id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-	`name` varchar(80) COMMENT '原始名称',
-	`store_name` varchar(100) COMMENT '存储名称',
-	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
-	`rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
-	`ftype` varchar(2) NOT NULL default '1' COMMENT '文件上传类型：1拆分;2合并',
-	`local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
-	`store_url` varchar(120) COMMENT '文件store对象存储资源路径（相对路径）',
-	`numopr` int default 0 COMMENT '操作次数',
-	`nsheet` int default 1 COMMENT 'sheet数',
-	`set_sheet` varchar(35) COMMENT '当前设置的sheet选择索引，列表格式',
-	`sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
-	`sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
-	`headers` text COMMENT 'excel的header信息，以json方式存储',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`delete_rtx` varchar(25) COMMENT '删除用户rtx',
-	`delete_time` datetime COMMENT '删除时间',
-	`is_del` bool DEFAULT False COMMENT '是否删除',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `name` varchar(80) COMMENT '原始名称',
+    `store_name` varchar(100) COMMENT '存储名称',
+    `md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
+    `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
+    `ftype` varchar(2) NOT NULL default '1' COMMENT '文件上传类型：1拆分;2合并',
+    `local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
+    `store_url` varchar(120) COMMENT '文件store对象存储资源路径（相对路径）',
+    `numopr` int default 0 COMMENT '操作次数',
+    `nsheet` int default 1 COMMENT 'sheet数',
+    `set_sheet` varchar(35) COMMENT '当前设置的sheet选择索引，列表格式',
+    `sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
+    `sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
+    `headers` text COMMENT 'excel的header信息，以json方式存储',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
 
-	PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`)
 ) COMMENT='Excel原始文件表';
 -- create index
 CREATE UNIQUE INDEX excel_source_index ON excel_source (`md5_id`);
@@ -331,28 +331,28 @@ CREATE UNIQUE INDEX excel_source_index ON excel_source (`md5_id`);
 DROP TABLES IF EXISTS `excel_result`;
 
 CREATE TABLE `excel_result` (
-	`id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
-	`name` varchar(80) COMMENT '原始名称',
-	`store_name` varchar(100) COMMENT '存储名称',
-	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
-	`rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
-	`ftype` varchar(2) NOT NULL COMMENT '转换类型：1拆分;2合并',
-	`local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
-	`store_url` varchar(120) COMMENT '文件store对象存储资源路径（相对路径）',
-	`is_compress` bool DEFAULT False COMMENT '是否是压缩文件',
-	`nfile` int COMMENT '文件个数',
-	`nsheet` int COMMENT 'sheet总数',
-	`row` int COMMENT '行数',
-	`col` int COMMENT '列数',
-	`sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
-	`sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
-	`headers` text COMMENT 'excel的header信息，以json方式存储',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`delete_rtx` varchar(25) COMMENT '删除用户rtx',
-	`delete_time` datetime COMMENT '删除时间',
-	`is_del` bool DEFAULT False COMMENT '是否删除',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `name` varchar(80) COMMENT '原始名称',
+    `store_name` varchar(100) COMMENT '存储名称',
+    `md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
+    `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
+    `ftype` varchar(2) NOT NULL COMMENT '转换类型：1拆分;2合并',
+    `local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
+    `store_url` varchar(120) COMMENT '文件store对象存储资源路径（相对路径）',
+    `is_compress` bool DEFAULT False COMMENT '是否是压缩文件',
+    `nfile` int COMMENT '文件个数',
+    `nsheet` int COMMENT 'sheet总数',
+    `row` int COMMENT '行数',
+    `col` int COMMENT '列数',
+    `sheet_names` text COMMENT 'Sheets名称列表，以json方式存储',
+    `sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
+    `headers` text COMMENT 'excel的header信息，以json方式存储',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
 
-	PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`)
 ) COMMENT='Excel转换成功记录表';
 
 CREATE UNIQUE INDEX excel_result_index ON excel_result (`md5_id`);
@@ -364,28 +364,28 @@ CREATE UNIQUE INDEX excel_result_index ON excel_result (`md5_id`);
 DROP TABLES IF EXISTS `office_pdf`;
 
 CREATE TABLE `office_pdf` (
-	`id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
-	`name` varchar(80) NOT NULL COMMENT '原始名称',
-	`store_name` varchar(100) COMMENT '原始文件store存储名称',
-	`transfer_name` varchar(100) COMMENT '转换文件store存储名称',
-	`md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
-	`rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
-	`file_type` varchar(2) NOT NULL COMMENT '文件类型',
-	`transfer` bool DEFAULT False COMMENT '转换状态',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `name` varchar(80) NOT NULL COMMENT '原始名称',
+    `store_name` varchar(100) COMMENT '原始文件store存储名称',
+    `transfer_name` varchar(100) COMMENT '转换文件store存储名称',
+    `md5_id` varchar(55) NOT NULL COMMENT 'md5-id',
+    `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
+    `file_type` varchar(2) NOT NULL COMMENT '文件类型',
+    `transfer` bool DEFAULT False COMMENT '转换状态',
     `transfer_time` datetime COMMENT '转换时间',
     `local_url` varchar(120) COMMENT '文件本地资源路径（绝对路径）',
-	`store_url` varchar(120) COMMENT '原始文件store对象存储资源路径（相对路径）',
-	`transfer_url` varchar(120) COMMENT '转换文件store对象存储资源路径（相对路径）',
-	`mode` bool DEFAULT True COMMENT '转换模式：True页码，False指定页码',
-	`start` int COMMENT '转换开始页',
-	`end` int COMMENT '转换结束页',
-	`pages` varchar(120) COMMENT '指定的转换页码',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`delete_rtx` varchar(25) COMMENT '删除用户rtx',
-	`delete_time` datetime COMMENT '删除时间',
-	`is_del` bool DEFAULT False COMMENT '是否删除',
+    `store_url` varchar(120) COMMENT '原始文件store对象存储资源路径（相对路径）',
+    `transfer_url` varchar(120) COMMENT '转换文件store对象存储资源路径（相对路径）',
+    `mode` bool DEFAULT True COMMENT '转换模式：True页码，False指定页码',
+    `start` int COMMENT '转换开始页',
+    `end` int COMMENT '转换结束页',
+    `pages` varchar(120) COMMENT '指定的转换页码',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
 
-	PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`)
 ) COMMENT='PDF文件记录表';
 
 CREATE UNIQUE INDEX office_pdf_index ON office_pdf (`md5_id`);
@@ -412,10 +412,10 @@ CREATE TABLE `dtalk_message`  (
     `cur_sheet` varchar(3) COMMENT '当前设置的sheet索引',
     `set_column` text COMMENT '当前设置的sheet选择索引，表头列表设置，json字符串',
     `set_title` text COMMENT '每个sheet页码的消息标题',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`delete_rtx` varchar(25) COMMENT '删除用户rtx',
-	`delete_time` datetime COMMENT '删除时间',
-	`is_del` bool DEFAULT False COMMENT '是否删除',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
 
     PRIMARY KEY (`id`)
 ) COMMENT='钉钉消息表';
@@ -436,10 +436,10 @@ CREATE TABLE `dtalk_robot`  (
     `secret` varchar(70) NOT NULL COMMENT '机器人APP-SECRET',
     `select` bool DEFAULT False COMMENT '是否当前为选择',
     `description` text COMMENT '描述',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`delete_rtx` varchar(25) COMMENT '删除用户rtx',
-	`delete_time` datetime COMMENT '删除时间',
-	`is_del` bool DEFAULT False COMMENT '是否删除',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
 
     PRIMARY KEY (`id`)
 ) COMMENT='钉钉消息-机器人配置表';
@@ -455,10 +455,10 @@ CREATE TABLE `shortcut` (
     `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
     `rtx_id` varchar(25) NOT NULL COMMENT '用户RTX-ID',
     `shortcut` varchar(120) NULL COMMENT '角色权限ID集合，用英文；分割',
-	`create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-	`update_rtx` varchar(25) COMMENT '更新用户rtx',
-	`update_time` datetime COMMENT '最新更新时间',
-	`is_del` bool DEFAULT False COMMENT '是否删除',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_rtx` varchar(25) COMMENT '更新用户rtx',
+    `update_time` datetime COMMENT '最新更新时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
 
     PRIMARY KEY (`id`)
 ) COMMENT='个人用户快捷入口功能配置';
