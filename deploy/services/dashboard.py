@@ -520,8 +520,14 @@ class DashboardService(object):
         """
         dashboard short cut edit data save
         :return: json data
+
+        1.参数检查 && 格式化
+        2.用户数据检查 && 角色权限
+        3.快捷入口数据
+            3.1 新增
+            3.2 编辑
         """
-        # ================= parameters check and format ====================
+        # ================= 1 - parameters check and format ====================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -536,10 +542,10 @@ class DashboardService(object):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'select':
-                if not isinstance(v, list):
+                if not isinstance(v, list):     # select参数类型检查
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
-                if len(v) > 15:
+                if len(v) > 15:         # select参数长度检查，最大设置15个
                     return Status(
                         213, 'failure', u'超出设置上限，最多设置15个', {}).json()
                 new_params[k] = ';'.join(v)  # 格式化成字符串存储
@@ -547,8 +553,8 @@ class DashboardService(object):
             else:
                 new_params[k] = str(v).strip()
 
-        # -------------------- check user --------------------
         rtx_id = new_params.get('rtx_id').strip()  # 去空格
+        # -------------------- 2 - check user and roles --------------------
         # get user by rtx
         user = self.sysuser_bo.get_auth_by_rtx(rtx_id)
         # user model is not exist
@@ -579,7 +585,7 @@ class DashboardService(object):
                 if int(_mid) in auth_list:
                     new_select.append(_mid)
             new_params['select'] = ';'.join(new_select)
-        # -------------------- shortcut model --------------------
+        # -------------------- 3 - shortcut model --------------------
         """
         2种情况：
         - 新增
@@ -595,6 +601,8 @@ class DashboardService(object):
             self.shortcut_bo.add_model(new_shortcut_model)
         else:                   # 更新
             setattr(shortcut, 'shortcut', new_params['select'])
+            setattr(shortcut, 'update_rtx', rtx_id)
+            setattr(shortcut, 'update_time', get_now())
             self.shortcut_bo.merge_model(shortcut)
             # return data
         return Status(
