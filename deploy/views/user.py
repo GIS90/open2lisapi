@@ -63,7 +63,9 @@ from deploy.utils.status import Status
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import timeer
+# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.watcher import watcher
+from flask import request
 
 
 user = Blueprint('user', __name__, url_prefix='/user')
@@ -71,7 +73,7 @@ CORS(user, supports_credentials=True)
 
 
 @user.route('/info/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def info():
     """
     login to system get user information
@@ -92,7 +94,7 @@ def info():
 
 
 @user.route('/auth/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def auth():
     """
     login to system get user authority
@@ -113,7 +115,7 @@ def auth():
 
 
 @user.route('/update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def update():
     """
     update login user information
@@ -133,7 +135,7 @@ def update():
 
 
 @user.route('/timeline/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def timeline():
     """
     login to system get user log timeline
@@ -153,7 +155,7 @@ def timeline():
 
 
 @user.route('/password/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def password():
     """
     update user password, password contain:
@@ -176,7 +178,7 @@ def password():
 
 
 @user.route('/avatar/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def avatar():
     """
     update user avatar

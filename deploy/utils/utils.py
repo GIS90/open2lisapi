@@ -155,7 +155,7 @@ def get_user_id():
     get current request link user rtx id
     :return: rtx id or None
     """
-    return session.get('user_id')
+    return session.get('user-id') or session.get('rtx-d')
 
 
 # 计时器

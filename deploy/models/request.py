@@ -40,7 +40,8 @@ from sqlalchemy import (
         Boolean,
         TIMESTAMP,
         Text,
-        Date
+        Date,
+        DECIMAL
 )
 from deploy.models import base
 
@@ -61,6 +62,7 @@ class RequestModel(base.ModelBase):
     full_path = Column(String(85))
     host_url = Column(String(55))
     url = Column(String(120))
+    cost = Column(DECIMAL(10, 4))
     create_time = Column(TIMESTAMP())
     create_date = Column(Date())
 

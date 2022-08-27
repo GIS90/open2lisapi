@@ -52,7 +52,7 @@ ModelBase = declarative_base()
 def init_database_engine():
     return create_engine(
         db_link,
-        echo=False,
+        echo=False,     # True or False, SQLALCHEMY_ECHO: If set to True SQLAlchemy will log all the statements issued to stderr which can be useful for debugging.
         pool_recycle=800,
         pool_size=100
     )
@@ -63,6 +63,7 @@ def get_session():
     if not DBSession:
         dbengine_databus = init_database_engine()
         DBSession = sessionmaker(bind=dbengine_databus,
+                                 autoflush=True,
                                  autocommit=True
                                  )
     return DBSession()

@@ -38,7 +38,6 @@ Life is short, I use python.
 
 import os
 import sys
-from datetime import timedelta
 from flask import (Flask, make_response,
                    abort,
                    redirect,
@@ -109,52 +108,62 @@ class WebFlaskServer(WebBaseClass):
             # session.permanent = True
             # self.app.permanent_session_lifetime = timedelta(minutes=60)
 
+            """
+            user is logined in
+            """
             if get_user_id():
                 return
             """
-            apis: rest apis
-            ForApi or for_api: special api
+            no check condition
+            no record request condition
+              - apis: rest open apis, special api for blueprints
+              - manage: login in and login out APIs
             """
             if request.blueprint in ['apis', 'manage']:
                 return
             """
-            special api for blueprints
+            no check condition
+            no record request condition
+              - ForApi or for_api: special api
             """
-            if request.endpoint and \
+            if hasattr(request, 'endpoint') and \
                     (request.endpoint.endswith('ForApi')
                      or request.endpoint.endswith('for_api')):
                 return
             """
-            record access and use system function
-            X-Token
+            check current access user is or not legal request
+            request require X-Token information at request headers
+            X-Token to check legal user by database table sysuser[md5-id]
+            legal request && legal user >>>>> access
+            otherwise >>>>> no access
             """
-            if request.headers.get('X-Token'):
+            if request.headers.get('X-Token'):      # legal request
                 user_model = SysUserService().\
-                    get_user_by_token(request.headers.get('X-Token'))
+                    get_user_by_token(request.headers.get('X-Token'))   # legal user
                 if user_model:
+                    # change watcher to hit point
+                    """
                     try:
                         self.request_service.add_request(request)  # 加入请求API日志
                     except: pass
+                    """
                     return
-
+            # Other condition, user is required login in
             return Status(
-                200,
-                'failure',
-                StatusMsgs.get(200) or u'用户未登录',
-                {}
-            ).json()
+                200, 'failure', StatusMsgs.get(200) or u'用户未登录', {}).json()
 
-        # @self.app.after_request
-        # def after_request(response):
-        #     """
-        #     在after_request钩子函数中对response进行添加headers，所有的url跨域请求都会允许。。。
-        #     """
-        #     resp = make_response(response)
-        #     resp.headers['Access-Control-Allow-Origin'] = '*'
-        #     resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
-        #     resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
-        #     return resp
-
+        """
+        @self.app.after_request
+        def after_request(response):
+            '''
+            在after_request钩子函数中对response进行添加headers，所有的url跨域请求都会允许。。。
+            '''
+            resp = make_response(response)
+            resp.headers['Access-Control-Allow-Origin'] = '*'
+            resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
+            resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
+            return resp
+        """
         @self.app.before_first_request
         def before_first_request():
             g._session = get_session()

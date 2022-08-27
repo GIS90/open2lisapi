@@ -42,7 +42,8 @@ from flask_cors import CORS, cross_origin
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import timeer
+# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.watcher import watcher
 from deploy.services.common import CommonService
 
 
@@ -51,7 +52,7 @@ CORS(common, supports_credentials=True)
 
 
 @common.route('/upload/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def upload():
     """
     单文件上传：one file upload to server(file store object)
@@ -80,7 +81,7 @@ def upload():
 
 
 @common.route('/uploads/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def uploads():
     """
     多文件上传：many file upload to server(file store object)

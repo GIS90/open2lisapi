@@ -43,7 +43,8 @@ from flask_cors import CORS, cross_origin
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import timeer
+# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.watcher import watcher
 from deploy.services.authority import AuthorityService
 
 
@@ -52,7 +53,7 @@ CORS(auth, supports_credentials=True)
 
 
 @auth.route('/role_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_list():
     """
     get role list from db table role
@@ -74,7 +75,7 @@ def role_list():
 
 
 @auth.route('/role_detail/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_detail():
     """
     get role detail information
@@ -95,7 +96,7 @@ def role_detail():
 
 
 @auth.route('/role_add/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_add():
     """
     add new role, information contain english name, chinese name, introduction
@@ -116,7 +117,7 @@ def role_add():
 
 
 @auth.route('/role_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_update():
     """
     update exist role by role md5 value, contain:
@@ -140,7 +141,7 @@ def role_update():
 
 
 @auth.route('/role_del_m/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_batch_delete():
     """
     batch delete many role data, from role table
@@ -162,7 +163,7 @@ def role_batch_delete():
 
 
 @auth.route('/role_del/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_delete():
     """
     one delete many role data
@@ -185,7 +186,7 @@ def role_delete():
 
 
 @auth.route('/role_auth/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_auth():
     """
     get the role authority list
@@ -210,7 +211,7 @@ def role_auth():
 
 
 @auth.route('/role_save_tree/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_save_tree():
     """
     save role authority from db table role
@@ -232,7 +233,7 @@ def role_save_tree():
 
 
 @auth.route('/role_select/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def role_select_list():
     """
     get role list select, no parameters
@@ -253,7 +254,7 @@ def role_select_list():
 
 
 @auth.route('/user_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def user_list():
     """
     get user list from db table role: limit, offset
@@ -275,7 +276,7 @@ def user_list():
 
 
 @auth.route('/user_add/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def user_add():
     """
     add new user to db sysuser table one data
@@ -296,7 +297,7 @@ def user_add():
 
 
 @auth.route('/user_detail/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def user_detail():
     """
     get user detail information
@@ -317,7 +318,7 @@ def user_detail():
 
 
 @auth.route('/user_del_m/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def user_batch_delete():
     """
     batch delete many user data, from sysuser table
@@ -339,7 +340,7 @@ def user_batch_delete():
 
 
 @auth.route('/user_status/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def user_status():
     """
     change user data status, from user table
@@ -361,7 +362,7 @@ def user_status():
 
 
 @auth.route('/user_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def user_update():
     """
     update exist user by rtx id
@@ -382,7 +383,7 @@ def user_update():
 
 
 @auth.route('/user_reset_pw/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def user_reset_pw():
     """
     reset user password：重置用户默认密码
@@ -404,7 +405,7 @@ def user_reset_pw():
 
 
 @auth.route('/menu_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def menu_list():
     """
     get menu list from db table menu
@@ -426,7 +427,7 @@ def menu_list():
 
 
 @auth.route('/menu_detail/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def menu_detail():
     """
     get menu detail information from db table menu, menu is dict object
@@ -447,7 +448,7 @@ def menu_detail():
 
 
 @auth.route('/menu_add/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def menu_add():
     """
     add new menu information to db table menu
@@ -469,7 +470,7 @@ def menu_add():
 
 
 @auth.route('/menu_add_init/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def menu_add_init():
     """
     initialize add menu information from db table menu, menu is dict object
@@ -485,7 +486,7 @@ def menu_add_init():
 
 
 @auth.route('/menu_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def menu_update():
     """
     update menu detail information from db table menu, menu is dict object
@@ -506,7 +507,7 @@ def menu_update():
 
 
 @auth.route('/menu_status/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def menu_status():
     """
     change menu data status, from menu table

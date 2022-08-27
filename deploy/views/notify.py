@@ -45,7 +45,8 @@ from flask_cors import CORS
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import timeer
+# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.watcher import watcher
 from deploy.services.notify import NotifyService
 
 
@@ -54,7 +55,7 @@ CORS(notify, supports_credentials=True)
 
 
 @notify.route('/dtalk_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_list():
     """
     get dtalk message list from db table dtalk_message by parameters
@@ -74,7 +75,7 @@ def dtalk_list():
 
 
 @notify.route('/dtalk_delete/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_delete():
     """
     软删除
@@ -96,7 +97,7 @@ def dtalk_delete():
 
 
 @notify.route('/dtalk_deletes/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_deletes():
     """
     软删除
@@ -118,7 +119,7 @@ def dtalk_deletes():
 
 
 @notify.route('/dtalk_detail/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_detail():
     """
     get the latest dtalk message detail information, by file md5
@@ -139,7 +140,7 @@ def dtalk_detail():
 
 
 @notify.route('/dtalk_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_update():
     """
     update dtalk information, contain:
@@ -164,7 +165,7 @@ def dtalk_update():
 
 
 @notify.route('/dtalk_change_sheet/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_change_sheet():
     """
     dtalk change sheet by sheet index 设置中切换sheet展示的内容切换
@@ -185,7 +186,7 @@ def dtalk_change_sheet():
 
 
 @notify.route('/dtalk_robot_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_list():
     """
     get dtalk robot list from db table dtalk_robot by parameters
@@ -205,7 +206,7 @@ def dtalk_robot_list():
 
 
 @notify.route('/dtalk_robot_add/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_add():
     """
     add new dtalk robot to db table one data
@@ -227,7 +228,7 @@ def dtalk_robot_add():
 
 
 @notify.route('/dtalk_robot_delete/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_delete():
     """
     delete one dtalk robot data by md5
@@ -248,7 +249,7 @@ def dtalk_robot_delete():
 
 
 @notify.route('/dtalk_robot_deletes/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_deletes():
     """
     delete many dtalk robot data by md5 list
@@ -269,7 +270,7 @@ def dtalk_robot_deletes():
 
 
 @notify.route('/dtalk_robot_detail/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_detail():
     """
     get dtalk robot detail information, by file md5
@@ -290,7 +291,7 @@ def dtalk_robot_detail():
 
 
 @notify.route('/dtalk_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_update():
     """
     update dtalk robot information, contain:
@@ -317,7 +318,7 @@ def dtalk_robot_update():
 
 
 @notify.route('/dtalk_robot_select/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_select():
     """
     set dtalk robot select status, by file md5
@@ -338,7 +339,7 @@ def dtalk_robot_select():
 
 
 @notify.route('/dtalk_robot_ping/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_robot_ping():
     """
     dtalk robot test to ping
@@ -359,7 +360,7 @@ def dtalk_robot_ping():
 
 
 @notify.route('/dtalk_send_init/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_send_init():
     """
     dtalk send message initialize data
@@ -380,7 +381,7 @@ def dtalk_send_init():
 
 
 @notify.route('/dtalk_send/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dtalk_send():
     """
     dtalk send message to user

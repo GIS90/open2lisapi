@@ -50,9 +50,10 @@ class ApiModel(base.ModelBase):
     __tablename__ = 'api'
 
     id = Column(Integer, primary_key=True)
-    blueprint = Column(String(25))
-    endpoint = Column(String(35))
-    path = Column(String(35))
+    blueprint = Column(String(15))
+    apiname = Column(String(25))
+    endpoint = Column(String(41))
+    path = Column(String(45))
     type = Column(String(15))
     short = Column(String(35))
     long = Column(String(120))

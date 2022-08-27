@@ -162,26 +162,23 @@ class SysUserService(object):
         get login user model by token
         token: user token
         """
-        # no token
+        # no token, return
         if not token:
             return Status(
-                200, 'failure', StatusMsgs.get(200) or u'用户未登录', {}
-            ).json()
+                200, 'failure', StatusMsgs.get(200) or u'用户未登录', {}).json()
 
         # -------------------- check data --------------------
         user_model = self.get_user_by_token(token, is_vue=True)
         # user model is not exist
         if not user_model:
             return Status(
-                302, 'failure', StatusMsgs.get(202) or u'用户未注册', {}
-            ).json()
+                302, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
         # user model is deleted
         if user_model.get('is_del'):
             return Status(
-                302, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
-            ).json()
+                302, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
 
-        LOG.info('%s login info rtx_id ==========' % user_model.get('rtx_id') or O_NOBN)
+        LOG.info('current login user rtx_id >>>>>>>>>> %s' % user_model.get('rtx_id') or O_NOBN)
         # delete password information
         if user_model.get('password'):
             del user_model['password']
@@ -234,7 +231,7 @@ class SysUserService(object):
             auth_list = list(set(auth_list))    # 去重
         # get authority menu tree
         user_auth = self.menu_service.get_routes(auth_list, is_admin) or []
-        LOG.info('%s login auth rtx_id ==========' % user_res.get('rtx_id') or O_NOBN)
+        LOG.info('current login auth rtx_id >>>>>>>>>> %s' % user_res.get('rtx_id') or O_NOBN)
         return Status(
             100, 'success', StatusMsgs.get(100),
             {'auth': user_auth, 'rtx_id': user_res.get('rtx_id')}

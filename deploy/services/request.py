@@ -134,29 +134,39 @@ class RequestService(object):
         else:
             return _res
 
-    def add_request(self, request, rtx=None) -> bool:
+    def add_request(self, request, cost=0, rtx=None) -> bool:
         """
-        add request data to db
+        API request information to insert into database table [request]
+        :param request: API request object parameters
+        :param cost: API run time, unit is second
+        :param rtx: request user rtx-id
+            - 1.request get "X-Rtx-Id"
+            - 2.no request by manual set
+
+        方法调用主要2来源：
+            - 1.manage > 手动记录login in, login out
+            - 2.watcher > 打点
         """
-        if not request:
+        if not request:     # no request, return
             return False
-        rtx_id = get_rtx_id(request) or rtx
+        rtx_id = get_rtx_id(request) or rtx  # not rtx_id, no insert
         if not rtx_id:
             return False
-        method = request.method
+        method = getattr(request, 'method')  # method allow only get or post
         if method and str(method).upper() not in ['GET', 'POST']:
             return False
 
         new_model = self.request_bo.new_mode()
         new_model.rtx_id = rtx_id
-        new_model.ip = get_real_ip(request)
-        new_model.blueprint = request.blueprint if request.blueprint else ''
-        new_model.endpoint = request.endpoint if request.endpoint else ''
-        new_model.method = str(method).upper() if method else ''
-        new_model.path = request.path if request.path else ''
-        new_model.full_path = request.full_path if request.full_path else ''
-        new_model.host_url = request.host_url if request.host_url else ''
-        new_model.url = request.url if request.url else ''
+        new_model.ip = get_real_ip(request)  # API request real ip
+        new_model.blueprint = request.blueprint if getattr(request, 'blueprint') else ''
+        new_model.endpoint = request.endpoint if getattr(request, 'endpoint') else ''
+        new_model.method = str(method).upper()
+        new_model.path = request.path if getattr(request, 'path') else ''
+        new_model.full_path = request.full_path if getattr(request, 'full_path') else ''
+        new_model.host_url = request.host_url if getattr(request, 'host_url') else ''
+        new_model.url = request.url if getattr(request, 'url') else ''
+        new_model.cost = cost
         new_model.create_time = get_now()
         new_model.create_date = get_now(format="%Y-%m-%d")
         self.request_bo.add_model(new_model)

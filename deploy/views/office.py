@@ -39,7 +39,8 @@ from flask_cors import CORS, cross_origin
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import timeer
+# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.watcher import watcher
 from deploy.services.office import OfficeService
 
 
@@ -48,7 +49,7 @@ CORS(office, supports_credentials=True)
 
 
 @office.route('/excel_source_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_source_list():
     """
     get excel source list from db table excel_source by parameters
@@ -69,7 +70,7 @@ def excel_source_list():
 
 
 @office.route('/excel_source_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_source_update():
     """
     update excel source file information, contain:
@@ -93,7 +94,7 @@ def excel_source_update():
 
 
 @office.route('/excel_source_delete/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_source_delete():
     """
     delete one excel source excel file by md5
@@ -114,7 +115,7 @@ def excel_source_delete():
 
 
 @office.route('/excel_source_deletes/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_source_deletes():
     """
     delete many excel source excel file by md5 list
@@ -135,7 +136,7 @@ def excel_source_deletes():
 
 
 @office.route('/excel_merge/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_merge():
     """
     many excel file to merge one excel file,
@@ -157,7 +158,7 @@ def excel_merge():
 
 
 @office.route('/excel_history_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_history_list():
     """
     get excel history excel list from db table excel_result
@@ -179,7 +180,7 @@ def excel_history_list():
 
 
 @office.route('/excel_result_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_result_update():
     """
     update excel result excel file, only update file name
@@ -201,7 +202,7 @@ def excel_result_update():
 
 
 @office.route('/excel_result_delete/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_result_delete():
     """
     delete one excel result excel file by md5
@@ -222,7 +223,7 @@ def excel_result_delete():
 
 
 @office.route('/excel_result_deletes/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_result_deletes():
     """
     delete many excel result excel file by md5 list
@@ -244,7 +245,7 @@ def excel_result_deletes():
 
 
 @office.route('/excel_init_split/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_init_split_params():
     """
     initialize the excel result excel file split parameter
@@ -266,7 +267,7 @@ def excel_init_split_params():
 
 
 @office.route('/excel_sheet_header/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_sheet_header():
     """
     get sheet headers by sheet index
@@ -288,7 +289,7 @@ def excel_sheet_header():
 
 
 @office.route('/excel_split/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def excel_split():
     """
     split method, split parameters is many
@@ -310,7 +311,7 @@ def excel_split():
 
 
 @office.route('/pdf2word_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def pdf2word_list():
     """
     get pdf2word list from db table by parameters
@@ -331,7 +332,7 @@ def pdf2word_list():
 
 
 @office.route('/office_pdf_detail/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def office_pdf_detail():
     """
     get office pdf file detail information, by file md5
@@ -352,7 +353,7 @@ def office_pdf_detail():
 
 
 @office.route('/office_pdf_update/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def office_pdf_update():
     """
     update office pdf file information, contain:
@@ -378,7 +379,7 @@ def office_pdf_update():
 
 
 @office.route('/office_pdf_delete/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def office_pdf_delete():
     """
     delete one office pdf file by md5
@@ -399,7 +400,7 @@ def office_pdf_delete():
 
 
 @office.route('/office_pdf_deletes/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def office_pdf_deletes():
     """
     delete many office pdf file by md5 list
@@ -420,7 +421,7 @@ def office_pdf_deletes():
 
 
 @office.route('/office_pdf_to/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def office_pdf_to():
     """
     office pdf file convert to word file, one file to convert:

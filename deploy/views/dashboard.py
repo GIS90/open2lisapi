@@ -40,7 +40,8 @@ from flask_cors import CORS, cross_origin
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import timeer
+# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.watcher import watcher
 from deploy.services.dashboard import DashboardService
 
 
@@ -49,7 +50,7 @@ CORS(dashboard, supports_credentials=True)
 
 
 @dashboard.route('/pan/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+# @watcher(watcher_args=request)
 def pan():
     """
     dashboard pan chart data
@@ -70,7 +71,7 @@ def pan():
 
 
 @dashboard.route('/pan_chart/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+# @watcher(watcher_args=request)
 def pan_chart():
     """
     dashboard pan chart data
@@ -91,7 +92,7 @@ def pan_chart():
 
 
 @dashboard.route('/index/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+# @watcher(watcher_args=request)
 def index():
     """
     dashboard index chart data initialize
@@ -112,7 +113,7 @@ def index():
 
 
 @dashboard.route('/shortcut/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def shortcut():
     """
     dashboard short cut data
@@ -133,7 +134,7 @@ def shortcut():
 
 
 @dashboard.route('/shortcut_edit/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def shortcut_edit():
     """
     dashboard short cut edit data list
@@ -154,7 +155,7 @@ def shortcut_edit():
 
 
 @dashboard.route('/shortcut_save/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def shortcut_save():
     """
     dashboard short cut edit data save
