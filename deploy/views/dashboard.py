@@ -34,15 +34,17 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python dashboard.py
 # ------------------------------------------------------------
+from datetime import datetime
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.utils import timeer
 from deploy.utils.watcher import watcher
 from deploy.services.dashboard import DashboardService
+from deploy.services.request import RequestService
 
 
 dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -50,7 +52,7 @@ CORS(dashboard, supports_credentials=True)
 
 
 @dashboard.route('/pan/', methods=['GET', 'POST'], strict_slashes=False)
-# @watcher(watcher_args=request)
+@timeer
 def pan():
     """
     dashboard pan chart data
@@ -61,9 +63,14 @@ def pan():
             211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
+        start = datetime.now()
         # 参数
         params = request.get_json() or {}
-        return DashboardService().pan(params)
+        res = DashboardService().pan(params)
+        end = datetime.now()
+        cost = round((end - start).microseconds * pow(0.1, 6), 4)
+        RequestService().add_request(request=request, cost=cost, rtx=params.get('rtx_id'))
+        return res
     except Exception as e:
         LOG.error("dashboard>pan is error: %s" % e)
         return Status(501, 'failure',
@@ -71,7 +78,7 @@ def pan():
 
 
 @dashboard.route('/pan_chart/', methods=['GET', 'POST'], strict_slashes=False)
-# @watcher(watcher_args=request)
+@timeer
 def pan_chart():
     """
     dashboard pan chart data
@@ -82,9 +89,14 @@ def pan_chart():
             211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
+        start = datetime.now()
         # 参数
         params = request.get_json() or {}
-        return DashboardService().pan_chart(params)
+        res = DashboardService().pan_chart(params)
+        end = datetime.now()
+        cost = round((end - start).microseconds * pow(0.1, 6), 4)
+        RequestService().add_request(request=request, cost=cost, rtx=params.get('rtx_id'))
+        return res
     except Exception as e:
         LOG.error("dashboard>pan chart is error: %s" % e)
         return Status(501, 'failure',
@@ -92,7 +104,7 @@ def pan_chart():
 
 
 @dashboard.route('/index/', methods=['GET', 'POST'], strict_slashes=False)
-# @watcher(watcher_args=request)
+@timeer
 def index():
     """
     dashboard index chart data initialize
@@ -103,9 +115,14 @@ def index():
             211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
+        start = datetime.now()
         # 参数
         params = request.get_json() or {}
-        return DashboardService().index(params)
+        res = DashboardService().index(params)
+        end = datetime.now()
+        cost = round((end - start).microseconds * pow(0.1, 6), 4)
+        RequestService().add_request(request=request, cost=cost, rtx=params.get('rtx_id'))
+        return res
     except Exception as e:
         LOG.error("dashboard>index is error: %s" % e)
         return Status(501, 'failure',
