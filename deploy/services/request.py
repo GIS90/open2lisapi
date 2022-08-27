@@ -160,6 +160,7 @@ class RequestService(object):
         new_model.rtx_id = rtx_id
         new_model.ip = get_real_ip(request)  # API request real ip
         new_model.blueprint = request.blueprint if getattr(request, 'blueprint') else ''
+        new_model.apiname = str(request.endpoint).split('.')[-1] if getattr(request, 'endpoint') else ''
         new_model.endpoint = request.endpoint if getattr(request, 'endpoint') else ''
         new_model.method = str(method).upper()
         new_model.path = request.path if getattr(request, 'path') else ''
