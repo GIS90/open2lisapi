@@ -88,7 +88,7 @@ class EnumBo(BOBase):
         q = q.all()
         return q
 
-    def get_enum_by_md5(self, md5_id):
+    def get_model_by_md5(self, md5_id):
         q = self.session.query(EnumModel)
         q = q.filter(EnumModel.md5_id == md5_id)
         return q.first()

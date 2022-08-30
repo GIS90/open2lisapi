@@ -78,6 +78,11 @@ class InfoService(object):
         'status'
     ]
 
+    req_delete_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     def __init__(self):
         """
         information service class initialize
@@ -140,7 +145,7 @@ class InfoService(object):
 
     def dict_list(self, params: dict) -> dict:
         """
-        information > dict list by params
+        dict list by params
         params is dict
         return json data
         """
@@ -184,7 +189,7 @@ class InfoService(object):
 
     def dict_status(self, params: dict) -> dict:
         """
-        information > change dict data status by md5
+        change dict data status by md5
         :return: json data
 
         状态改变：
@@ -214,7 +219,7 @@ class InfoService(object):
             else:
                 new_params[k] = str(v)
         # <<<<<<<<<<<<< get and check data model >>>>>>>>>>>>>>>
-        model = self.enum_bo.get_enum_by_md5(md5_id=new_params.get('md5'))
+        model = self.enum_bo.get_model_by_md5(md5_id=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
@@ -228,6 +233,46 @@ class InfoService(object):
         model.status = new_params.get('status')
         model.update_rtx = new_params.get('rtx_id')
         model.update_time = get_now()
+        self.enum_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def dict_delete(self, params: dict):
+        """
+        delete one dict data status by md5
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.enum_bo.get_model_by_md5(md5_id=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # <update data>
+        setattr(model, 'is_del', True)
+        setattr(model, 'delete_rtx', new_params.get('rtx_id'))
+        setattr(model, 'delete_time', get_now())
         self.enum_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
