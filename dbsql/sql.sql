@@ -3,17 +3,19 @@ describe[线上地址]:
     database: opentool
     user: opentool
     tables:
-        sysuser	用户	用户基础信息表	sysuser
-        role	角色	用户角色权限表	role
-        menu	菜单	系统菜单表	menu
-        request	用户请求API记录	用户前端请求后台API记录表	request
-        api	api	后台API接口说明表	api
-        department	部门	部门架构信息表	department
-        excel_source	Excel源文件	Excel原始文件表	excel_source
-        excel_result	Excel成果文件	Excel转换成果记录表	excel_result
-        office_pdf	PDF文件表	PDF转WORD文档转换记录表	office_pdf
-        dtalk_message	钉钉消息	钉钉消息记录表	dtalk_message
-        dtalk_robot	钉钉机器人	钉钉消息机器人配置表	dtalk_robot
+        sysuser	用户	用户基础信息表
+        role	角色	用户角色权限表
+        menu	菜单	系统菜单表
+        request	用户请求API记录	用户前端请求后台API记录表
+        api	api	后台API接口说明表
+        enum	枚举表	ENUM枚举表
+        department	部门	部门架构信息表
+        excel_source	Excel源文件	Excel原始文件表
+        excel_result	Excel成果文件	Excel转换成果记录表
+        office_pdf	PDF文件表	PDF转WORD文档转换记录表
+        dtalk_message	钉钉消息	钉钉消息记录表
+        dtalk_robot	钉钉机器人	钉钉消息机器人配置表
+        shortcut	快捷入口	Dashboard快捷功能入口
 
 
 usage:
@@ -46,7 +48,6 @@ base_info:
 查看master状态: show master status;
 查看slave状态: show slave status ;
 查看所有的log文件: show master logs;在主服务器上执行(即查看所有binlog日志列表)
-显示最近的警告详情:
 
 导出工具:
     mysqldump
@@ -258,11 +259,15 @@ CREATE TABLE `enum`  (
     `key` varchar(25) NOT NULL COMMENT '枚举子集对应的key',
     `value` varchar(55) NOT NULL COMMENT '枚举子集对应的value',
     `description` text COMMENT '枚举子集对应的value说明',
+    `status` bool default TRUE COMMENT '状态',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `update_time` timestamp COMMENT '最近更新时间',
+    `update_rtx` varchar(25) COMMENT '最近更新操作人',
     `delete_time` timestamp COMMENT '删除时间',
     `delete_rtx` varchar(25) COMMENT '删除操作人',
     `is_del` bool default FALSE COMMENT '是否已删除',
+    `order_id` int NULL COMMENT '顺序ID',
 
     PRIMARY KEY (`id`),
     UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
@@ -271,30 +276,30 @@ CREATE TABLE `enum`  (
 delete from enum;
 -- insert data
 insert into
-enum(`name`, `md5_id`, `key`, `value`, `description`, `create_rtx`)
+enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`)
 VALUES
 -- bool
-('bool-type', '5886ecb16dfd303f97ef685f943f4735', '1', '是', '是', 'admin'),
-('bool-type', '5886ecb16dfd303f97ef685f943f4735', '0', '否', '否', 'admin'),
+('bool-type', '5886ecb16dfd303f97ef685f943f4735', '1', '是', '是', TRUE, 'admin', 1),
+('bool-type', '5886ecb16dfd303f97ef685f943f4735', '0', '否', '否', TRUE, 'admin', 2),
 -- excel-type
-('excel-type', '3a4048a9372203790ebfc88337f38981', '1', '合并', '表格处理方式合并', 'admin'),
-('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', 'admin'),
+('excel-type', '3a4048a9372203790ebfc88337f38981', '1', '合并', '表格处理方式合并', TRUE, 'admin', 1),
+('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', TRUE, 'admin', 2),
 -- excel-split-store
-('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '1', '多表一Sheet', '表格拆分多表一Sheet存储方式', 'admin'),
-('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', 'admin'),
+('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '1', '多表一Sheet', '表格拆分多表一Sheet存储方式', TRUE, 'admin', 1),
+('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', TRUE, 'admin', 2),
 -- excel-num
-('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '1', '行', '行', 'admin'),
-('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', 'admin'),
+('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '1', '行', '行', TRUE, 'admin', 1),
+('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', TRUE, 'admin', 2),
 -- menu-level
-('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '1', '一级菜单', '一级菜单', 'admin'),
-('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '2', '二级菜单', '二级菜单', 'admin'),
+('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '1', '一级菜单', '一级菜单', TRUE, 'admin', 1),
+('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '2', '二级菜单', '二级菜单', TRUE, 'admin', 2),
 -- 文件类型
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '1', 'WORD', 'WORD文档', 'admin'),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '2', 'EXCEL', 'EXCEL表格', 'admin'),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '3', 'PPT', 'PPT演示文稿', 'admin'),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '4', '文本', '文本文件', 'admin'),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '5', 'PDF', 'PDF文件', 'admin'),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '99', '其他', '其他类型文件', 'admin');
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '1', 'WORD', 'WORD文档', TRUE, 'admin', 1),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '2', 'EXCEL', 'EXCEL表格', TRUE, 'admin', 2),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '3', 'PPT', 'PPT演示文稿', TRUE, 'admin', 3),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '4', '文本', '文本文件', TRUE, 'admin', 4),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '5', 'PDF', 'PDF文件', TRUE, 'admin', 5),
+('file-type', 'e74dbc2d915cec9012135907cc4932eb', '99', '其他', '其他类型文件', TRUE, 'admin', 6);
 
 
 

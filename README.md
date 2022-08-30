@@ -132,7 +132,6 @@ sql：dbsql>sql.sql，直接执行即可，包含创建数据库、用户、表�
 查看master状态: show master status;
 查看slave状态: show slave status ;
 查看所有的log文件: show master logs;在主服务器上执行(即查看所有binlog日志列表)
-显示最近的警告详情:
 ```
 导出工具
 ```

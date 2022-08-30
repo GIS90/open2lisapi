@@ -61,6 +61,7 @@ from deploy.views.authority import auth
 from deploy.views.notify import notify
 from deploy.views.common import common
 from deploy.views.dashboard import dashboard
+from deploy.views.info import info
 # services
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
@@ -202,6 +203,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('notify', notify)
         self.register_blueprint('common', common)
         self.register_blueprint('dashboard', dashboard)
+        self.register_blueprint('info', info)
 
     def init_run(self):
         LOG.debug('Server is initializing......')

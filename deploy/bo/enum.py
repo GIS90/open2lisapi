@@ -52,13 +52,28 @@ class EnumBo(BOBase):
         q = self.session.execute(sql)
         return q
 
+    def get_all(self, params):
+        q = self.session.query(EnumModel)
+        q = q.filter(EnumModel.is_del != 1)     # 过滤删除
+        q = q.order_by(EnumModel.name.asc(), EnumModel.order_id.asc())      # name, order_id 排序
+        if not q:
+            return [], 0
+        total = len(q.all())
+        if params.get('offset'):
+            q = q.offset(params.get('offset'))
+        if params.get('limit'):
+            q = q.limit(params.get('limit'))
+        return q.all(), total
+
     def get_model_by_name(self, name):
         if not name:
             return None
         q = self.session.query(EnumModel)
         q = q.filter(EnumModel.name == name)
+        q = q.filter(EnumModel.status != False)
         q = q.filter(EnumModel.is_del != True)
         q = q.order_by(EnumModel.id.asc())
+        q = q.order_by(EnumModel.order_id.asc())
         q = q.all()
         return q
 
@@ -67,7 +82,8 @@ class EnumBo(BOBase):
             return None
         q = self.session.query(EnumModel)
         q = q.filter(EnumModel.name.in_(names))
+        q = q.filter(EnumModel.status != False)
         q = q.filter(EnumModel.is_del != True)
-        q = q.order_by(EnumModel.id.asc())
+        q = q.order_by(EnumModel.order_id.asc())
         q = q.all()
         return q
