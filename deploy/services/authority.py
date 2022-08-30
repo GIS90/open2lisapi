@@ -586,11 +586,15 @@ class AuthorityService(object):
         if model:
             return Status(
                 213, 'failure', '角色RTX已存在，请重新输入', {}).json()
+        md5_id = md5(new_params.get('engname'))
+        model_md5_id = self.role_bo.get_model_by_md5(md5=md5_id)
+        if model_md5_id:
+            return Status(
+                213, 'failure', '角色MD5已存在，请重新输入RTX', {}).json()
         # ///////////////// add new model 、、、、、、、、、、
         new_model = self.role_bo.new_mode()
         new_model.engname = new_params.get('engname')
         new_model.chnname = new_params.get('chnname')
-        md5_id = md5(new_params.get('engname'))
         new_model.md5_id = md5_id
         new_model.authority = ''
         new_model.introduction = new_params.get('introduction')

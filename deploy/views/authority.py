@@ -106,10 +106,11 @@ def role_add():
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
+    # 参数
+    params = request.get_json() or {}
+    return AuthorityService().role_add(params)
     try:
-        # 参数
-        params = request.get_json() or {}
-        return AuthorityService().role_add(params)
+        pass
     except Exception as e:
         LOG.error("authority>role add is error: %s" % e)
         return Status(501, 'failure',
