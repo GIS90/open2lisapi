@@ -39,7 +39,7 @@ from itertools import groupby
 from deploy.bo.enum import EnumBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import d2s
+from deploy.utils.utils import d2s, get_now
 
 
 class InfoService(object):
@@ -72,6 +72,12 @@ class InfoService(object):
         'order_id'
     ]
 
+    req_dict_status_attrs = [
+        'rtx_id',
+        'md5',
+        'status'
+    ]
+
     def __init__(self):
         """
         information service class initialize
@@ -92,7 +98,7 @@ class InfoService(object):
             if attr == 'name':
                 _res[attr] = model.name if getattr(model, 'name') else ""
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
+                _res['md5'] = model.md5_id if getattr(model, 'md5_id') else ""
             elif attr == 'key':
                 _res[attr] = model.key if getattr(model, 'key') else ""
             elif attr == 'value':
@@ -174,4 +180,55 @@ class InfoService(object):
                 n += 1
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def dict_status(self, params: dict) -> dict:
+        """
+        information > change dict data status by md5
+        :return: json data
+
+        状态改变：
+        true：启用
+        false：禁用
+        """
+        # not parameters
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check and format
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dict_status_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k != 'status':     # value check, is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'status':   # status check: 只允许为bool类型
+                if not isinstance(v, bool):
+                    return Status(
+                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}).json()
+                new_params[k] = v
+            else:
+                new_params[k] = str(v)
+        # <<<<<<<<<<<<< get and check data model >>>>>>>>>>>>>>>
+        model = self.enum_bo.get_enum_by_md5(md5_id=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', '数据已删除，不允许设置' or StatusMsgs.get(304), {}).json()
+        # ----------- change status -----------
+        print(new_params)
+        model.status = new_params.get('status')
+        model.update_rtx = new_params.get('rtx_id')
+        model.update_time = get_now()
+        self.enum_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()

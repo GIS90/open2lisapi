@@ -57,13 +57,33 @@ def dict_list():
     if request.method == 'GET':
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
-    # 参数
-    params = request.get_json() or {}
-    return InfoService().dict_list(params)
     try:
-        pass
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_list(params)
     except Exception as e:
         LOG.error("info>dict list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/dict_status/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def dict_status():
+    """
+    information > change dict data status by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_status(params)
+    except Exception as e:
+        LOG.error("info>dict status is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
 

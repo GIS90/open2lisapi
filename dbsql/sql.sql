@@ -279,27 +279,27 @@ insert into
 enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`)
 VALUES
 -- bool
-('bool-type', '5886ecb16dfd303f97ef685f943f4735', '1', '是', '是', TRUE, 'admin', 1),
-('bool-type', '5886ecb16dfd303f97ef685f943f4735', '0', '否', '否', TRUE, 'admin', 2),
+('bool-type', '9dfa56939efce58a64ec76651bfb1320', '1', '是', '是', TRUE, 'admin', 1),
+('bool-type', '47191a26aa630c57701f6034b9fa495a', '0', '否', '否', TRUE, 'admin', 2),
 -- excel-type
-('excel-type', '3a4048a9372203790ebfc88337f38981', '1', '合并', '表格处理方式合并', TRUE, 'admin', 1),
-('excel-type', '3a4048a9372203790ebfc88337f38981', '2', '拆分', '表格处理方式拆分', TRUE, 'admin', 2),
+('excel-type', 'ecf0b1978b354bfcf243ef316c252101', '1', '合并', '表格处理方式合并', TRUE, 'admin', 1),
+('excel-type', '67128fcae7732df36a12e6e760aa39c7', '2', '拆分', '表格处理方式拆分', TRUE, 'admin', 2),
 -- excel-split-store
-('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '1', '多表一Sheet', '表格拆分多表一Sheet存储方式', TRUE, 'admin', 1),
-('excel-split-store', '1c4512eb1dd13274569ec4763adfb12f', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', TRUE, 'admin', 2),
+('excel-split-store', '37ca191a1f70223c75c002fe80066a79', '1', '多表一Sheet', '表格拆分多表一Sheet存储方式', TRUE, 'admin', 1),
+('excel-split-store', '1cf44e3c01b8c185e829a912375c3d88', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', TRUE, 'admin', 2),
 -- excel-num
-('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '1', '行', '行', TRUE, 'admin', 1),
-('excel-num', '9890c80bbbbf66fa44c808243186c4d1', '2', '列', '列', TRUE, 'admin', 2),
+('excel-num', 'ed6bfec14176d9717f16049ceaef1997', '1', '行', '行', TRUE, 'admin', 1),
+('excel-num', '41a761bd675bda3f95fabb16987675e9', '2', '列', '列', TRUE, 'admin', 2),
 -- menu-level
-('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '1', '一级菜单', '一级菜单', TRUE, 'admin', 1),
-('menu-level', 'cde5d071f0b5bbb56033121304b6604a', '2', '二级菜单', '二级菜单', TRUE, 'admin', 2),
+('menu-level', 'fae5bfbcfdebe7d1a522fd2d10c91284', '1', '一级菜单', '一级菜单', TRUE, 'admin', 1),
+('menu-level', '7da62425a607c5fc8d0e5f4d07875a1f', '2', '二级菜单', '二级菜单', TRUE, 'admin', 2),
 -- 文件类型
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '1', 'WORD', 'WORD文档', TRUE, 'admin', 1),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '2', 'EXCEL', 'EXCEL表格', TRUE, 'admin', 2),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '3', 'PPT', 'PPT演示文稿', TRUE, 'admin', 3),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '4', '文本', '文本文件', TRUE, 'admin', 4),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '5', 'PDF', 'PDF文件', TRUE, 'admin', 5),
-('file-type', 'e74dbc2d915cec9012135907cc4932eb', '99', '其他', '其他类型文件', TRUE, 'admin', 6);
+('file-type', '9086ab2a079b27a89e959a7588063e13', '1', 'WORD', 'WORD文档', TRUE, 'admin', 1),
+('file-type', 'f65e091a48c00c5439e6bf536b35c03a', '2', 'EXCEL', 'EXCEL表格', TRUE, 'admin', 2),
+('file-type', 'd9e8eab4ac9e4dba2d7798b64a335e36', '3', 'PPT', 'PPT演示文稿', TRUE, 'admin', 3),
+('file-type', 'b3e251df695d0d1381f356c9a2de6f81', '4', '文本', '文本文件', TRUE, 'admin', 4),
+('file-type', 'e88041819de93ea5fe50d02816b6d443', '5', 'PDF', 'PDF文件', TRUE, 'admin', 5),
+('file-type', '8ba23dbd99ce1fd1721848806f396a2d', '99', '其他', '其他类型文件', TRUE, 'admin', 6);
 
 
 
