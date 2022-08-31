@@ -82,7 +82,7 @@ def dict_status():
         params = request.get_json() or {}
         return InfoService().dict_status(params)
     except Exception as e:
-        LOG.error("info>dict status is error: %s" % e)
+        LOG.error("info>dict status one is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -91,7 +91,7 @@ def dict_status():
 @watcher(watcher_args=request)
 def dict_delete():
     """
-    information > delete one dict data status by md5
+    information > delete one dict data by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -111,7 +111,7 @@ def dict_delete():
 @watcher(watcher_args=request)
 def dict_deletes():
     """
-    information > delete many dict data status by md5 list
+    information > delete many dict data by md5 list
     :return: json data
     """
     if request.method == 'GET':
@@ -127,4 +127,22 @@ def dict_deletes():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
+@info.route('/dict_disables/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def dict_disables():
+    """
+    information > batch many dict data status to False by md5 list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_disables(params)
+    except Exception as e:
+        LOG.error("info>dict status many to false is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 

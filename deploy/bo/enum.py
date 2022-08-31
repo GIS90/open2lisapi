@@ -109,3 +109,19 @@ class EnumBo(BOBase):
                       EnumModel.delete_time: get_now()},
                      synchronize_session=False)
         return q
+
+    def batch_disable_by_md5(self, params):
+        # no md5 list, return 0
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(EnumModel)
+        q = q.filter(EnumModel.md5_id.in_(md5_list))
+        # q = q.filter(EnumModel.is_del != 1)     # filter: is or not deleted
+        q = q.update({EnumModel.status: False,
+                      EnumModel.update_rtx: rtx_id,
+                      EnumModel.update_time: get_now()},
+                     synchronize_session=False)
+        return q

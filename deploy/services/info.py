@@ -78,6 +78,11 @@ class InfoService(object):
         'status'
     ]
 
+    req_dict_disables_attrs = [
+        'rtx_id',
+        'list'
+    ]
+
     req_delete_attrs = [
         'rtx_id',
         'md5'
@@ -245,7 +250,7 @@ class InfoService(object):
 
     def dict_delete(self, params: dict) -> dict:
         """
-        delete one dict data status by md5
+        delete one dict data by md5
         params is dict
         """
         # ====================== parameters check ======================
@@ -285,7 +290,7 @@ class InfoService(object):
 
     def dict_deletes(self, params: dict) -> dict:
         """
-        delete many dict data status by md5 list
+        delete many dict data by md5 list
         params is dict
         """
         # ====================== parameters check ======================
@@ -314,5 +319,39 @@ class InfoService(object):
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(100, 'failure',
-                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def dict_disables(self, params: dict) -> dict:
+        """
+        batch many dict data status to False by md5 list
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new format parameter
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dict_disables_attrs:     # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # << batch disable >>
+        res = self.enum_bo.batch_disable_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(100, 'failure',
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()

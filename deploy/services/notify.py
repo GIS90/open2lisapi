@@ -601,7 +601,7 @@ class NotifyService(object):
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(100, 'failure',
-                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def dtalk_detail(self, params: dict):
@@ -1040,7 +1040,7 @@ class NotifyService(object):
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(100, 'failure',
-                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def dtalk_robot_detail(self, params: dict):
