@@ -445,10 +445,12 @@ class InfoService(object):
             elif k == 'status' and not isinstance(v, bool):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
-            elif k == 'order_id':
-                # TODO检查数据
-                pass
-            new_params[k] = str(v) if k != 'status' else v
+            elif k == 'order_id':  # 顺序ID特殊判断处理
+                if not str(v).isdigit():
+                    return Status(
+                        213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
+                v = int(v)
+            new_params[k] = str(v) if k not in ['order_id', 'status'] else v
 
         # ========= check data
         model = self.enum_bo.get_model_by_md5(new_params.get('md5'))
@@ -465,7 +467,7 @@ class InfoService(object):
         model.value = new_params.get('value')
         model.description = new_params.get('description')
         model.status = new_params.get('status') or False    # 默认值False，非禁用状态
-        model.order_id = int(new_params.get('order_id')) or 1   # 无order_id，默认值1
+        model.order_id = new_params.get('order_id')   # 无order_id，默认值1
         self.enum_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
