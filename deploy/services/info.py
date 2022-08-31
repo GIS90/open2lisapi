@@ -39,7 +39,7 @@ from itertools import groupby
 from deploy.bo.enum import EnumBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import d2s, get_now
+from deploy.utils.utils import d2s, get_now, check_length
 
 
 class InfoService(object):
@@ -93,6 +93,21 @@ class InfoService(object):
         'list'
     ]
 
+    req_detail_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
+    req_dict_update_attrs = [
+        'rtx_id',
+        'md5',
+        'key',
+        'value',
+        'status',
+        'description',
+        'order_id'
+    ]
+
     def __init__(self):
         """
         information service class initialize
@@ -113,7 +128,7 @@ class InfoService(object):
             if attr == 'name':
                 _res[attr] = model.name if getattr(model, 'name') else ""
             elif attr == 'md5_id':
-                _res['md5'] = model.md5_id if getattr(model, 'md5_id') else ""
+                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
             elif attr == 'key':
                 _res[attr] = model.key if getattr(model, 'key') else ""
             elif attr == 'value':
@@ -318,7 +333,7 @@ class InfoService(object):
         res = self.enum_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(100, 'failure',
+            else Status(303, 'failure',
                         "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
@@ -352,6 +367,106 @@ class InfoService(object):
         res = self.enum_bo.batch_disable_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(100, 'failure',
+            else Status(303, 'failure',
                         "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def dict_detail(self, params: dict):
+        """
+        get dict detail information by md5
+        :return: json data
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:  # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
+        model = self.enum_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._enum_model_to_dict(model, _type='detail')
+        ).json()
+
+    def dict_update(self, params: dict):
+        """
+        update dict data information by md5, contain:
+            - key
+            - value
+            - description 描述
+            - status 状态
+            - order_id 排序ID
+        :return: json data
+        """
+        # ==================== check parameters ====================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_dict_update_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k not in ['order_id', 'status']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # check: length
+            if k == 'key' and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'value' and not check_length(v, 55):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'description' and not check_length(v, 255):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'status' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            elif k == 'order_id':
+                # TODO检查数据
+                pass
+            new_params[k] = str(v) if k != 'status' else v
+
+        # ========= check data
+        model = self.enum_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # --------------------------------------- update model --------------------------------------
+        model.key = new_params.get('key')
+        model.value = new_params.get('value')
+        model.description = new_params.get('description')
+        model.status = new_params.get('status') or False    # 默认值False，非禁用状态
+        model.order_id = int(new_params.get('order_id')) or 1   # 无order_id，默认值1
+        self.enum_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()

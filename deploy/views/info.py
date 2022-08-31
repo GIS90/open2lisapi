@@ -40,6 +40,7 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.watcher import watcher
+from deploy.utils.utils import timeer
 from deploy.services.info import InfoService
 
 
@@ -48,7 +49,7 @@ CORS(info, supports_credentials=True)
 
 
 @info.route('/dict_list/', methods=['GET', 'POST'], strict_slashes=False)
-@watcher(watcher_args=request)
+@timeer
 def dict_list():
     """
     information > dict list
@@ -143,6 +144,53 @@ def dict_disables():
         return InfoService().dict_disables(params)
     except Exception as e:
         LOG.error("info>dict status many to false is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/dict_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def dict_detail():
+    """
+    information > get dict detail information by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_detail(params)
+    except Exception as e:
+        LOG.error("info>dict detail is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/dict_update/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def dict_update():
+    """
+    update dict data information by md5, contain:
+        - key
+        - value
+        - description 描述
+        - status 状态
+        - order_id 排序ID
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_update(params)
+    except Exception as e:
+        LOG.error("info>dict update is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
