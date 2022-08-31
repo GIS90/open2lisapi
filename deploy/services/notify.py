@@ -600,7 +600,7 @@ class NotifyService(object):
         res = self.dtalk_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
+            else Status(100, 'failure',
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
@@ -1039,7 +1039,7 @@ class NotifyService(object):
         res = self.dtalk_robot_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
+            else Status(100, 'failure',
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 

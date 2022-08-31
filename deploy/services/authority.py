@@ -718,7 +718,7 @@ class AuthorityService(object):
         res = self.role_bo.batch_delete_by_md5(params=new_params)
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
+            else Status(100, 'failure',
                         "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
@@ -1086,7 +1086,7 @@ class AuthorityService(object):
         res = self.sysuser_bo.batch_delete_by_md5_list(params=new_params)
         return Status(100, 'success', '用户注销成功' or StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure', "成功：[%s]，失败：[%s]" % (res, (len(new_params.get('list')) - res)), {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
+            else Status(100, 'failure', "成功：[%s]，失败：[%s]" % (res, (len(new_params.get('list')) - res)), {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
     def user_status(self, params: dict) -> dict:
         """

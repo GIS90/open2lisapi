@@ -83,6 +83,11 @@ class InfoService(object):
         'md5'
     ]
 
+    req_deletes_attrs = [
+        'rtx_id',
+        'list'
+    ]
+
     def __init__(self):
         """
         information service class initialize
@@ -238,7 +243,7 @@ class InfoService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dict_delete(self, params: dict):
+    def dict_delete(self, params: dict) -> dict:
         """
         delete one dict data status by md5
         params is dict
@@ -277,3 +282,37 @@ class InfoService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
+
+    def dict_deletes(self, params: dict) -> dict:
+        """
+        delete many dict data status by md5 list
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new format parameter
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:     # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # << batch delete >>
+        res = self.enum_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(100, 'failure',
+                        "删除结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()

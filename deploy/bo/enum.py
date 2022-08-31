@@ -36,6 +36,7 @@ from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.enum import EnumModel
+from deploy.utils.utils import get_now
 
 
 class EnumBo(BOBase):
@@ -92,3 +93,19 @@ class EnumBo(BOBase):
         q = self.session.query(EnumModel)
         q = q.filter(EnumModel.md5_id == md5_id)
         return q.first()
+
+    def batch_delete_by_md5(self, params):
+        # no md5 list, return 0
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(EnumModel)
+        q = q.filter(EnumModel.md5_id.in_(md5_list))
+        q = q.filter(EnumModel.is_del != 1)     # only delete is_del is False
+        q = q.update({EnumModel.is_del: True,
+                      EnumModel.delete_rtx: rtx_id,
+                      EnumModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q

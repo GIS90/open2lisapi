@@ -102,7 +102,27 @@ def dict_delete():
         params = request.get_json() or {}
         return InfoService().dict_delete(params)
     except Exception as e:
-        LOG.error("info>dict status is error: %s" % e)
+        LOG.error("info>dict delete one is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/dict_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def dict_deletes():
+    """
+    information > delete many dict data status by md5 list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_deletes(params)
+    except Exception as e:
+        LOG.error("info>dict delete many is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
