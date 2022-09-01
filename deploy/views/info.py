@@ -173,7 +173,7 @@ def dict_detail():
 @watcher(watcher_args=request)
 def dict_update():
     """
-    update dict data information by md5, contain:
+    information > update dict data information by md5, contain:
         - key
         - value
         - description 描述
@@ -191,6 +191,48 @@ def dict_update():
         return InfoService().dict_update(params)
     except Exception as e:
         LOG.error("info>dict update is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/dict_names/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def dict_names():
+    """
+    information > get enum names list: key-value
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_names(params)
+    except Exception as e:
+        LOG.error("info>dict names is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/dict_add/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def dict_add():
+    """
+    information > add enum model
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().dict_add(params)
+    except Exception as e:
+        LOG.error("info>dict add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 

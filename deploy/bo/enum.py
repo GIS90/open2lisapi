@@ -32,7 +32,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python menu.py
 # ------------------------------------------------------------
-from sqlalchemy import or_
+from sqlalchemy import or_, distinct
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.enum import EnumModel
@@ -124,4 +124,22 @@ class EnumBo(BOBase):
                       EnumModel.update_rtx: rtx_id,
                       EnumModel.update_time: get_now()},
                      synchronize_session=False)
+        return q
+
+    def enum_group_by_name(self):
+        q = self.session.query(distinct(EnumModel.name)).all()
+        return q
+
+    def get_add_model_by_name(self, name):
+        q = self.session.query(EnumModel)
+        q = q.filter(EnumModel.name == str(name))
+        q = q.all()
+        return q
+
+    def get_model_by_name_key(self, name, key):
+        q = self.session.query(EnumModel)
+        q = q.filter(EnumModel.name == str(name))
+        q = q.filter(EnumModel.key == str(key))
+        q = q.filter(EnumModel.is_del != 1)
+        q = q.all()
         return q

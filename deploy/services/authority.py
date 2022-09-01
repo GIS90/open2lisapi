@@ -1583,15 +1583,17 @@ class AuthorityService(object):
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
             elif k == 'order_id':       # 顺序ID特殊判断处理
-                if not str(v).isdigit():
+                if v and not str(v).isdigit():
                     return Status(
                         213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                v = int(v)
+                if v:
+                    v = int(v)
             elif k in self.req_menu_int_update_attrs:
-                if not str(v).isdigit():
+                if v and not str(v).isdigit():
                     return Status(
                         213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                v = int(v)
+                if v:
+                    v = int(v)
             else:
                 v = str(v)
             new_params[k] = v

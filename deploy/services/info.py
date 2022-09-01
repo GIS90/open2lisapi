@@ -39,7 +39,7 @@ from itertools import groupby
 from deploy.bo.enum import EnumBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import d2s, get_now, check_length
+from deploy.utils.utils import d2s, get_now, check_length, md5
 
 
 class InfoService(object):
@@ -106,6 +106,20 @@ class InfoService(object):
         'status',
         'description',
         'order_id'
+    ]
+
+    req_dict_names_attrs = [
+        'rtx_id'
+    ]
+
+    req_dict_add_attrs = [
+        'rtx_id',
+        'name',
+        'key',
+        'value',
+        'description',
+        'order_id',
+        'type'
     ]
 
     def __init__(self):
@@ -446,10 +460,10 @@ class InfoService(object):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
             elif k == 'order_id':  # 顺序ID特殊判断处理
-                if not str(v).isdigit():
+                if v and not str(v).isdigit():
                     return Status(
                         213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                v = int(v)
+                v = int(v) if v else 1  # 默认order_id：1
             new_params[k] = str(v) if k not in ['order_id', 'status'] else v
 
         # ========= check data
@@ -471,4 +485,141 @@ class InfoService(object):
         self.enum_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def dict_names(self, params: dict):
+        """
+        get enum names list: key-value
+        :return: json data
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dict_names_attrs:  # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
+        models = self.enum_bo.enum_group_by_name()
+        # no data
+        if not models:
+            return Status(
+                100, 'success', StatusMsgs.get(100), []).json()
+        names = list()
+        # not exist
+        for _m in models:
+            if not _m: continue
+            names.append({
+                'label': _m[0],
+                'value': _m[0]
+            })
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), names
+        ).json()
+
+    def dict_add(self, params: dict):
+        """
+        add enum model, contain:
+            name
+            key
+            value
+            desc
+            order_id
+            type
+        :return: json data
+
+        思路：
+        1.参数校验
+        2.新增/维护模式数据检查
+        3.新增
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dict_add_attrs:  # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k not in ['order_id', 'status']:       # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # check: length
+            if k == 'name' and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'key' and not check_length(v, 25):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'value' and not check_length(v, 55):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'description' and not check_length(v, 255):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'status' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            elif k == 'type' and v not in [1, 2, '1', '2']:     # type类型特殊检查
+                return Status(
+                    213, 'failure', u'请求参数%s不允许' % k, {}).json()
+            elif k == 'order_id':  # 顺序ID特殊判断处理
+                if v and not str(v).isdigit():
+                    return Status(
+                        213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
+                v = int(v) if v else 1  # 默认order_id：1
+            new_params[k] = str(v) if k not in ['order_id', 'status'] else v
+        # <<<<<<<<<<<<<<< 模型类型判断 >>>>>>>>>>>>>>>>>
+        """
+        类型：
+            type=1：纯新增
+            type=1：维护新增，已有name
+        """
+        _type = int(new_params.get('type'))
+        models = self.enum_bo.get_add_model_by_name(name=new_params.get('name'))
+        """ type=1：纯新增 校验name不允许存在 """
+        if _type == 1 and models:
+            return Status(
+                301, 'failure', "枚举RTX已存在，请更换" or StatusMsgs.get(301), {}).json()
+        """ type=2：维护新增 校验name需要存在 """
+        if _type == 2 and not models:
+            return Status(
+                302, 'failure', "枚举RTX不存在，请重新选择" or StatusMsgs.get(301), {}).json()
+        if _type == 2:
+            _m = self.enum_bo.get_model_by_name_key(name=new_params.get('name'), key=new_params.get('key'))
+            if _m:
+                return Status(
+                    301, 'failure', "数据已存在，请修改Key" or StatusMsgs.get(301), {}).json()
+        """ md5 检验 """
+        md5_id = md5('%s-%s-%s' % (new_params.get('name'), new_params.get('key'), get_now()))
+        model_md5 = self.enum_bo.get_model_by_md5(md5_id)
+        if model_md5:
+            return Status(
+                301, 'failure', "数据已存在，请更换MD5" or StatusMsgs.get(301), {}).json()
+        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< add model >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        new_model = self.enum_bo.new_mode()
+        for attr in self.req_dict_add_attrs:
+            if not attr or attr in ['rtx_id', 'type']: continue
+            setattr(new_model, attr, new_params.get(attr))
+        setattr(new_model, 'md5_id', md5_id)
+        setattr(new_model, 'create_rtx', new_params.get('rtx_id'))
+        setattr(new_model, 'create_time', get_now())
+        setattr(new_model, 'is_del', False)     # 是否删除
+        setattr(new_model, 'status', True)      # 状态
+        self.enum_bo.add_model(new_model)
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
