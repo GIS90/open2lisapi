@@ -52,7 +52,7 @@ CORS(dashboard, supports_credentials=True)
 
 
 @dashboard.route('/pan/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def pan():
     """
     dashboard pan chart data
@@ -78,7 +78,7 @@ def pan():
 
 
 @dashboard.route('/pan_chart/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def pan_chart():
     """
     dashboard pan chart data
@@ -104,7 +104,7 @@ def pan_chart():
 
 
 @dashboard.route('/index/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def index():
     """
     dashboard index chart data initialize

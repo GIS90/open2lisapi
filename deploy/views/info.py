@@ -49,7 +49,7 @@ CORS(info, supports_credentials=True)
 
 
 @info.route('/dict_list/', methods=['GET', 'POST'], strict_slashes=False)
-@timeer
+@watcher(watcher_args=request)
 def dict_list():
     """
     information > dict list

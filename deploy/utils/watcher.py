@@ -42,12 +42,19 @@ from functools import wraps
 from pprint import pprint
 
 from deploy.utils.logger import logger as LOG
-from deploy.utils.utils import get_real_ip, get_now, get_rtx_id
+from deploy.utils.utils import get_rtx_id
 from deploy.services.request import RequestService
 
 
 # 声明一个全局RequestService对象
 request_service = RequestService()
+GLOBAL_NEW_ENDPOINR = [
+    'dashboard.pan',
+    'dashboard.pan_chart',
+    'dashboard.index',
+    'auth.user_list',
+    'info.dict_list'
+]
 
 
 # method desc: API request to write database table [request]
@@ -66,8 +73,10 @@ def __add_request(request, cost, rtx=None):
     method = getattr(request, 'method')     # method allow only get or post
     if method and str(method).upper() not in ['GET', 'POST']:
         return False
-
-    request_service.add_request(request=request, cost=cost, rtx=rtx_id)
+    if hasattr(request, 'endpoint') and getattr(request, 'endpoint') in GLOBAL_NEW_ENDPOINR:
+        RequestService().add_request(request=request, cost=cost, rtx=rtx_id)
+    else:
+        request_service.add_request(request=request, cost=cost, rtx=rtx_id)
 
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>> API打点计时器 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
