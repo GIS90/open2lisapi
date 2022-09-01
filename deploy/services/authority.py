@@ -1586,8 +1586,7 @@ class AuthorityService(object):
                 if v and not str(v).isdigit():
                     return Status(
                         213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                if v:
-                    v = int(v)
+                v = int(v) if v else 1  # 默认order_id：1
             elif k in self.req_menu_int_update_attrs:
                 if v and not str(v).isdigit():
                     return Status(
