@@ -40,7 +40,6 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.watcher import watcher
-from deploy.utils.utils import timeer
 from deploy.services.info import InfoService
 
 

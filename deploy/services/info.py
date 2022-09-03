@@ -184,7 +184,7 @@ class InfoService(object):
 
     def dict_list(self, params: dict) -> dict:
         """
-        dict list by params
+        get dict data list by params
         params is dict
         return json data
         """
@@ -209,6 +209,7 @@ class InfoService(object):
 
         # **************** <get data> *****************
         res, total = self.enum_bo.get_all(new_params)
+        # no data
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
@@ -240,7 +241,7 @@ class InfoService(object):
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
 
-        # parameters check and format
+        # ================= parameters check and format =================
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -268,7 +269,6 @@ class InfoService(object):
             return Status(
                 304, 'failure', '数据已删除，不允许设置' or StatusMsgs.get(304), {}).json()
         # ----------- change status -----------
-        print(new_params)
         model.status = new_params.get('status')
         model.update_rtx = new_params.get('rtx_id')
         model.update_time = get_now()
@@ -517,10 +517,7 @@ class InfoService(object):
         # not exist
         for _m in models:
             if not _m: continue
-            names.append({
-                'label': _m[0],
-                'value': _m[0]
-            })
+            names.append({'label': _m[0], 'value': _m[0]})
         # return data
         return Status(
             100, 'success', StatusMsgs.get(100), names
