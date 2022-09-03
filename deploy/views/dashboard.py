@@ -63,13 +63,9 @@ def pan():
             211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
-        start = datetime.now()
         # 参数
         params = request.get_json() or {}
         res = DashboardService().pan(params)
-        end = datetime.now()
-        cost = round((end - start).microseconds * pow(0.1, 6), 4)
-        RequestService().add_request(request=request, cost=cost, rtx=params.get('rtx_id'))
         return res
     except Exception as e:
         LOG.error("dashboard>pan is error: %s" % e)
@@ -89,13 +85,9 @@ def pan_chart():
             211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
-        start = datetime.now()
         # 参数
         params = request.get_json() or {}
         res = DashboardService().pan_chart(params)
-        end = datetime.now()
-        cost = round((end - start).microseconds * pow(0.1, 6), 4)
-        RequestService().add_request(request=request, cost=cost, rtx=params.get('rtx_id'))
         return res
     except Exception as e:
         LOG.error("dashboard>pan chart is error: %s" % e)
@@ -115,13 +107,9 @@ def index():
             211, 'failure', StatusMsgs.get(211), {}).json()
 
     try:
-        start = datetime.now()
         # 参数
         params = request.get_json() or {}
         res = DashboardService().index(params)
-        end = datetime.now()
-        cost = round((end - start).microseconds * pow(0.1, 6), 4)
-        RequestService().add_request(request=request, cost=cost, rtx=params.get('rtx_id'))
         return res
     except Exception as e:
         LOG.error("dashboard>index is error: %s" % e)
