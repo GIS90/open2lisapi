@@ -122,7 +122,7 @@ class RequestBo(BOBase):
         q = q.order_by(RequestModel.create_date.asc())
         return q.all()
 
-    def get_func_count(self, params):
+    def get_func_rank(self, params):
         start_time = params.get('start_time')
         end_time = params.get('end_time')
         func_names = params.get('func_names')
@@ -134,4 +134,21 @@ class RequestBo(BOBase):
             q = q.filter(RequestModel.create_time <= end_time)
         if func_names:
             q = q.filter(RequestModel.endpoint.in_(func_names))
+        q = q.order_by(func.count(1).desc())
+        return q.all()
+
+    def get_func_rank_group_by_api_date(self, params):
+        start_time = params.get('start_time')
+        end_time = params.get('end_time')
+        func_names = params.get('func_names')
+        nums = func.count(1).label('count')
+        q = self.session.query(RequestModel.endpoint, RequestModel.create_date, nums)\
+            .group_by(RequestModel.endpoint, RequestModel.create_date)
+        if start_time:
+            q = q.filter(RequestModel.create_time >= start_time)
+        if end_time:
+            q = q.filter(RequestModel.create_time <= end_time)
+        if func_names:
+            q = q.filter(RequestModel.endpoint.in_(func_names))
+        q = q.order_by(RequestModel.endpoint.asc(), RequestModel.create_date.asc())
         return q.all()

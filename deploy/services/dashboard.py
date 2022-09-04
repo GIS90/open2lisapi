@@ -214,13 +214,17 @@ class DashboardService(object):
         ).json()
 
     def _get_index_one(self):
+        """
+        指标1：系统功能累积使用情况
+        """
         func_names = {
             'office.excel_merge': "表格合并",
             'office.excel_split': "表格拆分",
             'office.office_pdf_to': "PDF转WORD",
             'notify.dtalk_send': "钉钉绩效"
         }
-        _res = self.request_bo.get_func_count(params={'func_names': list(func_names.keys())})
+        # <<<<<<<<<<<<<<<<<< get all func rank >>>>>>>>>>>>>>>>>>>
+        _res = self.request_bo.get_func_rank(params={'func_names': list(func_names.keys())})
         _ret_dict = OrderedDict()
         for key in func_names.keys():  # 初始化数据，默认为0
             if not key: continue
@@ -229,22 +233,92 @@ class DashboardService(object):
         if _res:
             for _r in _res:  # 遍历每一个指定格式数据：date count
                 if not _r: continue
+                if _r and _r[0] not in func_names.keys(): continue
                 _k = _r[0]
-                if _k in _ret_dict.keys():  # 存在 && 更新
-                    _ret_dict[_k] = _r[1]
+                _ret_dict[_k] = _r[1]   # 存在 && 更新
         _ret_res = list()
         for k, v in _ret_dict.items():
             if not k: continue
             _ret_res.append({"name": func_names.get(k), "value": v})
+        _ret_data = {
+            'data': _ret_res,
+            'legend': list(func_names.values())
+        }
+        return _ret_data
+
+    def _get_index_three(self):
+        """
+        指标3：本周API请求排行榜
+        """
+        # 不展示指标列表API
+        no_show_endpoint = [
+            'user.auth'
+        ]
+        # 最大展示指标数量
+        SHOW_INDEX_MAX = 5
+        api_endpoints = list()
+        # 本周日期
+        local_week = get_day_week_date(query_date=get_now(format="%Y-%m-%d"))
+        params = {
+            'start_time': '%s 00:00:00' % local_week.get('start_week_date'),
+            'end_time': '%s 23:59:59' % local_week.get('end_week_date')
+        }
+        # <<<<<<<<<<<<<<<<<<<< get all func rank: 索取本周请求做多API>>>>>>>>>>>>>>>>>>>>>>
+        api_res = self.request_bo.get_func_rank(params=params)
+        start = 0
+        for _d in api_res:
+            """
+            continue：
+              - 无数据 
+              - 指定api endpoint
+              - dashboard.%
+            """
+            if not _d or _d[0] in no_show_endpoint \
+                    or str(_d[0]).startswith('dashboard.'): continue
+            api_endpoints.append(_d[0])
+            start += 1
+            if start >= SHOW_INDEX_MAX:
+                break
+
+        # <<<<<<<<<<<<<<<<<<<< 获取指定API本周次数 >>>>>>>>>>>>>>>>>>>>>>
+        params['func_names'] = api_endpoints
+        _res = self.request_bo.get_func_rank_group_by_api_date(params=params)
+        _ret_dict = OrderedDict()
+        for _d in api_endpoints:  # 初始化数据，默认为0
+            if not _d: continue
+            _ret_dict[_d] = [0, 0, 0, 0, 0, 0, 0]   # 本周数据初始化0
+        """ ======== 在ret_res不为空情况下进行遍历 ======== """
+        if _res:
+            week_dates = local_week.get('week_date')     # 本周日期的列表，用于记录哪一天
+            for _r in _res:  # 遍历每一个指定格式数据：date count
+                if not _r: continue
+                if _r[0] not in api_endpoints: continue
+                index = week_dates.index(d2s(_r[1], fmt="%Y-%m-%d"))   # 记录索引，代表周一 ～ 周末 下角标
+                try:
+                    if index > 7: continue      # 不是本周的数据
+                except:
+                    continue
+                _ret_dict[_r[0]][index] = _r[2]     # api endpoint -> date -> update
+        _ret_list = list()
+        for api in api_endpoints:
+            if not api: continue
+            _ret_list.append(_ret_dict.get(api))
+        # 按API顺序加载
+        _ret_res = {
+            'data': _ret_list,
+            'legend': api_endpoints,
+            'title': '本周API请求次数排名TOP%s' % SHOW_INDEX_MAX,
+            'subtitle': '%s ~ %s' % (local_week.get('start_week_date'), local_week.get('end_week_date'))
+        }
         return _ret_res
 
     def index(self, params: dict) -> dict:
         """
         dashboard index chart data initialize
         指标数据 contain:
-        index one 指标一：功能使用率
+        index one 指标一：工具累积使用情况
         index two 指标二：
-        index three 指标三：
+        index three 指标三：本周API请求排行榜
         """
         # ================= parameters check and format ====================
         if not params:
@@ -270,6 +344,8 @@ class DashboardService(object):
             ret_res_json = self._get_index_one()
         elif _type == '2':
             pass
+        elif _type == '3':
+            ret_res_json = self._get_index_three()
         else:
             pass
 

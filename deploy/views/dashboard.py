@@ -106,10 +106,10 @@ def index():
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
+    # 参数
+    params = request.get_json() or {}
+    res = DashboardService().index(params)
     try:
-        # 参数
-        params = request.get_json() or {}
-        res = DashboardService().index(params)
         return res
     except Exception as e:
         LOG.error("dashboard>index is error: %s" % e)
