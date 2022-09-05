@@ -242,7 +242,8 @@ class DashboardService(object):
             _ret_res.append({"name": func_names.get(k), "value": v})
         _ret_data = {
             'data': _ret_res,
-            'legend': list(func_names.values())
+            'legend': list(func_names.values()),
+            'title': '工具累积使用排名TOP%s' % len(func_names)
         }
         return _ret_data
 
