@@ -887,7 +887,7 @@ class OfficeService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_merge_attrs:       # illegal key
+            if k not in self.req_merge_attrs:       # illegal parameter key
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
@@ -898,18 +898,20 @@ class OfficeService(object):
             if k == 'name' and not check_length(v, 80):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            # <<<<<<<<< new parameters >>>>>>>>>
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
-                new_params[k] = [str(i) for i in v]
+                new_params[k] = [str(i) for i in v]     # list type
             elif k == 'blank':
-                new_params[k] = int(v) if v else 0
+                new_params[k] = int(v) if v else 0      # int type
             else:
-                new_params[k] = str(v)
+                new_params[k] = str(v)                  # string type
         """ =========================== merge: 2.get and format data=========================== """
         # <<<<<<<<<<<< get batch merge model >>>>>>>>>>>>>>>
         res = self.excel_source_bo.get_model_by_md5_list(md5_list=new_params.get('list'))
+        # no data, return
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {}).json()
@@ -922,7 +924,7 @@ class OfficeService(object):
         # data structure: {'file': f, 'sheets': set_sheet, 'nsheet': n}
         is_openpyxl = True
         for _r in res:
-            if not _r or not _r.name or not _r.local_url: continue
+            if not _r or not _r.name or not _r.local_url: continue  # no exist -> continue
             if os.path.splitext(str(_r.name))[-1] == '.xls':
                 is_openpyxl = False
             all_merge_files.append({
@@ -930,11 +932,12 @@ class OfficeService(object):
                 'sheets': str(_r.set_sheet).split(';') if _r.set_sheet else [0],
                 'nsheet': int(_r.nsheet),
             })
-        """ =========================== merge: 3.merge=========================== """
-        # <<<<<<<<<<<<<<< merge >>>>>>>>>>>>>>>
+        """ 
+        =========================== merge: 3.merge=========================== 
         # many file to merge
         # extend parameter:
         #   - blank: 文件合并之间的空格数
+        """
         merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank')) \
             if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank'))
         if merge_res.get('status_id') != 100:
@@ -965,7 +968,7 @@ class OfficeService(object):
             return Status(
                 225, 'failure', StatusMsgs.get(225), {}).json()
 
-        # add source file number operation
+        # add source file number operation 更新文件操作次数
         for _r in res:
             if not _r: continue
             _r.numopr = _r.numopr + 1
