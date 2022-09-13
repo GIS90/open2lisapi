@@ -522,7 +522,7 @@ class ExcelLib(object):
         if str(title) not in BOOL:
             return self.format_res(
                 213, '请求参数header不合法', {})
-        ## ================ name check
+        # ================ name check ================
         compress_name = name
         if os.path.splitext(compress_name)[-1] not in self.prefix_zip_list:
             compress_name = '%s%s' % (compress_name, self.DEFAULT_ZIP_PREFIX)
@@ -535,7 +535,7 @@ class ExcelLib(object):
         # 压缩 文件目录参数
         is_compress = False
         real_dir = ''
-        # ======== start operation
+        # ======== start operation ========
         sheet = reader_excel.sheet_by_index(index_int)
         sheet_row = sheet.nrows
         sheet_col = sheet.ncols
@@ -555,10 +555,11 @@ class ExcelLib(object):
                             new_sheet.write(0, col, label=sheet.cell_value(0, col))
                         if str(col) in rule:
                             select_col.append(str(sheet.cell_value(row, col)))
+                        # 行拆分，只有一行，看是否写入title
                         new_sheet.write(1 if title == '1' else 0, col, label=sheet.cell_value(row, col))
-                    new_excel_name = '%s%s' % ('_'.join(select_col), self.DEFAULT_PREFIX)
+                    new_excel_name = '%s%s' % ('_'.join(select_col), self.DEFAULT_OLD_V_PREFIX)
                     write_excel.save(os.path.join(real_dir, new_excel_name))
-                is_compress = True
+                is_compress = True  # 压缩
             elif store == '2':     # store: 2 一表多Sheet
                 write_excel = xlwt.Workbook(encoding='utf-8')
                 for row in range(1, sheet_row, 1):
@@ -573,16 +574,19 @@ class ExcelLib(object):
                     for col in range(0, sheet_col, 1):
                         if title == '1':  # is or not write title
                             new_sheet.write(0, col, label=sheet.cell_value(0, col))
+                        # 行拆分，只有一行，看是否写入title
                         new_sheet.write(1 if title == '1' else 0, col, label=sheet.cell_value(row, col))
                     # end sheet
                 new_excel_name = name
                 if os.path.splitext(new_excel_name)[-1] not in self.prefix_list:
-                    new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_PREFIX)
-                real_store_file, new_excel_name = self.get_real_file(new_excel_name)
+                    new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_OLD_V_PREFIX)
+                real_store_file, new_excel_name = self.get_real_file(new_excel_name, _type=1)
                 write_excel.save(real_store_file)
+                # no compress, return
                 return self.format_res(
                     100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False})
             else:
+                # 行拆分其他
                 return self.format_res(
                     213, '请求参数store不合法', {})
         # type 2 col 列拆分
@@ -605,9 +609,9 @@ class ExcelLib(object):
                     for row in range(1, sheet_row, 1):
                         new_sheet.write(start_row, 0, label=sheet.cell_value(row, col))
                         start_row += 1
-                    new_excel_name = '%s%s' % ('_'.join(select_col), self.DEFAULT_PREFIX)
+                    new_excel_name = '%s%s' % ('_'.join(select_col), self.DEFAULT_OLD_V_PREFIX)
                     write_excel.save(os.path.join(real_dir, new_excel_name))
-                is_compress = True
+                is_compress = True  # 压缩
             elif store == '2':     # store: 2 一表多Sheet
                 write_excel = xlwt.Workbook(encoding='utf-8')
                 for col in range(0, sheet_col, 1):
@@ -629,16 +633,18 @@ class ExcelLib(object):
                     # end sheet
                 new_excel_name = name
                 if os.path.splitext(new_excel_name)[-1] not in self.prefix_list:
-                    new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_PREFIX)
-                real_store_file, new_excel_name = self.get_real_file(new_excel_name)
+                    new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_OLD_V_PREFIX)
+                real_store_file, new_excel_name = self.get_real_file(new_excel_name, _type=1)
                 write_excel.save(real_store_file)
+                # no compress, return
                 return self.format_res(
                     100, 'success', {'name': new_excel_name, 'path': real_store_file, 'compress': False})
         else:
+            # 列拆分其他
             return self.format_res(
                 213, '请求参数store不合法', {})
 
-        # start compress
+        # <<<<<<<<<<<<<<<<<<<<<<< start compress >>>>>>>>>>>>>>>>>>>>>>>>>>>
         if is_compress:
             if not os.path.exists(real_dir) or not os.path.isdir(real_dir):
                 return self.format_res(
