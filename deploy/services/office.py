@@ -925,8 +925,8 @@ class OfficeService(object):
         is_openpyxl = True
         for _r in res:
             if not _r or not _r.name or not _r.local_url: continue  # no exist -> continue
-            if os.path.splitext(str(_r.name))[-1] == '.xls':
-                is_openpyxl = False
+            # if os.path.splitext(str(_r.name))[-1] == '.xls':
+            #     is_openpyxl = False
             all_merge_files.append({
                 'file': _r.local_url,
                 'sheets': str(_r.set_sheet).split(';') if _r.set_sheet else [0],
@@ -937,9 +937,20 @@ class OfficeService(object):
         # many file to merge
         # extend parameter:
         #   - blank: 文件合并之间的空格数
+        
+        使用下列代码需要开放is_openpyxl判断
         """
-        merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank')) \
-            if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank'))
+        # merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank')) \
+        #     if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank'))
+        """
+        采取xlrd、openpyxl综合操作表格合并：
+            - 读取：xlrd
+            - 写入：openpyxl
+        xlrd可以读取.xls、.xlsx不同格式表格数据，新版本.xlsx格式版本excel存储
+        """
+        merge_res = self.excel_lib.merge_new(new_name=new_params.get('name'),
+                                             file_list=all_merge_files,
+                                             blank=new_params.get('blank'))
         if merge_res.get('status_id') != 100:
             return Status(
                 merge_res.get('status_id'), 'failure', merge_res.get('message'), {}).json()

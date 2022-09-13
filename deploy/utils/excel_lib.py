@@ -286,7 +286,7 @@ class ExcelLib(object):
             return self.format_res(
                 998, str(e), {})
 
-    def merge_xlrw(self, new_name, file_list: list, **kwargs):
+    def merge_xlrw(self, new_name: str, file_list: list, **kwargs):
         """
         xlwt、xlrd:
             .xls表格行数限制65535
@@ -351,6 +351,107 @@ class ExcelLib(object):
                             new_sheet.write((sum_row+row), col, label=sheet.cell_value(row, col))
                     sum_row += (sheet_row + blank)
             real_store_file, new_file_name = self.get_real_file(new_name, _type=1)
+            new_excel.save(real_store_file)
+            return self.format_res(
+                100, 'success', {'name': new_file_name, 'path': real_store_file})
+        except Exception as e:
+            return self.format_res(
+                998, str(e), {})
+
+    def merge_new(self, new_name: str, file_list: list, **kwargs):
+        """
+        采取xlrd、openpyxl综合操作表格合并：
+            - 读取：xlrd
+            - 写入：openpyxl
+        xlrd可以读取.xls、.xlsx不同格式表格数据，新版本.xlsx格式版本excel存储
+
+        use xlrd【read】、openpyxl【write】 to merge excel, it are to deal .xls、.xlsx formatter excel file
+        the deal excel style is row values
+        :param new_name: new excel name, string type
+        :param file_list: excel file list
+        file_list format:
+            {'file': f, 'sheets': set_sheet, 'nsheet': n}
+            - f: the all path excel file
+            - set_sheet: list, the select sheet list
+            - number sheet: sheet sum number
+        :param kwargs: multiple parameters, is dict type
+            - blank: excel file to merge add some blank
+            - *** extra parameters ***
+        :return: json object
+            status_id: result id, except status_id is 1 is success, others is failure
+            message: the result message
+            data:
+                path: the new excel path + name, real path
+                name: the new excel file name, not contain path
+
+        行写入：
+            - 效率地
+            - 代码简洁
+        单元格写入：
+            - 效率高
+            - openpyxl起始(1, 1)，xlrd起始(0, 0)，相差1
+        """
+        # no new excel file name, auto rename by timestamp
+        # new excel file format openpyxl: xlsx
+        """openpyxl写入用.xlsx格式"""
+        if not new_name:
+            new_name = 'MERGE-%s%s' % (get_now(format="%Y-%m-%d-%H-%M-%S"), self.DEFAULT_NEW_V_PREFIX)
+        if not file_list:
+            return self.format_res(
+                212, '合并文件列表不存在', {})
+        # check merge excel file list
+        for _f in file_list:
+            if not _f or not _f.get('file'): continue   # no file -> continue
+            if not os.path.exists(_f.get('file')):      # not exist -> return
+                return self.format_res(
+                    302, '%s文件不存在，请重新上传' % _f.get('file'), {})
+        if os.path.splitext(new_name)[-1] not in self.prefix_list:
+            new_name = '%s%s' % (new_name, self.DEFAULT_NEW_V_PREFIX)
+        # 分割行数,默认为0
+        blank = kwargs.get('blank') or self.blank
+        """
+        新方式：
+            <<<<<<<<<<<<<< xlrd 读取 >>>>>>>>>>>>>>>
+            <<<<<<<<<<<<<< openpyxl 写入 >>>>>>>>>>>>>>>
+        """
+        try:
+            """openpyxl to create new excel file"""
+            new_excel = openpyxl.Workbook()
+            new_sheet = new_excel.active
+            new_sheet.title = self.DEFAULT_SHEET_NAME  # 设置合并Sheet默认标题
+            new_sheet.sheet_properties.tabColor = colors.BLUE  # 设置合并Sheet标签颜色
+            # new_sheet = new_excel.create_sheet(title=self.DEFAULT_SHEET_NAME, index=0)
+            sum_row = 0
+            for f in file_list:
+                if not f or not f.get('file'): continue     # no file
+                f_path = f.get('file')
+                if not os.path.exists(f_path): continue     # not exist
+                # =============== start deal with data ===============
+                sheet_index_list = f.get('sheets') if f.get('sheets') else [0]  # sheet索引，默认为0
+                reader_excel = xlrd.open_workbook(f_path)   # xlrd to read excel
+                max_nsheet = int(f.get('nsheet')) if f.get('nsheet') else len(reader_excel.sheet_names())
+                for index in sheet_index_list:
+                    index_int = int(index)
+                    if index_int > max_nsheet: break    # Sheet index 超过最大，结束
+                    sheet = reader_excel.sheet_by_index(index_int)
+                    sheet_row = sheet.nrows
+                    """           行写入           """
+                    # for _row in range(0, sheet_row, 1):
+                    #     new_sheet.append(sheet.row_values(_row))
+                    # if blank > 0:
+                    #     for _ in range(0, blank, 1): new_sheet.append([])
+                    # sum_row += (sheet_row + blank)
+                    """           
+                    单元格写入
+                    效率高
+                    openpyxl：row col起始为(1,1)   
+                    """
+                    sheet_col = sheet.ncols
+                    for row in range(1, sheet_row + 1, 1):
+                        for col in range(1, sheet_col + 1, 1):
+                            new_sheet.cell((sum_row + row), col, value=sheet.cell_value((row-1), (col-1)))
+                    sum_row += (sheet_row + blank)
+            real_store_file, new_file_name = self.get_real_file(new_name, _type=2)
             new_excel.save(real_store_file)
             return self.format_res(
                 100, 'success', {'name': new_file_name, 'path': real_store_file})
