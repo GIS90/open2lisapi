@@ -973,7 +973,7 @@ class OfficeService(object):
         # file to db【本地化数据库存储】
         store_msg['rtx_id'] = new_params.get('rtx_id')
         store_msg['type'] = FileTypeEnum.EXCEL_MERGE.value
-        store_msg['md5'] = md5(store_msg.get('name'))
+        store_msg['md5'] = md5('%s%s' % (store_msg.get('name'), get_now()))
         is_to_db = self.store_excel_result_to_db(store_msg)
         if not is_to_db:        # 本地化存储失败
             return Status(
@@ -1466,7 +1466,7 @@ class OfficeService(object):
             'rtx_id': new_params.get('rtx_id'),
             'store_name': store_name,
             'type': FileTypeEnum.EXCEL_SPLIT.value,
-            'md5': md5(data.get('name')),
+            'md5': md5('%s%s' % (data.get('name'), get_now())),
             'path': data.get('path'),
             'compress': data.get('compress') or False,
             'nfile': data.get('nfile') or 1
