@@ -19,7 +19,6 @@ base_info:
 import sys
 import os
 import inspect
-import types
 from subprocess import PIPE, Popen
 
 
@@ -49,17 +48,21 @@ def _run_cmd(cmd, shell=True, check_exit_code=True, cwd=None):
     :return: command return code, command content
     
     cmd:
-      - "ls"
+      - "ls -a"
       - ["ls", "-a"]
     """
-    if type(cmd) not in [types.StringType, types.ListType, types.TupleType]:
+    if type(cmd) not in [type('string'), type([1]), type((1, ))]:
         return -1, 'Command type is error'
 
     if not cwd:
         cwd = get_cur_folder()
 
+    # <<<<<<<<<<<<< 统一转成string执行cmd>>>>>>>>>>>>
     if not shell:
         cmd = ' '.join(cmd)
+    if not isinstance(cmd, str):
+        cmd = ' '.join(cmd)
+
     p = Popen(cmd,
               shell=True,
               bufsize=0,

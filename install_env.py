@@ -12,7 +12,7 @@ base_info:
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2lisapi"
     
 long description: None
 --------------------------------------------------------------
@@ -83,7 +83,7 @@ Also, make test will automatically use the virtualenv.
         :return: command return code, command content
         
         cmd:
-          - "ls"
+          - "ls -a"
           - ["ls", "-a"]
         """
         if not isinstance(cmd, list) and not isinstance(cmd, str):
@@ -91,7 +91,11 @@ Also, make test will automatically use the virtualenv.
 
         if not cwd:
             cwd = self.root
+
+        # <<<<<<<<<<<<< 统一转成string执行cmd>>>>>>>>>>>>
         if not shell:
+            cmd = ' '.join(cmd)
+        if not isinstance(cmd, str):
             cmd = ' '.join(cmd)
 
         p = Popen(cmd,
