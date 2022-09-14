@@ -48,7 +48,8 @@ def _get_cur_folder():
 def _get_config(mode):
     if mode not in ['dev', 'prod']:
         return None
-    return os.path.join((os.path.dirname(_get_cur_folder())), ('etc/' + mode + '/config.yaml'))
+    return os.path.join(os.path.join(os.path.join(os.path.dirname(_get_cur_folder()), 'etc'), mode), 'config.yaml')
+    # return os.path.join((os.path.dirname(_get_cur_folder())), ('etc/' + mode + '/config.yaml'))
 
 
 # default log dir
@@ -141,7 +142,7 @@ if not os.path.exists(_config_file):
     logger.critical('====== config file is not exist, exit ======')
     sys.exit(1)
 
-with open(_config_file) as f:
+with open(_config_file, 'r', encoding='UTF-8') as f:
     _config_info = yaml.safe_load(f)
     if not _config_info:
         logger.critical('====== config file is unavail, exit ======')
