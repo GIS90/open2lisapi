@@ -68,6 +68,7 @@ def _run_cmd(cmd, shell=True, check_exit_code=True, cwd=None):
               bufsize=0,
               cwd=cwd,
               stdout=PIPE)
+    # p.wait()    # 等待子进程命令执行完成
     output = p.communicate()[0]
     return_code = p.returncode
     if check_exit_code and return_code != 0:

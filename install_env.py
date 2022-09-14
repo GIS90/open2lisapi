@@ -103,6 +103,7 @@ Also, make test will automatically use the virtualenv.
                   bufsize=0,
                   cwd=cwd,
                   stdout=PIPE)
+        # p.wait()    # 等待子进程命令执行完成
         output = p.communicate()[0]
         returncode = p.returncode
         if returncode in [0, '0']:
