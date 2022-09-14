@@ -126,15 +126,40 @@ class DashboardService(object):
         # 当日登录用户数
         user = self.request_bo.get_user_count_by_time(date_params) or 1
         # <<<<<<<<<<<<<<<< get return pan: click >>>>>>>>>>>>>>>
-        request = self.request_bo.get_req_count_by_time(date_params) or 0
+        click = self.request_bo.get_req_count_by_time(date_params)
+        click = click[0] if click else 1
+        if click == 0: click = 1        # 防止分母为0
+        # <<<<<<<<<<<<<<<< get return pan: click >>>>>>>>>>>>>>>
+        """ 本日操作数 / 总的API数量"""
+        operate = self.request_bo.get_req_operate_by_time(date_params)
+        operate = operate[0] if operate else 0
         ret_res_json = {
             'user': user,
-            'click': request
+            'click': click,
+            'operate': round(operate/click * 100, 2)
         }
         # return data
         return Status(
             100, 'success', StatusMsgs.get(100), ret_res_json
         ).json()
+
+    @staticmethod
+    def _pan_chart_title(chart_type: str) -> str:
+        """
+        get dashboard pan chart title
+        return string
+        """
+        if not chart_type:
+            return "本周数据活跃情况"
+
+        if chart_type == 'user':
+            return '本周用户登录情况'
+        elif chart_type == 'click':
+            return '本周功能点击数情况'
+        elif chart_type == 'operate':
+            return '本周功能使用率情况'
+        else:
+            return "本周数据活跃情况"
 
     def pan_chart(self, params: dict) -> dict:
         """
@@ -142,6 +167,7 @@ class DashboardService(object):
         contain:
             - user 用户
             - click 点击率
+            - operate 操作率
         """
         # ================= parameters check and format ====================
         if not params:
@@ -157,14 +183,17 @@ class DashboardService(object):
             if not v:       # value is not null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'type' and v not in ['user', 'click', 'operate']:
+                return Status(
+                    213, 'failure', u'请求参数%s值不合法' % k, {}).json()
             new_params[k] = str(v)
         # ---------------- parameter initialize ----------------
         rtx_id = new_params.get('rtx_id')
         _type = new_params.get('type')
-        week = get_day_week_date(get_now_date())
+        local_week = get_day_week_date(get_now_date())
         date_params = {
-            "start_date": week.get('start_week_date'),
-            "end_date": week.get('end_week_date')
+            "start_date": local_week.get('start_week_date'),
+            "end_date": local_week.get('end_week_date')
         }
         if _type == 'user':
             # <<<<<<<<<<<<<<<< get return user 本周 >>>>>>>>>>>>>>>
@@ -185,7 +214,25 @@ class DashboardService(object):
             ret_res = self.request_bo.execute_sql(_sql)
         elif _type == 'click':
             # <<<<<<<<<<<<<<<< get return click 本周 >>>>>>>>>>>>>>>
-            ret_res = self.request_bo.get_req_count_by_week(date_params) or 0
+            ret_res = self.request_bo.get_req_count_by_week(date_params) or []
+        elif _type == 'operate':
+            # <<<<<<<<<<<<<<<< get return operate 本周 >>>>>>>>>>>>>>>
+            """总数"""
+            ret_res_sum = self.request_bo.get_req_count_by_week(date_params) or []
+            """数据操作数"""
+            ret_res_count = self.request_bo.get_req_operate_count_by_week(date_params) or []
+            ret_res = list()
+            _temp_list = dict()
+            # 把操作类型数据格式化为dict
+            for _c in ret_res_count:
+                if not _c: continue
+                _temp_list[_c[0]] = _c[1]
+            # 把对应日期的数据进行求率
+            for _s in ret_res_sum:
+                if not _s: continue
+                v = _temp_list[_s[0]] if _s[0] in _temp_list.keys() else 0
+                ret_res.append((_s[0], round(v/_s[1] * 100, 2)))
+            del _temp_list
         else:
             ret_res = list()
         # -------------- 格式化数据 --------------
@@ -196,7 +243,7 @@ class DashboardService(object):
         4.return
         """
         _ret_week_dict = OrderedDict()
-        for day in week.get('week_date'):   # 初始化数据，默认为0
+        for day in local_week.get('week_date'):   # 初始化数据，默认为0
             if not day: continue
             _ret_week_dict[day] = 0
         """ ======== 在ret_res不为空情况下进行遍历 ======== """
@@ -209,8 +256,13 @@ class DashboardService(object):
                 if _date in _ret_week_dict.keys():  # 存在 && 更新
                     _ret_week_dict[_date] = _r[1]
         # return data
+        _ret_d = {
+            'title': self._pan_chart_title(_type),
+            'subtitle': '%s ~ %s' % (local_week.get('start_week_date'), local_week.get('end_week_date')),
+            'data': list(_ret_week_dict.values())
+        }
         return Status(
-            100, 'success', StatusMsgs.get(100), list(_ret_week_dict.values())
+            100, 'success', StatusMsgs.get(100), _ret_d
         ).json()
 
     def _get_index_one(self):

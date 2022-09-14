@@ -99,12 +99,12 @@ class RequestBo(BOBase):
     def get_req_count_by_time(self, params):
         start_time = params.get('start_time')
         end_time = params.get('end_time')
-        q = self.session.query(RequestModel)
+        q = self.session.query(func.count(1).label('count'))
         if start_time:
             q = q.filter(RequestModel.create_time >= start_time)
         if end_time:
             q = q.filter(RequestModel.create_time <= end_time)
-        return len(q.all())
+        return q.first()
 
     def get_req_count_by_week(self, params):
         start_date = params.get('start_date')
@@ -152,3 +152,31 @@ class RequestBo(BOBase):
             q = q.filter(RequestModel.endpoint.in_(func_names))
         q = q.order_by(RequestModel.endpoint.asc(), RequestModel.create_date.asc())
         return q.all()
+
+    def get_req_operate_count_by_week(self, params):
+        start_date = params.get('start_date')
+        end_date = params.get('end_date')
+        nums = func.count(1).label('count')
+        q = self.session.query(RequestModel.create_date, nums).group_by(RequestModel.create_date)
+        q = q.filter(RequestModel.blueprint == ApiModel.blueprint)
+        q = q.filter(RequestModel.endpoint == ApiModel.endpoint)
+        q = q.filter(ApiModel.type == 'success')
+        if start_date:
+            q = q.filter(RequestModel.create_date >= start_date)
+        if end_date:
+            q = q.filter(RequestModel.create_date <= end_date)
+        q = q.order_by(RequestModel.create_date.asc())
+        return q.all()
+
+    def get_req_operate_by_time(self, params):
+        start_time = params.get('start_time')
+        end_time = params.get('end_time')
+        q = self.session.query(func.count(1).label('count'))
+        q = q.filter(RequestModel.blueprint == ApiModel.blueprint)
+        q = q.filter(RequestModel.endpoint == ApiModel.endpoint)
+        q = q.filter(ApiModel.type == 'success')
+        if start_time:
+            q = q.filter(RequestModel.create_time >= start_time)
+        if end_time:
+            q = q.filter(RequestModel.create_time <= end_time)
+        return q.first()
