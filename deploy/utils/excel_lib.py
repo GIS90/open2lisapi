@@ -75,7 +75,7 @@ class ExcelLib(object):
         }
 
     @classmethod
-    def font_content(self):
+    def font_content(cls):
         style_title = xlwt.XFStyle()
         font = xlwt.Font()
         font.name = 'Times New Roman'
@@ -86,7 +86,7 @@ class ExcelLib(object):
         return style_title
 
     @classmethod
-    def font_title(self):
+    def font_title(cls):
         style_content = xlwt.XFStyle()
         font = xlwt.Font()
         font.name = 'Times New Roman'
@@ -113,17 +113,17 @@ class ExcelLib(object):
             return res
         excel = xlrd.open_workbook(excel_file)
         nsheets = excel.nsheets
-        # sheet_names = excel.sheet_names()
+        # sheet_names = excel.sheet_names()     # 获取所有表格sheet名称列表
         sheets_dict = dict()
         names_dict = dict()
         columns_dict = dict()
         for i in range(0, nsheets, 1):
             sheet = excel.sheet_by_index(i)
             names_dict[str(i)] = sheet.name
-            ##### sheet：row行数 col列数 index索引 name名称
+            # sheet：row行数 col列数 index索引 name名称
             sheets_dict[str(i)] = {'row': sheet.nrows, 'col': sheet.ncols, 'index': i, 'name': sheet.name}
             try:
-                ##### sheet column：key：value格式
+                # sheet column：key：value格式
                 row_values_0 = sheet.row_values(0)
                 new_column = list()
                 for _k, _v in enumerate(row_values_0):
@@ -142,6 +142,7 @@ class ExcelLib(object):
         if file exist dir, the file name rename file name + now(%Y-%m-%d-%H-%M-%S)
         the result is path file
         :param file_name: all path excel file
+        :param _type: excel file version
         :return: tuple
         result is contain real file, file name
 
