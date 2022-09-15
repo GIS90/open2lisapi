@@ -95,6 +95,11 @@ def _get_now(format="%Y-%m-%d %H:%M:%S"):
     return datetime.datetime.strftime(datetime.datetime.now(), format)
 
 
+def __get_log_folder():
+    p_folder = os.path.dirname(os.path.dirname(_get_cur_folder()))
+    return os.path.join(p_folder, 'log')
+
+
 logdir = LOG_DIR
 level = LOG_LEVEL
 formatter = LOG_FORMATTER
@@ -102,7 +107,7 @@ filename_prefix = LOG_FILENAME_PREFIX
 
 
 if not logdir:
-    logdir = _get_cur_folder()
+    logdir = __get_log_folder()
 if not os.path.exists(logdir):
     try:
         os.makedirs(logdir)

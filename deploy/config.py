@@ -45,7 +45,7 @@ def _get_cur_folder():
 
 
 # get current run config by mode
-def _get_config(mode):
+def _get_config(mode='dev'):
     if mode not in ['dev', 'prod']:
         return None
     return os.path.join(os.path.join(os.path.join(os.path.dirname(_get_cur_folder()), 'etc'), mode), 'config.yaml')
