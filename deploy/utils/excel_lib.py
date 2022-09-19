@@ -21,6 +21,8 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    excel_lib = ExcelLib()
+    excel_lib.xxxx(para1, para2 ...)
 
 design:
 
