@@ -3,19 +3,26 @@
 """
 ------------------------------------------------
 
-describe: 
+describe:
+    枚举
+    存储项目用到的固定值，以Enum枚举的方式对外暴露使用
 
 base_info:
     __author__ = "PyGo"
-    __time__ = "2022/5/6 18:53"
+    __time__ = "2022/9/14"
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
-    __blog__ = "www.pygo2.top"
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.utils.enums import FileTypeEnum
+
+    for pr in FileTypeEnum:
+        if not pr: continue
+        LOG.info('%s >>> %s' % (pr.name, pr.value))
 
 design:
+    项目常量
 
 reference urls:
 
@@ -23,7 +30,7 @@ python version:
     python3
 
 
-Enjoy the good life everyday！！!
+Enjoy the good time everyday！！!
 Life is short, I use python.
 
 ------------------------------------------------
@@ -43,6 +50,9 @@ EXCEL_NUM = ['1', '2']
 BOOL = ['0', '1']
 
 
+# ==============================
+# 文件类型
+# ==============================
 class FileTypeEnum(Enum):
     EXCEL_MERGE = 1
     EXCEL_SPLIT = 2
