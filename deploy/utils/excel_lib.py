@@ -5,7 +5,12 @@
 ------------------------------------------------
 
 describe:
-    excel lib
+    Excel表读取、写入工具
+    使用了xlrd、xlwt、openpyxl，Excel表格处理包进行开发的lib工具包
+    - xlrd: read
+    - xlwt: write
+    - openpyxl: read && write
+
 
 base_info:
     __author__ = "PyGo"
@@ -46,6 +51,9 @@ from deploy.utils.enums import *
 
 
 class ExcelLib(object):
+    """
+    excel lib
+    """
 
     DEFAULT_PREFIX = '.xlsx'
     DEFAULT_OLD_V_PREFIX = '.xls'
@@ -57,7 +65,7 @@ class ExcelLib(object):
     def __init__(self, blank=0):
         """
         class initialize parameters
-        :param blank:
+        :param blank: blank row number, default is 0
         """
         self.prefix_list = ['.xlsx', '.xls']
         self.prefix_zip_list = ['.zip']
