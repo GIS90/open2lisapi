@@ -16,6 +16,8 @@ base_info:
     __project__ = "twtoolbox_isapi"
 
 usage:
+    image_lib = ImageLib()
+    local_res = image_lib.store_local(image_file, compress=False)
 
 design:
 
@@ -38,7 +40,7 @@ import os
 from PIL import Image
 
 from deploy.utils.utils import filename2md5, \
-    get_base_dir, get_now, mk_dirs
+    get_now, mk_dirs
 from deploy.config import STORE_CACHE, IMAGE_QUALITY, IMAGE_WIDTH
 from deploy.utils.status_msg import StatusMsgs
 
