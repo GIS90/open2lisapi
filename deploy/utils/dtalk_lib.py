@@ -10,10 +10,11 @@ describe:
     类添加了is_avail对access token进行判断是否可用，如果不可用中止程序
 
 base_info:
-    __version__ = "v.10"
     __author__ = "PyGo"
     __time__ = "2021/11/23"
+    __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
+    __project__ = "open2lisapi"
 
 usage:
     json_message = {
@@ -76,6 +77,7 @@ class DtalkLib(Singleton):
     def is_avail(self):
         """
         是否有access token，如果没有token，则中止发信息请求
+        建议用sys.exit()优雅的方式退出
         """
         return True if self.access_token else False
 
