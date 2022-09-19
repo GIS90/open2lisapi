@@ -4,13 +4,34 @@
 """
 --------------------------------------------------------------
 describe:
-    singleton class + execute base class
+    singleton class
+    execute base class
 
 base_info:
-    __version__ = "v.10"
-    __author__ = "mingliang.gao"
-    __time__ = "2020/5/18 2:34 PM"
-    __mail__ = "mingliang.gao@163.com"
+    __author__ = "PyGo"
+    __time__ = "2022/9/14"
+    __version__ = "v.1.0.0"
+    __mail__ = "gaoming971366@163.com"
+    __project__ = "open2lisapi"
+
+usage:
+    AAAAAClass(WebBaseClass)
+    BBBBBClass(AppBaseClass)
+    DDDDDClass(Singleton)
+
+design:
+    模式设计之一
+
+reference urls:
+
+python version:
+    python3
+
+
+Enjoy the good time everyday！！!
+Life is short, I use python.
+
+------------------------------------------------
 --------------------------------------------------------------
 """
 
