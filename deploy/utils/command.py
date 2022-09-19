@@ -16,7 +16,7 @@ base_info:
     __time__ = "2022/9/14"
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
-    __project__ = "quality-inspect"
+    __project__ = "open2lisapi"
 
 usage:
      return_code, output = run_command(_cmd, shell=True, check_exit_code=False)
