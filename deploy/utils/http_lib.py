@@ -29,6 +29,9 @@ urllib3.disable_warnings()
 
 
 class HttpLibApi(object):
+    """
+    http lib api
+    """
     def __init__(self, root, username='', password='', headers=None,
                  is_try=3, timeout=120):
         self.root = root
@@ -54,6 +57,7 @@ class HttpLibApi(object):
         return _headers
 
     def _get(self, url, params=None, headers=None, ctype='form', resptype='json', **kwargs):
+        """ buildin get """
         headers = self._wrap_headers(headers, ctype=ctype)
         url = '%s%s' % (self.root, url)
         params = params if params else {}
@@ -77,6 +81,7 @@ class HttpLibApi(object):
 
     def _post(self, url, headers=None, data=None, params=None, resptype='json',
               ctype='form', **kwargs):
+        """ buildin post """
         url = '%s%s' % (self.root, url)
         headers = self._wrap_headers(headers, ctype=ctype)
         params = params if params else {}
@@ -104,6 +109,7 @@ class HttpLibApi(object):
 
     def _put(self, url, headers=None, data=None, params=None, resptype='json',
               ctype='form', **kwargs):
+        """ buildin put """
         url = '%s%s' % (self.root, url)
         headers = self._wrap_headers(headers, ctype=ctype)
         params = params if params else {}
