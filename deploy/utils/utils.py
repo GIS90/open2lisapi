@@ -2,22 +2,35 @@
 
 """
 ------------------------------------------------
-describe:
-    the all collection of daily tools and methods
-    main:
-        path
-        make dir
-        date && time
-        ......
 
-usage:
-    
+describe:
+    public utils method
+    任何项目、模块均都可以调用，均属于通用方法
+    持续累计更新......
 
 base_info:
     __version__ = "v.10"
     __author__ = "mingliang.gao"
     __time__ = "2020/1/16"
     __mail__ = "mingliang.gao@163.com"
+    __project__ = "open2lisapi"
+
+usage:
+    from utils import xxxx
+    xxxx(p1, p2, ...)
+
+design:
+    具体方法详情请参考注释
+
+reference urls:
+
+python version:
+    python3
+
+
+Enjoy the good time everyday！！!
+Life is short, I use python.
+
 ------------------------------------------------
 """
 import os
