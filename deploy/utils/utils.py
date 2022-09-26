@@ -25,6 +25,8 @@ import sys
 import inspect
 import hashlib
 import time
+import subprocess
+import platform
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import session
@@ -33,7 +35,8 @@ from deploy.utils.logger import logger as LOG
 
 def get_cur_folder():
     """
-    # get current folder, solve is or not frozen of the script
+    get current folder, solve is or not frozen of the script
+
     :return: the file current folder
     """
     if getattr(sys, "frozen", False):
@@ -45,7 +48,8 @@ def get_cur_folder():
 
 def md5(v):
     """
-    # md5加密
+    字符串md5加密
+
     :param v: value
     :return: md5 value
     """
@@ -56,7 +60,8 @@ def md5(v):
 
 def s2d(s, fmt="%Y-%m-%d %H:%M:%S"):
     """
-    # 字符串转日期
+    字符串转日期
+
     :param s: string type time
     :param fmt: transfer to formatter
     :return: datetime type time
@@ -66,7 +71,8 @@ def s2d(s, fmt="%Y-%m-%d %H:%M:%S"):
 
 def d2s(d, fmt="%Y-%m-%d %H:%M:%S"):
     """
-    # 日期转字符串
+    日期转字符串
+
     :param d: datetime type time
     :param fmt: transfer to formatter
     :return: string type time
@@ -76,7 +82,8 @@ def d2s(d, fmt="%Y-%m-%d %H:%M:%S"):
 
 def d2ts(d):
     """
-    # 日期转ts
+    日期转ts
+
     :param d: datetime type parameter
     :return: time.time type
     """
@@ -85,7 +92,8 @@ def d2ts(d):
 
 def s2ts(s, format="%Y-%m-%d %H:%M:%S"):
     """
-    # 字符串转ts
+    字符串转ts
+
     :param s: sting type parameter
     :return: time.time type
     """
@@ -95,7 +103,8 @@ def s2ts(s, format="%Y-%m-%d %H:%M:%S"):
 
 def dura_date(d1, d2, need_d=False):
     """
-    # get datetime1 and datatime difference 时间差
+    get datetime1 and datetime2 difference
+
     :param d1: datetime parameter 1
     :param d2: datetime parameter 2
     :param need_d: is or not need hours, minutes, seconds
@@ -117,7 +126,8 @@ def dura_date(d1, d2, need_d=False):
 
 def get_now_time():
     """
-    # 获取当前时间
+    获取当前时间
+
     :return: to return the now of datetime type
     """
     return datetime.now()
@@ -125,7 +135,8 @@ def get_now_time():
 
 def get_now_date():
     """
-    # 获取当前日期
+    获取当前日期
+
     :return: to return the now of date type
     """
     return datetime.now().date()
@@ -133,7 +144,8 @@ def get_now_date():
 
 def get_now(format="%Y-%m-%d %H:%M:%S"):
     """
-    # 获取当前时间str
+    获取当前时间，字符串类型
+
     :return: to return the now of string type
     """
     return d2s(datetime.now(), format)
@@ -141,7 +153,8 @@ def get_now(format="%Y-%m-%d %H:%M:%S"):
 
 def get_week_day(date):
     """
-    # 获取weekday
+    today week
+
     :param date: date
     :return: week
     """
@@ -158,23 +171,24 @@ def get_user_id():
     return session.get('user-id') or session.get('rtx-d')
 
 
-# 计时器
+# 计时装饰器
 def timeer(fn):
     @wraps(fn)
     def _wrapper(*args, **kwargs):
         start = datetime.now()
         res = fn(*args, **kwargs)
         end = datetime.now()
-        LOG.info('@timeer %s is run: %s' % (fn.__name__, (end-start).seconds))
+        LOG.info('@timeer %s is run: %s' % (fn.__name__, (end - start).seconds))
         return res
 
     return _wrapper
 
 
-# 真实IP
 def get_real_ip(request):
     """
-    flask api request object
+    get request real ip
+
+    :param request: flask api request object
     """
     if not request.headers.getlist("X-Forwarded-For"):
         ip = request.remote_addr
@@ -183,10 +197,11 @@ def get_real_ip(request):
     return ip
 
 
-# rtx-id by request config
 def get_rtx_id(request):
     """
-    flask api request object
+    get request user rtx-id
+
+    :param request: flask api request object
     """
     return request.headers.get("X-Rtx-Id") \
         if request.headers.get("X-Rtx-Id") else ''
@@ -194,7 +209,8 @@ def get_rtx_id(request):
 
 def mk_dirs(path):
     """
-    # mdkirs folder 建立文件夹（递归）
+    make folder（递归方式）
+
     :param path: to make folder path
     :return: path
     """
@@ -204,7 +220,8 @@ def mk_dirs(path):
 
 def get_base_dir():
     """
-    # 获取项目base目录（deploy）
+    获取项目base目录（deploy）
+
     :return: deploy base path
     """
     return os.path.dirname(get_cur_folder())
@@ -212,7 +229,8 @@ def get_base_dir():
 
 def v2decimal(x, y):
     """
-    # 保留小数
+    保留小数
+
     :param x: value
     :param y: point decimal
     :return:
@@ -226,8 +244,8 @@ def v2decimal(x, y):
 
 def get_month_list():
     """
-    static method
-    # 获取月份list
+    获取月份list
+
     :return: list data
     """
     return [u'1月', u'2月', u'3月', u'4月', u'5月', u'6月',
@@ -237,7 +255,7 @@ def get_month_list():
 def filename2md5(rtx_id: str = None, file_name: str = None, _type: str = 'file'):
     """
     get local store file name by md5 value
-    获取本地存储文件名称md5
+
     :param rtx_id: rtx id
     :param file_name: file name
     :param _type: file type, is file,image, and so on.
@@ -257,9 +275,9 @@ def filename2md5(rtx_id: str = None, file_name: str = None, _type: str = 'file')
 def check_length(data, limit=10):
     """
     check data length
-    :param data: check data
-    :param limit: length limit
 
+    :param data: check data
+    :param limit: length limit, default value is 10
     return True or False
     """
     if not data:
@@ -290,8 +308,92 @@ def get_day_week_date(query_date):
         _week.append(d2s(start_week_date + timedelta(days=day_num), fmt="%Y-%m-%d"))
     _res = {
         "start_week_date": d2s(start_week_date, fmt="%Y-%m-%d"),  # 本周起始日期
-        "end_week_date": d2s(end_week_date, fmt="%Y-%m-%d"),      # 本周结束日期
-        "week_date": _week                   # 本周日期列表
+        "end_week_date": d2s(end_week_date, fmt="%Y-%m-%d"),  # 本周结束日期
+        "week_date": _week  # 本周日期列表
 
     }
     return _res
+
+
+def ping(ip: str, **kwargs):
+    """
+    insect to ping the ip connection
+
+    :param ip: the target ip or 域名
+    :param kwargs: the ping other parameters
+    :return: bool
+
+    **kwargs:
+        -a             将地址解析为主机名。
+        -n count       要发送的回显请求数。
+        -l size        发送缓冲区大小。
+        -w timeout     等待每次回复的超时时间(毫秒)。
+
+    usage:
+        ping(ip='www.baidu.com', n=4, w=2000, l=32)
+        or
+        ping(ip='127.0.0.1', n=4, w=2000, l=32)
+
+    param default value:
+        - count: 4
+        - size: 32
+        - timeout: 2000
+    """
+    cmd = ['ping']
+    # **kwargs > ping > a
+    if kwargs.get('a'):
+        cmd.append('-a')
+    # **kwargs > ping > n
+    if kwargs.get('n') or kwargs.get('count'):
+        count = kwargs.get('n') or kwargs.get('count') or 4
+        if not isinstance(count, int):
+            count = 4
+        if count > 0:
+            cmd.append('-n %s' % count)
+    # **kwargs > ping > l
+    if kwargs.get('l') or kwargs.get('size'):
+        size = kwargs.get('l') or kwargs.get('size') or 32
+        if not isinstance(size, int):
+            size = 0
+        if size > 0:
+            cmd.append('-l %s' % size)
+    # **kwargs > ping > w
+    if kwargs.get('w') or kwargs.get('timeout'):
+        timeout = kwargs.get('w') or kwargs.get('timeout') or 2000
+        if not isinstance(timeout, int):
+            timeout = 0
+        if timeout > 0:
+            cmd.append('-w %s' % timeout)
+    cmd.append(ip)
+    cmd_str = ' '.join(cmd)
+    ret_res = subprocess.call(cmd_str, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
+    return True if ret_res == 0 else False
+
+
+def host_os():
+    """
+    current run pc or server information
+    windows: 1
+    Linux: 2
+    MacOS: 3
+
+    :return: int, detail information
+    """
+    host_os = platform.system()
+    host_bit = platform.architecture()
+    if host_os == 'Windows':
+        os_code = 1
+    elif host_os == 'Linux':
+        os_code = 2
+    elif host_os == 'Darwin':
+        os_code = 3
+    else:
+        os_code = 4
+
+    _detail = {
+        'os': host_os,
+        'os_code': os_code,
+        'bit': host_bit[0] if len(host_bit) > 1 else host_bit
+    }
+    return os_code, _detail
