@@ -620,3 +620,101 @@ class InfoService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
+
+    def depart_list(self, params: dict) -> dict:
+        """
+        get department data list by params
+        params is dict
+        return json data
+
+        https://github.com/ParadeTo/vue-tree-list
+        节点属性：
+        name                    type            default	            description
+        ------------------------------------------------------------------------------------------
+        id                      string, number  current timestamp   The node's id
+        isLeaf                  boolean         false               The node is leaf or not
+        dragDisabled            boolean         false               Forbid dragging tree node
+        addTreeNodeDisabled	    boolean         false               Show addTreeNode button or not
+        addLeafNodeDisabled	    boolean         false               Show addLeafNode button or not
+        editNodeDisabled        boolean         false               Show editNode button or not
+        delNodeDisabled	        boolean         false               Show delNode button or not
+        children                array           null                The children of node
+
+        """
+        _res = [
+            {
+              "name": 'Node 1',
+              "id": 1,
+              "pid": 0,
+              "isLeaf": False,
+              "disabled": False,
+              "dragDisabled": False,
+              "addTreeNodeDisabled": False,
+              "addLeafNodeDisabled": False,
+              "editNodeDisabled": False,
+              "delNodeDisabled": False,
+              "children": [
+                {
+                  "name": 'Node 1-1',
+                  "id": 11,
+                  "pid": 1
+                },
+                {
+                  "name": 'Node 1-2',
+                  "id": 12,
+                  "pid": 1
+                }
+              ]
+            },
+            {
+              "name": 'Node 2',
+              "id": 2,
+              "pid": 0
+            },
+            {
+              "name": 'Node 3',
+              "id": 3,
+              "pid": 0
+            }
+        ]
+        return Status(
+            100, 'success', StatusMsgs.get(100), _res
+        ).json()
+        # # ====================== parameters check ======================
+        # if not params:
+        #     return Status(
+        #         212, 'failure', StatusMsgs.get(212), {}).json()
+        # # new parameters
+        # new_params = dict()
+        # for k, v in params.items():
+        #     if not k: continue
+        #     if k not in self.req_dict_list_attrs and v:
+        #         return Status(
+        #             213, 'failure', u'请求参数%s不合法' % k, {}).json()
+        #     if k == 'limit':
+        #         v = int(v) if v else self.PAGE_LIMIT
+        #     elif k == 'offset':
+        #         v = int(v) if v else 0
+        #     else:
+        #         v = str(v) if v else ''
+        #     new_params[k] = v
+        #
+        # # **************** <get data> *****************
+        # res, total = self.enum_bo.get_all(new_params)
+        # # no data
+        # if not res:
+        #     return Status(
+        #         101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
+        # new_res = list()
+        # n = 1
+        # for _d in res:
+        #     if not _d: continue
+        #     _res_dict = self._enum_model_to_dict(_d)
+        #     if _res_dict:
+        #         _res_dict['id'] = n
+        #         new_res.append(_res_dict)
+        #         n += 1
+        # return Status(
+        #     100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        # ).json()
