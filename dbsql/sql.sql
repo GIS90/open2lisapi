@@ -163,30 +163,30 @@ VALUES
 -- root
 (0, '首页', 'Home', '/', 0, 0, '5ecb64c5576af2642f7eacb4679c8fda', 'layout', FALSE, '/', '', TRUE, FALSE, TRUE, 0, 'admin', FALSE, FALSE),
 -- 问题检索
-(1, '问题检索', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'i_search', TRUE, FALSE, TRUE, 1, 'admin', FALSE, FALSE),
+(1, '问题检索', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'c_search', TRUE, FALSE, TRUE, 1, 'admin', FALSE, FALSE),
 (2, '问题仓库', 'SearchProbase', 'probase', 1, 2, 'c97d41080c06a689936f1c665ea334b5', 'searchProbase', FALSE, '', 'i_problem', TRUE, FALSE, TRUE, 2, 'admin', FALSE, TRUE),
 (3, '取数仓库', 'SearchSqlbase', 'sqlbase', 1, 2, '1b29b5aa48db5845f4a14c54a44eeb18', 'searchSqlbase', FALSE, '', 'i_sql', TRUE, FALSE, TRUE, 3, 'admin', FALSE, TRUE),
 -- 表格工具
-(4, '文档工具', 'Office', '/office', 0, 1, 'c1d81af5835844b4e9d936910ded8fdc', 'layout', FALSE, '/office/pdf2word', 'i_office', TRUE, FALSE, TRUE, 4, 'admin', FALSE, FALSE),
+(4, '文档工具', 'Office', '/office', 0, 1, 'c1d81af5835844b4e9d936910ded8fdc', 'layout', FALSE, '/office/pdf2word', 'c_office', TRUE, FALSE, TRUE, 4, 'admin', FALSE, FALSE),
 (5, 'PDF转WORD', 'PdfToWord', 'pdf2word', 4, 2, 'aa40dbd997f60d173d05f1f8375eb6bd', 'pdf2Word', FALSE, '', 'i_word', TRUE, FALSE, TRUE, 5, 'admin', FALSE, TRUE),
 (6, '表格合并', 'ExcelMerge', 'merge', 4, 2, '68be4837f6c739877233e527a996dd00', 'excelMerge', FALSE, '', 'i_merge', TRUE, FALSE, TRUE, 6, 'admin', FALSE, TRUE),
 (7, '表格拆分', 'ExcelSplit', 'split', 4, 2, '8a9e64d86ed12ad40de129bc7f4683b2', 'excelSplit', FALSE, '', 'i_split', TRUE, FALSE, TRUE, 7, 'admin', FALSE, TRUE),
 (8, '表格历史', 'ExcelHistory', 'history', 4, 2, '76c9a06443a050eccb7989cda6fff225', 'excelHistory', FALSE, '', 'i_excel', TRUE, FALSE, TRUE, 8, 'admin', FALSE, TRUE),
 -- 通知管理
-(9, '通知消息', 'Notify', '/notify', 0, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'i_notify', TRUE, FALSE, TRUE, 9, 'admin', FALSE, FALSE),
+(9, '通知消息', 'Notify', '/notify', 0, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'c_notify', TRUE, FALSE, TRUE, 9, 'admin', FALSE, FALSE),
 (10, '短信通知', 'NotifyMessage', 'message', 9, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notifyMessage', FALSE, '', 'message', TRUE, FALSE, TRUE, 11, 'admin', FALSE, TRUE),
 (11, '钉钉绩效', 'NotifyDtalk', 'dtalk', 9, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notifyDtalk', FALSE, '', 'i_dtalk', TRUE, FALSE, TRUE, 10, 'admin', FALSE, TRUE),
 -- 信息维护
-(12, '信息维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'i_info', TRUE, FALSE, TRUE, 12, 'admin', FALSE, FALSE),
+(12, '信息维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c_info', TRUE, FALSE, TRUE, 12, 'admin', FALSE, FALSE),
 (13, '部门架构', 'InfoDepartment', 'department', 12, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'infoDepartment', FALSE, '', 'tree', TRUE, FALSE, TRUE, 13, 'admin', FALSE, TRUE),
 (14, '数据字典', 'InfoDict', 'dict', 12, 2, '91516e7a50ce0a67a8eb1f9229c293d1', 'infoDict', FALSE, '', 'i_dict', TRUE, FALSE, TRUE, 14, 'admin', FALSE, TRUE),
 -- 权限管理
-(15, '权限管理', 'Manage', '/manage', 0, 1, '34e34c43ec6b943c10a3cc1a1a16fb11', 'layout', FALSE, '/manage/user', 'i_manage', TRUE, FALSE, TRUE, 15, 'admin', FALSE, FALSE),
+(15, '权限管理', 'Manage', '/manage', 0, 1, '34e34c43ec6b943c10a3cc1a1a16fb11', 'layout', FALSE, '/manage/user', 'c_manage', TRUE, FALSE, TRUE, 15, 'admin', FALSE, FALSE),
 (16, '用户管理', 'ManageUser', 'user', 15, 2, '8f9bfe9d1345237cb3b2b205864da075', 'manageUser', FALSE, '', 'peoples', TRUE, FALSE, TRUE, 16, 'admin', FALSE, TRUE),
 (17, '角色管理', 'ManageRole', 'role', 15, 2, 'bbbabdbe1b262f75d99d62880b953be1', 'manageRole', FALSE, '', 'i_role', TRUE, FALSE, TRUE, 17, 'admin', FALSE, TRUE),
 (18, '菜单管理', 'ManageMenu', 'menu', 15, 2, 'b61541208db7fa7dba42c85224405911', 'manageMenu', FALSE, '', 'component', TRUE, FALSE, TRUE, 18, 'admin', FALSE, TRUE),
 -- 个人设置
-(19, '个人设置', 'Setter', '/setter', 0, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'i_setter', TRUE, FALSE, TRUE, 19, 'admin', FALSE, FALSE),
+(19, '个人设置', 'Setter', '/setter', 0, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'c_setter', TRUE, FALSE, TRUE, 19, 'admin', FALSE, FALSE),
 (20, '个人中心', 'SetterProfile', 'profile', 19, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setterProfile', FALSE, '', 'i_user', TRUE, FALSE, TRUE, 20, 'admin', FALSE, TRUE),
 (21, '系统向导', 'SetterGuide', 'guide', 19, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setterGuide', FALSE, '', 'guide', TRUE, FALSE, TRUE, 21, 'admin', FALSE, TRUE);
 
