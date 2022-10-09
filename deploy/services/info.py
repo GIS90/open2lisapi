@@ -718,3 +718,14 @@ class InfoService(object):
         # return Status(
         #     100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         # ).json()
+
+    def depart_update(self, params: dict) -> dict:
+        """
+        information > update department information
+        :return: json data
+        """
+        print('*' * 100)
+        print(params)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}
+        ).json()
