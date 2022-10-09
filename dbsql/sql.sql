@@ -473,3 +473,35 @@ CREATE TABLE `shortcut` (
 
 CREATE UNIQUE INDEX shortcut_index ON shortcut (`rtx_id`);
 
+
+-- create department
+DROP TABLES IF EXISTS `department`;
+
+CREATE TABLE `department`  (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID值',
+    `name` varchar(30) NOT NULL COMMENT '部门名称',
+    `md5_id` varchar(55) NOT NULL COMMENT '数据记录record',
+    `description` text COMMENT '部门描述',
+    `pid` int NOT NULL COMMENT '上级部门ID',
+    `leaf` boolean COMMENT '是否为叶子节点，如果为True不允许有子节点，默认为False',
+    `dept_path` varchar(254) NULL COMMENT '部门名称全路径，用>进行分割',
+    `deptid_path` varchar(254) NULL COMMENT '部门ID全路径，用>进行分割',
+    `manage_rtx` varchar(25) COMMENT '部门主管rtx-id',
+    `create_rtx` varchar(25) COMMENT '创建用户rtx',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_rtx` varchar(25) COMMENT '最近更新用户rtx',
+    `update_time` datetime COMMENT '最近更新时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
+    `order_id` int DEFAULT 0 COMMENT '排序ID，用于同级排序，从小到达，默认值0',
+
+  PRIMARY KEY (`id`)
+) COMMENT='部门信息表';
+
+-- default value
+-- 根节点
+insert into
+department(`id`, `name`, `md5_id`, `description`, `leaf`, `manage_rtx`, `create_rtx`, `is_del`, `order_id`)
+VALUES
+(0, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', False, 'admin', 'admin', False, 0);
