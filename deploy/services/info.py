@@ -37,6 +37,8 @@ from operator import itemgetter
 from itertools import groupby
 
 from deploy.bo.enum import EnumBo
+from deploy.bo.sysuser import SysUserBo
+from deploy.bo.department import DepartmentBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import d2s, get_now, check_length, md5
@@ -122,12 +124,40 @@ class InfoService(object):
         'type'
     ]
 
+    req_depart_list_attrs = [
+        'rtx_id'
+    ]
+
+    depart_list_attrs = [
+        'id',
+        'name',
+        'md5_id',
+        'description',
+        'pid',
+        'leaf',
+        'lock',
+        'dept_path',
+        'deptid_path',
+        'manage_rtx',
+        'create_time',
+        'create_rtx',
+        'update_time',
+        'update_rtx',
+        'delete_time',
+        'delete_rtx',
+        'is_del',
+        'order_id'
+    ]
+
     def __init__(self):
         """
         information service class initialize
         """
         super(InfoService, self).__init__()
+        self.DEPART_ROOT_ID = 1
         self.enum_bo = EnumBo()
+        self.sysuser_bo = SysUserBo()
+        self.depart_bo = DepartmentBo()
 
     def _enum_model_to_dict(self, model, _type='list'):
         """
@@ -621,111 +651,165 @@ class InfoService(object):
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
 
+    def _depart_model_to_dict(self, model, _type='list'):
+        """
+        depart model transfer to dict data
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.depart_list_attrs:
+            if not attr: continue
+            if attr == 'id' and _type in ['list', 'tree']:
+                _res[attr] = model.id
+            elif attr == 'name' and _type in ['list', 'tree']:
+                _res['label'] = model.name if getattr(model, 'name') else ""
+            elif attr == 'md5_id' and _type in ['list', 'tree']:
+                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
+            elif attr == 'description' and _type in ['list', 'tree']:
+                _res[attr] = model.description if getattr(model, 'description') else ""
+            elif attr == 'pid' and _type in ['list', 'tree']:
+                _res[attr] = model.pid if getattr(model, 'pid') else ""
+            elif attr == 'leaf' and _type in ['list', 'tree']:
+                _res[attr] = True if getattr(model, 'leaf') else False
+            elif attr == 'lock' and _type in ['list', 'tree']:
+                _res[attr] = True if getattr(model, 'lock') else False
+            elif attr == 'manage_rtx' and _type in ['list', 'tree']:
+                _res[attr] = model.manage_rtx if getattr(model, 'manage_rtx') else ""
+            elif attr == 'dept_path' and _type in ['list', 'tree']:
+                _res[attr] = model.dept_path if getattr(model, 'dept_path') else ""
+            elif attr == 'deptid_path' and _type in ['list', 'tree']:
+                _res[attr] = model.deptid_path if getattr(model, 'deptid_path') else ""
+            elif attr == 'create_rtx' and _type in ['list']:
+                _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
+            elif attr == 'create_time' and _type in ['list']:
+                _time = model.create_time if getattr(model, 'create_time') else ""
+                if _time == '0000-00-00 00:00:00':
+                    _res[attr] = ''
+                    continue
+                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+            elif attr == 'update_rtx' and _type in ['list']:
+                _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
+            elif attr == 'update_time' and _type in ['list']:
+                _time = model.update_time if getattr(model, 'update_time') else ""
+                if _time == '0000-00-00 00:00:00':
+                    _res[attr] = ''
+                    continue
+                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+            elif attr == 'delete_rtx' and _type in ['list']:
+                _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
+            elif attr == 'delete_time' and _type in ['list']:
+                _time = model.delete_time if getattr(model, 'delete_time') else ""
+                if _time == '0000-00-00 00:00:00':
+                    _res[attr] = ''
+                    continue
+                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+            elif attr == 'is_del' and _type in ['list']:
+                _res[attr] = True if getattr(model, 'is_del') else False
+            elif attr == 'order_id' and _type in ['list', 'tree']:
+                _res[attr] = model.order_id if getattr(model, 'order_id') else 1
+        else:
+            return _res
+
+    def _search_child_fab(self, node_id, all_nodes):
+        if not node_id or not all_nodes:
+            return []
+        all_nodes.sort(key=itemgetter('pid'))
+        for key, group in groupby(all_nodes, key=itemgetter('pid')):
+            if node_id == key:
+                return self._search_child_fab(self, key, group)
+        else:
+            return 
+
+    def _nodes_fab(self, root_direct_child_ids, all_nodes):
+        if not all_nodes:
+            return []
+        all_nodes.sort(key=itemgetter('pid'))
+        _res = dict()
+        for node_id in root_direct_child_ids:
+            if not node_id: continue        # no node id
+            _res[node_id] = self._search_child_fab(node_id, all_nodes)
+        else:
+            return _res
+
     def depart_list(self, params: dict) -> dict:
         """
         get department data list by params
         params is dict
         return json data
 
-        https://github.com/ParadeTo/vue-tree-list
+        https://element.eleme.cn/2.13/#/zh-CN/component/tree
         节点属性：
-        name                    type            default	            description
-        ------------------------------------------------------------------------------------------
-        id                      string, number  current timestamp   The node's id
-        isLeaf                  boolean         false               The node is leaf or not
-        dragDisabled            boolean         false               Forbid dragging tree node
-        addTreeNodeDisabled	    boolean         false               Show addTreeNode button or not
-        addLeafNodeDisabled	    boolean         false               Show addLeafNode button or not
-        editNodeDisabled        boolean         false               Show editNode button or not
-        delNodeDisabled	        boolean         false               Show delNode button or not
-        children                array           null                The children of node
-
+        id：ID值
+        name：部门名称
+        md5_id：数据记录record
+        description：部门描述
+        pid：上级部门ID
+        leaf：是否为叶子节点，如果为True不允许有子节点，默认为False
+        lock：是否锁定，如果为True为锁定，默认为False
         """
-        _res = [
-            {
-              "name": 'Node 1',
-              "id": 1,
-              "pid": 0,
-              "isLeaf": False,
-              "disabled": False,
-              "dragDisabled": False,
-              "addTreeNodeDisabled": False,
-              "addLeafNodeDisabled": False,
-              "editNodeDisabled": False,
-              "delNodeDisabled": False,
-              "children": [
-                {
-                  "name": 'Node 1-1',
-                  "id": 11,
-                  "pid": 1
-                },
-                {
-                  "name": 'Node 1-2',
-                  "id": 12,
-                  "pid": 1
-                }
-              ]
-            },
-            {
-              "name": 'Node 2',
-              "id": 2,
-              "pid": 0
-            },
-            {
-              "name": 'Node 3',
-              "id": 3,
-              "pid": 0
-            }
-        ]
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        """
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_depart_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            new_params[k] = str(v).strip()
+
+        rtx_id = new_params.get('rtx_id')
+        user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
+        if not user_model:
+            return Status(
+                302, 'failure', u'用户%s不存在' % rtx_id, {}).json()
+        # **************** <get data> *****************
+        res = self.depart_bo.get_all(root=True)
+        # no data
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
+        new_res_dict = dict()   # 所有节点信息：{ 节点id: 节点, 节点id: 节点 }
+        all_nodes = list()   # 根所有所有的children节点信息：[{ id: id, name: name },{ id: id, name: name } ]
+        root_direct_child_nodes = list()     # root节点的直属children
+        for _d in res:
+            # filter no id or no parent id
+            if not _d or not getattr(_d, 'id'):continue
+            _res_dict = self._depart_model_to_dict(_d, _type='tree')
+            if _res_dict:
+                new_res_dict[_res_dict.get('id')] = _res_dict
+                if _res_dict.get('id') != self.DEPART_ROOT_ID:
+                    all_nodes.append(_res_dict)
+                # 获取root节点下的所有子节点
+                if _res_dict.get('pid') == self.DEPART_ROOT_ID:
+                    root_direct_child_nodes.append(_res_dict)
+        ret_res = list()  # return result, list type
+        root_direct_child_nodes_ids = [node.get('id') for node in root_direct_child_nodes if node.get('id')]
+        nodes_fab = self._nodes_fab(root_direct_child_nodes_ids, all_nodes)
+        # 分2种情况：有root节点 无root节点
+        if new_res_dict.get(self.DEPART_ROOT_ID):
+            root = new_res_dict.get(self.DEPART_ROOT_ID)
+            root['children'] = root_direct_child_nodes
+            ret_res.append(root)
+        else:
+            ret_res = root_direct_child_nodes
+        print(ret_res)
+        """
         return Status(
-            100, 'success', StatusMsgs.get(100), _res
+            100, 'success', StatusMsgs.get(100), ret_res
         ).json()
-        # # ====================== parameters check ======================
-        # if not params:
-        #     return Status(
-        #         212, 'failure', StatusMsgs.get(212), {}).json()
-        # # new parameters
-        # new_params = dict()
-        # for k, v in params.items():
-        #     if not k: continue
-        #     if k not in self.req_dict_list_attrs and v:
-        #         return Status(
-        #             213, 'failure', u'请求参数%s不合法' % k, {}).json()
-        #     if k == 'limit':
-        #         v = int(v) if v else self.PAGE_LIMIT
-        #     elif k == 'offset':
-        #         v = int(v) if v else 0
-        #     else:
-        #         v = str(v) if v else ''
-        #     new_params[k] = v
-        #
-        # # **************** <get data> *****************
-        # res, total = self.enum_bo.get_all(new_params)
-        # # no data
-        # if not res:
-        #     return Status(
-        #         101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
-        # # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
-        # new_res = list()
-        # n = 1
-        # for _d in res:
-        #     if not _d: continue
-        #     _res_dict = self._enum_model_to_dict(_d)
-        #     if _res_dict:
-        #         _res_dict['id'] = n
-        #         new_res.append(_res_dict)
-        #         n += 1
-        # return Status(
-        #     100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
-        # ).json()
 
     def depart_update(self, params: dict) -> dict:
         """
         information > update department information
         :return: json data
         """
-        print('*' * 100)
-        print(params)
         return Status(
             100, 'success', StatusMsgs.get(100), {}
         ).json()

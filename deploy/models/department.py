@@ -57,6 +57,7 @@ class DepartmentModel(base.ModelBase):
     description = Column(Text)
     pid = Column(Integer)
     leaf = Column(Boolean())
+    lock = Column(Boolean())
     dept_path = Column(String(254))
     deptid_path = Column(String(254))
     manage_rtx = Column(String(25))

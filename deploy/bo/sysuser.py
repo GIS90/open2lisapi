@@ -57,28 +57,28 @@ class SysUserBo(BOBase):
         q = q.filter(or_(SysUserModel.rtx_id == user_id,
                          SysUserModel.email == user_id,
                          SysUserModel.phone == user_id))
-        return q.first() if q.first() else None
+        return q.first() if q else None
 
     def get_user_by_rtx_id(self, rtx_id):
         if not rtx_id:
             return None
         q = self.session.query(SysUserModel)
         q = q.filter(SysUserModel.rtx_id == rtx_id)
-        return q.first() if q.first() else None
+        return q.first() if q else None
 
     def get_user_by_token(self, token):
         if not token:
             return None
         q = self.session.query(SysUserModel)
         q = q.filter(SysUserModel.md5_id == token)
-        return q.first() if q.first() else None
+        return q.first() if q else None
 
     def get_auth_by_rtx(self, rtx_id):
         if not rtx_id:
             return None
         q = self.session.query(SysUserModel)
         q = q.filter(SysUserModel.rtx_id == rtx_id)
-        return q.first() if q.first() else None
+        return q.first() if q else None
 
     def get_all(self, params, is_admin=False):
         q = self.session.query(SysUserModel)
@@ -121,14 +121,14 @@ class SysUserBo(BOBase):
             return None
         q = self.session.query(SysUserModel)
         q = q.filter(SysUserModel.phone == phone)
-        return q.first() if q.first() else None
+        return q.first() if q else None
 
     def get_user_by_email(self, email):
         if not email:
             return None
         q = self.session.query(SysUserModel)
         q = q.filter(SysUserModel.email == email)
-        return q.first() if q.first() else None
+        return q.first() if q else None
 
     def get_count(self, is_del=False, is_admin=False):
         q = self.session.query(SysUserModel)

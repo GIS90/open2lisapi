@@ -10,6 +10,7 @@ describe:
 content：
     - 钉钉绩效
     - 短信通知
+    - 企业微信通知
     详情API请查阅代码，主要包含list、detail、add、update、delete
 
 base_info:

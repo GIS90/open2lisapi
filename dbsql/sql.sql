@@ -176,6 +176,7 @@ VALUES
 (9, '通知消息', 'Notify', '/notify', 0, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'c_notify', TRUE, FALSE, TRUE, 9, 'admin', FALSE, FALSE),
 (10, '短信通知', 'NotifyMessage', 'message', 9, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notifyMessage', FALSE, '', 'message', TRUE, FALSE, TRUE, 11, 'admin', FALSE, TRUE),
 (11, '钉钉绩效', 'NotifyDtalk', 'dtalk', 9, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notifyDtalk', FALSE, '', 'i_dtalk', TRUE, FALSE, TRUE, 10, 'admin', FALSE, TRUE),
+(22, '企微通知', 'NotifyQywx', 'qywx', 9, 2, '55c90dfdd0341b16ba273a012581265d', 'notifyQywx', FALSE, '', 'i_qywx', TRUE, FALSE, TRUE, 12, 'admin', FALSE, TRUE),
 -- 信息维护
 (12, '信息维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c_info', TRUE, FALSE, TRUE, 12, 'admin', FALSE, FALSE),
 (13, '部门架构', 'InfoDepartment', 'department', 12, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'infoDepartment', FALSE, '', 'tree', TRUE, FALSE, TRUE, 13, 'admin', FALSE, TRUE),
@@ -482,8 +483,9 @@ CREATE TABLE `department`  (
     `name` varchar(30) NOT NULL COMMENT '部门名称',
     `md5_id` varchar(55) NOT NULL COMMENT '数据记录record',
     `description` text COMMENT '部门描述',
-    `pid` int NOT NULL COMMENT '上级部门ID',
-    `leaf` boolean COMMENT '是否为叶子节点，如果为True不允许有子节点，默认为False',
+    `pid` int NOT NULL DEFAULT 1 COMMENT '上级部门ID',
+    `leaf` boolean DEFAULT False COMMENT '是否为叶子节点，如果为True不允许有子节点，默认为False',
+    `lock` boolean DEFAULT False COMMENT '是否锁定，如果为True为锁定，默认为False',
     `dept_path` varchar(254) NULL COMMENT '部门名称全路径，用>进行分割',
     `deptid_path` varchar(254) NULL COMMENT '部门ID全路径，用>进行分割',
     `manage_rtx` varchar(25) COMMENT '部门主管rtx-id',
@@ -502,6 +504,8 @@ CREATE TABLE `department`  (
 -- default value
 -- 根节点
 insert into
-department(`id`, `name`, `md5_id`, `description`, `leaf`, `manage_rtx`, `create_rtx`, `is_del`, `order_id`)
+department(`id`, `name`, `md5_id`, `description`, `pid`, `leaf`, `manage_rtx`, `create_rtx`, `is_del`, `order_id`)
 VALUES
-(0, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', False, 'admin', 'admin', False, 0);
+(1, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', 0, False, 'admin', 'admin', False, 0),
+(2, '部门一', '2', '初始化部门一', 1, False, 'admin', 'admin', False, 0),
+(3, '部门二', '3', '初始化部门二', 1, False, 'admin', 'admin', False, 0);
