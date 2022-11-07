@@ -509,3 +509,47 @@ VALUES
 (1, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', 0, False, 'admin', 'admin', False, 0),
 (2, '部门一', '2', '初始化部门一', 1, False, 'admin', 'admin', False, 0),
 (3, '部门二', '3', '初始化部门二', 1, False, 'admin', 'admin', False, 0);
+
+
+
+-- create qywx_message
+DROP TABLES IF EXISTS `qywx_message`;
+
+CREATE TABLE `qywx_message`  (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `rtx_id` varchar(25) NOT NULL COMMENT '用户RTX-ID',
+    `title` text NOT NULL COMMENT '消息标题',
+    `content` text NOT NULL COMMENT '消息内容',
+    `md5_id` varchar(55) NOT NULL COMMENT '数据记录MD5',
+    `robot` varchar(55) NULL COMMENT '机器人配置md5-id',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
+
+    PRIMARY KEY (`id`)
+) COMMENT='企业微信消息表';
+
+CREATE UNIQUE INDEX qywx_message_index ON qywx_message (`md5_id`);
+
+-- create qywx_robot
+DROP TABLES IF EXISTS `qywx_robot`;
+
+CREATE TABLE `qywx_robot`  (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `rtx_id` varchar(25) NOT NULL COMMENT '用户RTX-ID',
+    `name` varchar(30) NOT NULL COMMENT '机器人名称',
+    `md5_id` varchar(55) NOT NULL COMMENT '数据记录record',
+    `key` varchar(30) NOT NULL COMMENT '机器人APP-KEY',
+    `secret` varchar(70) NOT NULL COMMENT '机器人APP-SECRET',
+    `select` bool DEFAULT False COMMENT '是否默认选择',
+    `description` text COMMENT '描述',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+    `delete_time` datetime COMMENT '删除时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除',
+
+    PRIMARY KEY (`id`)
+) COMMENT='企业微信-机器人配置表';
+
+CREATE UNIQUE INDEX qywx_robot_index ON qywx_robot (`md5_id`);

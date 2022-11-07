@@ -802,7 +802,7 @@ class InfoService(object):
         print(ret_res)
         """
         return Status(
-            100, 'success', StatusMsgs.get(100), ret_res
+            100, 'success', StatusMsgs.get(100), []
         ).json()
 
     def depart_update(self, params: dict) -> dict:
