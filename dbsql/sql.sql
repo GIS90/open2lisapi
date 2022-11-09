@@ -518,7 +518,7 @@ DROP TABLES IF EXISTS `qywx_message`;
 CREATE TABLE `qywx_message`  (
     `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
     `rtx_id` varchar(25) NOT NULL COMMENT '用户RTX-ID',
-    `title` text NOT NULL COMMENT '消息标题',
+    `title` varchar(55) COMMENT '消息标题',
     `content` text NOT NULL COMMENT '消息内容',
     `md5_id` varchar(55) NOT NULL COMMENT '数据记录MD5',
     `robot` varchar(55) NULL COMMENT '机器人配置md5-id',

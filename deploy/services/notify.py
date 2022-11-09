@@ -41,6 +41,8 @@ from deploy.utils.excel_lib import ExcelLib
 from deploy.utils.utils import get_now, d2s, check_length, md5
 from deploy.bo.dtalk_message import DtalkMessageBo
 from deploy.bo.dtalk_robot import DtalkRobotBo
+from deploy.bo.qywx_message import QywxMessageBo
+from deploy.bo.qywx_robot import QywxRobotBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
@@ -56,7 +58,8 @@ class NotifyService(object):
     """
 
     # define many request api parameters
-    req_dtalk_list_attrs = [
+    # 分页数据通用请求参数
+    req_page_comm_attrs = [
         'rtx_id',
         'limit',
         'offset'
@@ -208,6 +211,59 @@ class NotifyService(object):
         'md5'
     ]
 
+    qywx_robot_attrs = [
+        # 'id',
+        'rtx_id',
+        'name',
+        'md5_id',
+        'key',
+        'secret',
+        'select',
+        'description',
+        'create_time',
+        'delete_rtx',
+        'delete_time',
+        'is_del'
+    ]
+
+    qywx_robot_add_attrs = [
+        'rtx_id',
+        'name',
+        'key',
+        'secret',
+        'description',
+        'select'
+    ]
+
+    qywx_robot_attrs_length_check = {
+        'rtx_id': 25,
+        'name': 30,
+        'key': 30,
+        'secret': 70,
+        'description': 120
+    }
+
+    req_qywx_robot_update_attrs = [
+        'rtx_id',
+        'name',
+        'key',
+        'secret',
+        'description',
+        'select',
+        'md5'
+    ]
+
+    req_qywx_robot_select_attrs = [
+        'rtx_id',
+        'md5',
+        'select'
+    ]
+
+    req_qywx_robot_ping_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -221,6 +277,8 @@ class NotifyService(object):
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.dtalk_bo = DtalkMessageBo()
         self.dtalk_robot_bo = DtalkRobotBo()
+        self.qywx_bo = QywxMessageBo()
+        self.qywx_robot_bo = QywxRobotBo()
 
     def get_excel_headers(self, excel_file):
         """
@@ -490,7 +548,7 @@ class NotifyService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_dtalk_list_attrs and v:
+            if k not in self.req_page_comm_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'limit':
@@ -841,6 +899,46 @@ class NotifyService(object):
         else:
             return _res
 
+    def _qywx_robot_model_to_dict(self, model, _type='list'):
+        """
+        qywx robot model to dict
+        params model: qywx robot model object
+        attrs from class define attrs
+        return dict data
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.qywx_robot_attrs:
+            if not attr: continue
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'name':
+                _res[attr] = model.name
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'key':
+                _res[attr] = model.key
+            elif attr == 'secret':
+                _res[attr] = model.secret
+            elif attr == 'select':
+                _res[attr] = True if model.select else False
+            elif attr == 'description':
+                _res[attr] = model.description
+            elif attr == 'create_time':
+                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_time':
+                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx
+            elif attr == 'is_del':
+                _res[attr] = model.is_del or False
+        else:
+            return _res
+
     def dtalk_robot_list(self, params: dict):
         """
         get dtalk robot list by params
@@ -854,7 +952,7 @@ class NotifyService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_dtalk_list_attrs and v:
+            if k not in self.req_page_comm_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'limit':
@@ -1558,6 +1656,427 @@ class NotifyService(object):
             return Status(
                 499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
         dtalk_api.close()
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def qywx_robot_list(self, params: dict):
+        """
+        get qywx robot list by params
+        params is dict
+        return json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_page_comm_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if k == 'limit':
+                v = int(v) if v else OFFICE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            else:
+                v = str(v) if v else ''
+            new_params[k] = v
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
+        # <get data>
+        res, total = self.qywx_robot_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._qywx_robot_model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def qywx_robot_add(self, params: dict):
+        """
+        add new qywx robot, information contain:
+        name: 机器人名称
+        key: robot-key
+        secret: robot-secret
+        description: 机器人描述
+        select: 是否默认
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.qywx_robot_add_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k not in ['select']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # special check: bool
+            if k == 'select' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+        # check: length
+        for _key, _value in self.qywx_robot_attrs_length_check.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+
+        # check key and secret is or not repeat
+        if new_params.get('key') and new_params.get('secret'):
+            if self.qywx_robot_bo.get_model_by_key_secret(key=new_params.get('key'), secret=new_params.get('secret'), rtx_id=new_params.get('rtx_id')):
+                return Status(
+                    213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
+        # select default
+        if new_params.get('select'):
+            self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
+        # --------------------------------------- add model --------------------------------------
+        new_model = self.qywx_robot_bo.new_mode()
+        new_model.rtx_id = new_params.get('rtx_id')
+        new_model.name = new_params.get('name')
+        md5_id = md5(new_params.get('rtx_id')+new_params.get('key')+new_params.get('secret')+get_now())
+        new_model.md5_id = md5_id
+        new_model.key = new_params.get('key')
+        new_model.secret = new_params.get('secret')
+        new_model.select = new_params.get('select') or False
+        new_model.description = new_params.get('description')
+        new_model.create_time = get_now()
+        new_model.is_del = False
+        new_model.delete_time = ''
+        # 添加try异常处理，防止数据库add失败
+        try:
+            self.qywx_robot_bo.add_model(new_model)
+            return Status(
+                100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
+        except:
+            return Status(
+                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}).json()
+
+    def qywx_robot_delete(self, params: dict):
+        """
+        delete one qywx robot data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.qywx_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # <update data>
+        model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
+        self.qywx_robot_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def qywx_robot_deletes(self, params: dict):
+        """
+        delete many qywx robot data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
+        # << batch delete >>
+        res = self.qywx_robot_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure',
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def qywx_robot_detail(self, params: dict):
+        """
+        get qywx robot detail information, by file md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # illegal
+            if k not in self.req_detail_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # not null value
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
+        model = self.qywx_robot_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._qywx_robot_model_to_dict(model, _type='detail')
+        ).json()
+
+    def qywx_robot_update(self, params: dict):
+        """
+        update qywx robot information, contain:
+            - name 名称
+            - key
+            - secret
+            - description 描述
+            - select 选择
+        by md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_qywx_robot_update_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k not in ['select']:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # special check: bool
+            if k == 'select' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+        # check: length
+        for _key, _value in self.qywx_robot_attrs_length_check.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # ========= check data
+        model = self.qywx_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+
+        # select default
+        if new_params.get('select'):
+            self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
+        # --------------------------------------- update model --------------------------------------
+        model.name = new_params.get('name')
+        model.key = new_params.get('key')
+        model.secret = new_params.get('secret')
+        model.description = new_params.get('description')
+        model.select = new_params.get('select') or False
+        self.qywx_robot_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def qywx_robot_select(self, params: dict):
+        """
+        set qywx robot select status by md5
+        :return: json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_qywx_robot_select_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k != 'select':
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k == 'select' and not isinstance(v, bool):
+                return Status(
+                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+
+        # ========= check data
+        model = self.qywx_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+        # status
+        if new_params.get('select') != model.select:
+            return Status(
+                310, 'failure', '数据状态不一致，请刷新再设置' or StatusMsgs.get(310), {}).json()
+
+        # select set
+        """
+        设置选择分2种：
+            1.数据为选择状态，直接全都设置非选择
+            2.数据为非选择状态，先全部设置非选择状态，再把选择的数据设置为选择
+        """
+        self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
+        # --------------------------------------- update model --------------------------------------
+        if not new_params.get('select'):
+            model.select = True
+            self.qywx_robot_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def qywx_robot_ping(self, params: dict) -> dict:
+        """
+        qywx robot test to ping
+        :return: json data
+        """
+        # ==================== parameters check and format ====================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_qywx_robot_ping_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v) if k != 'select' else v
+
+        # <<<<<<<<<<<<<<<<<<<<< get data >>>>>>>>>>>>>>>>>>>>>
+        model = self.qywx_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+        # not key or not secret
+        if not model.key or not model.secret:
+            return Status(
+                214, 'failure', "缺少KEY或SECRET，请完善配置信息", {}).json()
+        # TODO
+        # ping test
+        # dtalk_api = DtalkLib(app_key=model.key, app_secret=model.secret)
+        # if not dtalk_api.is_avail():
+        #     return Status(
+        #         499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
+        # dtalk_api.close()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
