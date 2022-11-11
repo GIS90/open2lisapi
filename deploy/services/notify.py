@@ -43,6 +43,7 @@ from deploy.bo.dtalk_message import DtalkMessageBo
 from deploy.bo.dtalk_robot import DtalkRobotBo
 from deploy.bo.qywx_message import QywxMessageBo
 from deploy.bo.qywx_robot import QywxRobotBo
+from deploy.bo.enum import EnumBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
@@ -271,11 +272,24 @@ class NotifyService(object):
         'content',
         'md5_id',
         'robot',
+        'type',
         'create_time',
         'delete_rtx',
         'delete_time',
         'is_del'
     ]
+
+    req_qywx_add_attrs = [
+        'rtx_id',
+        'title',
+        'content',
+        'type'
+    ]
+
+    req_qywx_add_length_check = {
+        'title': 55,
+        'content': 1000
+    }
 
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
@@ -292,6 +306,7 @@ class NotifyService(object):
         self.dtalk_robot_bo = DtalkRobotBo()
         self.qywx_bo = QywxMessageBo()
         self.qywx_robot_bo = QywxRobotBo()
+        self.enum_bo = EnumBo()
 
     def get_excel_headers(self, excel_file):
         """
@@ -2122,6 +2137,8 @@ class NotifyService(object):
                 _res[attr] = model.md5_id
             elif attr == 'robot':
                 _res[attr] = model.robot
+            elif attr == 'type':
+                _res[attr] = model.type
             elif attr == 'create_time':
                 _res['create_time'] = d2s(model.create_time) if model.create_time else ''
             elif attr == 'delete_time':
@@ -2393,4 +2410,72 @@ class NotifyService(object):
         self.dtalk_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def qywx_add(self, params: dict) -> json:
+        """
+        add new qywx message data, information content: title, content, type
+        :return: many json data
+        """
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_qywx_add_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # check: length
+        for _key, _value in self.req_qywx_add_length_check.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        print(new_params)
+        default_robot_model = self.qywx_robot_bo.get_default_by_rtx(new_params.get('rtx_id'))
+        print('*' * 100)
+        print(default_robot_model)
+        # --------------------------------------- add model --------------------------------------
+        new_model = self.qywx_bo.new_mode()
+        new_model.rtx_id = new_params.get('rtx_id')
+        new_model.title = new_params.get('title')
+        new_model.content = new_params.get('content')
+        new_model.type = new_params.get('type')
+        md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
+        new_model.md5_id = md5_id
+        new_model.robot = getattr(default_robot_model, 'md5_id', '')
+        new_model.create_time = get_now()
+        new_model.is_del = False
+        new_model.delete_time = ''
+        # 添加try异常处理，防止数据库add失败
+        try:
+            self.qywx_bo.add_model(new_model)
+            return Status(
+                100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
+        except:
+            return Status(
+                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}).json()
+
+    def qywx_add_init(self):
+        """
+        新增企业微信消息记录初始化dialog枚举数据
+        :return: many json data
+        """
+        # no parameters
+        enums = self.enum_bo.get_model_by_name('qywx-type')
+        type_res = list()
+        for e in enums:
+            if not e: continue
+            type_res.append({'label': str(e.value), 'value': str(e.key)})
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'type': type_res}
         ).json()

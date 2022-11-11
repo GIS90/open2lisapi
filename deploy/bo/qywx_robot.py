@@ -117,3 +117,10 @@ class QywxRobotBo(BOBase):
         q = q.filter(QywxRobotModel.key == str(key))
         q = q.filter(QywxRobotModel.is_del != 1)
         return q.first()
+
+    def get_default_by_rtx(self, rtx):
+        q = self.session.query(QywxRobotModel)
+        q = q.filter(QywxRobotModel.rtx_id == str(rtx))
+        q = q.filter(QywxRobotModel.select == 1)
+        q = q.filter(QywxRobotModel.is_del != 1)
+        return q.first()

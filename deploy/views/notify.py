@@ -682,3 +682,44 @@ def qywx_update():
         LOG.error("notify>qywx update is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/qywx_add/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def qywx_add():
+    """
+    add new qywx message data, information content: title, content, type
+    :return: many json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().qywx_add(params)
+    except Exception as e:
+        LOG.error("notify>qywx add is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/qywx_add_init/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def qywx_add_init():
+    """
+    新增企业微信消息记录初始化dialog枚举数据
+    :return: many json data
+    """
+    if request.method == 'POST':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # no parameters
+        params = request.args
+        return NotifyService().qywx_add_init()
+    except Exception as e:
+        LOG.error("notify>qywx add init is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
