@@ -54,6 +54,7 @@ class QywxMessageModel(base.ModelBase):
     rtx_id = Column(String(25))
     title = Column(String(55))
     content = Column(Text)
+    type = Column(String(5))
     md5_id = Column(String(55))
     robot = Column(String(55))
     create_time = Column(TIMESTAMP)

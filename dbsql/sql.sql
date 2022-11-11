@@ -520,6 +520,7 @@ CREATE TABLE `qywx_message`  (
     `rtx_id` varchar(25) NOT NULL COMMENT '用户RTX-ID',
     `title` varchar(55) COMMENT '消息标题',
     `content` text NOT NULL COMMENT '消息内容',
+    `type` varchar(5) COMMENT '消息类型：文字、图文、MARKDOWN，具体类型参考enum表',
     `md5_id` varchar(55) NOT NULL COMMENT '数据记录MD5',
     `robot` varchar(55) NULL COMMENT '机器人配置md5-id',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',

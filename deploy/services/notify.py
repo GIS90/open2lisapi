@@ -264,6 +264,19 @@ class NotifyService(object):
         'md5'
     ]
 
+    qywx_list_attrs = [
+        'id',
+        'rtx_id',
+        'title',
+        'content',
+        'md5_id',
+        'robot',
+        'create_time',
+        'delete_rtx',
+        'delete_time',
+        'is_del'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -2077,6 +2090,307 @@ class NotifyService(object):
         #     return Status(
         #         499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
         # dtalk_api.close()
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def _qywx_model_to_dict(self, model):
+        """
+        qywx message model to dict
+        params model: qywx model object
+        attrs from class define attrs
+        return dict data
+
+        type is list table show data
+        type is detail data detail and config
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.qywx_list_attrs:
+            if not attr: continue
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'title':
+                _res[attr] = model.title
+            elif attr == 'content':
+                _res[attr] = model.content
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'robot':
+                _res[attr] = model.robot
+            elif attr == 'create_time':
+                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_time':
+                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx
+            elif attr == 'is_del':
+                _res[attr] = model.is_del or False
+        else:
+            return _res
+
+    def qywx_list(self, params: dict):
+        """
+        get qywx message list by params, params is dict
+        return json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_page_comm_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if k == 'limit':
+                v = int(v) if v else OFFICE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            else:
+                v = str(v) if v else ''
+            new_params[k] = v
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
+
+        # <get data>
+        res, total = self.qywx_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # ================= 遍历数据 ==================
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._qywx_model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def qywx_delete(self, params: dict):
+        """
+        delete one qywx message data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.qywx_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # <update data> 软删除
+        model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
+        self.qywx_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def qywx_deletes(self, params: dict):
+        """
+        delete many qywx message data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
+        # << batch delete >>
+        res = self.qywx_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure',
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def qywx_detail(self, params: dict):
+        """
+        get the latest qywx message detail information by md5
+        :return: json data
+        """
+        # ================== parameters check && format ==================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+        # return
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model, _type='detail')
+        ).json()
+
+    def qywx_update(self, params: dict):
+        """
+        qywx message information, contain:
+            - title 消息标题
+            - content 消息内容
+            - type 消息类型
+        by data md5
+        :return: json data
+        """
+        # ====================== parameters check and format ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dtalk_update_attrs and v:      # 不合法参数
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k in self.req_dtalk_update_need_attrs:       # value check, is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k == 'name':      # check name and length
+                new_names = os.path.splitext(str(v))
+                if new_names[-1] not in self.EXCEL_FORMAT:
+                    return Status(
+                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}).json()
+                if not check_length(v, 80):  # check: length
+                    return Status(
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'title' and v:
+                if not check_length(v, 50):  # check: length
+                    return Status(
+                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+            elif k == 'set_sheet':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
+                v = ';'.join(v)
+            elif k == 'column':
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
+                if len(v) < 2:
+                    if not isinstance(v, list):
+                        return Status(
+                            213, 'failure', u'请求参数%s数据至少选择2列' % k, {}).json()
+                v = v
+            else:
+                v = str(v)
+            new_params[k] = v
+
+        # ========= check data
+        model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+            return Status(
+                310, 'failure', StatusMsgs.get(310), {}).json()
+
+        # update
+        # <update file real name>
+        if str(new_params.get('name')) != str(model.file_name):
+            res = self._update_real_file_name(model, new_params.get('name'))
+            if res:
+                model.file_name = res.get('name')
+                model.file_local_url = res.get('local_url')
+                model.file_store_url = res.get('store_url')
+        model.title = new_params.get('title')
+        model.set_sheet = new_params.get('set_sheet')
+        # sheet设置
+        cur_sheet = str(new_params.get('cur_sheet'))
+        model.cur_sheet = cur_sheet
+        # sheet title
+        title_json = json.loads(model.set_title) if model.set_title else {}
+        title_json[cur_sheet] = new_params.get('title') or ""
+        model.set_title = json.dumps(title_json)
+        # sheet column
+        set_column_json = json.loads(model.set_column)
+        if new_params.get('column'):
+            set_column_json[cur_sheet] = new_params.get('column')
+            model.set_column = json.dumps(set_column_json)
+        self.dtalk_bo.merge_model(model)
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
