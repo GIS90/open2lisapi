@@ -306,18 +306,18 @@ VALUES
 -- 企业微信消息通知类型
 ('qywx-type', '882c0c19dbc420c129e696532e75f027', '1', '文本消息', '文本消息', TRUE, 'admin', 1),
 ('qywx-type', '3fc72ebfbc1cccb57c0be9755cd05a6a', '2', '图片消息', '图片消息', TRUE, 'admin', 2),
-('qywx-type', 'f93a4f42766340e21d84d117f0e8ee2b', '2', '语音消息', '语音消息', TRUE, 'admin', 3),
-('qywx-type', '88f8a7b7e659c25e1168830587273a95', '2', '视频消息', '视频消息', TRUE, 'admin', 4),
-('qywx-type', '6bb6b85b36e06aeb31ecfe7ab1f4d894', '2', '文件消息', '文件消息', TRUE, 'admin', 5),
-('qywx-type', 'b4fd5e4d7e033fe6c022d9d9237efd17', '2', '文本卡片消息', '文本卡片消息', TRUE, 'admin', 6),
-('qywx-type', '259225b177117c2f44b39de0ae3d3457', '2', '图文消息', '图文消息', TRUE, 'admin', 7),
-('qywx-type', 'febc81425c4542429956d7cf3477bb46', '2', 'markdown消息', 'markdown消息', TRUE, 'admin', 8),
-('qywx-type', '88e59bdf04e4843ca649e33f7872bcbb', '2', '小程序通知消息', '小程序通知消息', TRUE, 'admin', 9),
-('qywx-type', 'd046e3333d903c8962e927571660452f', '2', '模板卡片消息', '模板卡片消息', TRUE, 'admin', 10),
-('qywx-type', 'ac16c01dd7d8dba4955a3d545e9735ed', '2', '图文展示型', '图文展示型', TRUE, 'admin', 11),
-('qywx-type', 'dd0f671168f19ddb5f668d41255af1e3', '2', '按钮交互型', '按钮交互型', TRUE, 'admin', 12),
-('qywx-type', '799a806618960fcab348b78cf5de437f', '2', '投票选择型', '投票选择型', TRUE, 'admin', 13),
-('qywx-type', '8d9e7f8c234be7d9149395393af7634c', '2', '多项选择型', '多项选择型', TRUE, 'admin', 14);
+('qywx-type', 'f93a4f42766340e21d84d117f0e8ee2b', '3', '语音消息', '语音消息', TRUE, 'admin', 3),
+('qywx-type', '88f8a7b7e659c25e1168830587273a95', '4', '视频消息', '视频消息', TRUE, 'admin', 4),
+('qywx-type', '6bb6b85b36e06aeb31ecfe7ab1f4d894', '5', '文件消息', '文件消息', TRUE, 'admin', 5),
+('qywx-type', 'b4fd5e4d7e033fe6c022d9d9237efd17', '6', '文本卡片消息', '文本卡片消息', TRUE, 'admin', 6),
+('qywx-type', '259225b177117c2f44b39de0ae3d3457', '7', '图文消息', '图文消息', TRUE, 'admin', 7),
+('qywx-type', 'febc81425c4542429956d7cf3477bb46', '8', 'markdown消息', 'markdown消息', TRUE, 'admin', 8),
+('qywx-type', '88e59bdf04e4843ca649e33f7872bcbb', '9', '小程序通知消息', '小程序通知消息', TRUE, 'admin', 9),
+('qywx-type', 'd046e3333d903c8962e927571660452f', '10', '模板卡片消息', '模板卡片消息', TRUE, 'admin', 10),
+('qywx-type', 'ac16c01dd7d8dba4955a3d545e9735ed', '11', '图文展示型', '图文展示型', TRUE, 'admin', 11),
+('qywx-type', 'dd0f671168f19ddb5f668d41255af1e3', '12', '按钮交互型', '按钮交互型', TRUE, 'admin', 12),
+('qywx-type', '799a806618960fcab348b78cf5de437f', '13', '投票选择型', '投票选择型', TRUE, 'admin', 13),
+('qywx-type', '8d9e7f8c234be7d9149395393af7634c', '14', '多项选择型', '多项选择型', TRUE, 'admin', 14);
 
 
 
