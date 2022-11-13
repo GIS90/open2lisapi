@@ -270,6 +270,7 @@ class NotifyService(object):
         'rtx_id',
         'title',
         'content',
+        'user',
         'md5_id',
         'robot',
         'type',
@@ -284,18 +285,21 @@ class NotifyService(object):
         'rtx_id',
         'title',
         'content',
+        'user',
         'type'
     ]
 
     req_qywx_add_length_check = {
         'title': 55,
-        'content': 1000
+        'content': 1000,
+        'user': 1000
     }
 
     req_qywx_update_attrs = [
         'rtx_id',
         'title',
         'content',
+        'user',
         'type',
         'md5'
     ]
@@ -2142,6 +2146,8 @@ class NotifyService(object):
                 _res[attr] = model.title
             elif attr == 'content':
                 _res[attr] = model.content
+            elif attr == 'user':
+                _res[attr] = model.user
             elif attr == 'md5_id':
                 _res[attr] = model.md5_id
             elif attr == 'robot':
@@ -2333,6 +2339,7 @@ class NotifyService(object):
         _res = {
             'title': getattr(model, 'title', ''),
             'content': getattr(model, 'content', ''),
+            'user': getattr(model, 'user', ''),
             'type': getattr(model, 'type', ''),
             'type_lists': type_res
         }
@@ -2391,6 +2398,7 @@ class NotifyService(object):
         model.title = new_params.get('title')
         model.content = new_params.get('content')
         model.type = new_params.get('type')
+        model.user = new_params.get('user')
         try:
             self.qywx_bo.merge_model(model)
             return Status(
@@ -2433,6 +2441,7 @@ class NotifyService(object):
         new_model.rtx_id = new_params.get('rtx_id')
         new_model.title = new_params.get('title')
         new_model.content = new_params.get('content')
+        new_model.user = new_params.get('user')
         new_model.type = new_params.get('type')
         md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
         new_model.md5_id = md5_id

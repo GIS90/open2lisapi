@@ -59,6 +59,7 @@ class QywxMessageBo(BOBase):
                                QywxMessageModel.rtx_id,
                                QywxMessageModel.title,
                                QywxMessageModel.content,
+                               QywxMessageModel.user,
                                QywxMessageModel.type,
                                QywxMessageModel.md5_id,
                                QywxMessageModel.robot,
