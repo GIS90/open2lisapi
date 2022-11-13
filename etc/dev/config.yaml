@@ -94,6 +94,16 @@ DINGTALK:
   INTERVAL: 0.5
 
 
+# 企业微信配置
+QYWX:
+  CORP_ID: ww21aaf65b6160dfda
+  SECRET: jeLQB0tGoCqK2KSMUptwVheuVRMqSZ495YvR9PtM0j0
+  AGENT_ID: 1000002
+  BASE_URL: https://qyapi.weixin.qq.com
+  ACCESS_TOKEN: /cgi-bin/gettoken
+  SEND_MESSAGE: /cgi-bin/message/send
+
+
 # 其他配置
 OTHERS:
   NOBN: NoNameBody

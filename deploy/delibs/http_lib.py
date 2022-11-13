@@ -65,7 +65,7 @@ class HttpLibApi(object):
             response = requests.get(
                 url, headers=headers, params=params, timeout=self.timeout, **kwargs)
         except Exception as e:
-            LOG.error(u'HTTPLIB %s api_get error: %s' % (url, e))
+            LOG.error('HTTPLIB %s api_get error: %s' % (url, e))
             return False, []
         respcode = response.status_code
         if respcode != 200:
@@ -93,7 +93,7 @@ class HttpLibApi(object):
                 url, headers=headers, params=params, data=data, timeout=self.timeout,
                 verify=False, **kwargs)
         except Exception as e:
-            LOG.error(u'HTTPLIB %s api_post error: %s' % (url, e))
+            LOG.error('HTTPLIB %s api_post error: %s' % (url, e))
             return False, []
         respcode = response.status_code
         if respcode != 200:
@@ -121,7 +121,7 @@ class HttpLibApi(object):
                 url, headers=headers, params=params, data=data, timeout=self.timeout,
                 verify=False, **kwargs)
         except Exception as e:
-            LOG.error(u'HTTPLIB %s api_put error: %s' % (url, e))
+            LOG.error('HTTPLIB %s api_put error: %s' % (url, e))
             return False, []
         respcode = response.status_code
         if respcode != 200:
