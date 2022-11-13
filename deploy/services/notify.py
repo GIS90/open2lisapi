@@ -219,6 +219,7 @@ class NotifyService(object):
         'md5_id',
         'key',
         'secret',
+        'agent',
         'select',
         'description',
         'create_time',
@@ -232,6 +233,7 @@ class NotifyService(object):
         'name',
         'key',
         'secret',
+        'agent',
         'description',
         'select'
     ]
@@ -241,6 +243,7 @@ class NotifyService(object):
         'name': 30,
         'key': 30,
         'secret': 70,
+        'agent': 8,
         'description': 120
     }
 
@@ -249,6 +252,7 @@ class NotifyService(object):
         'name',
         'key',
         'secret',
+        'agent',
         'description',
         'select',
         'md5'
@@ -577,9 +581,11 @@ class NotifyService(object):
                 cur_sheet = str(model.cur_sheet) if model.cur_sheet else "0"
                 _res['set_title'] = title_json.get(cur_sheet) or ""
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['create_time'] = d2s(model.create_time) \
+                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['delete_time'] = d2s(model.delete_time) \
+                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx
             elif attr == 'is_del':
@@ -942,9 +948,11 @@ class NotifyService(object):
             elif attr == 'description':
                 _res[attr] = model.description
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['create_time'] = d2s(model.create_time) \
+                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['delete_time'] = d2s(model.delete_time) \
+                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx
             elif attr == 'is_del':
@@ -977,14 +985,18 @@ class NotifyService(object):
                 _res[attr] = model.key
             elif attr == 'secret':
                 _res[attr] = model.secret
+            elif attr == 'agent':
+                _res[attr] = model.agent
             elif attr == 'select':
                 _res[attr] = True if model.select else False
             elif attr == 'description':
                 _res[attr] = model.description
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['create_time'] = d2s(model.create_time) \
+                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['delete_time'] = d2s(model.delete_time) \
+                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx
             elif attr == 'is_del':
@@ -1085,7 +1097,10 @@ class NotifyService(object):
 
         # check key and secret is or not repeat
         if new_params.get('key') and new_params.get('secret'):
-            if self.dtalk_robot_bo.get_model_by_key_secret(key=new_params.get('key'), secret=new_params.get('secret'), rtx_id=new_params.get('rtx_id')):
+            if self.dtalk_robot_bo.get_model_by_key_secret(
+                    key=new_params.get('key'),
+                    secret=new_params.get('secret'),
+                    rtx_id=new_params.get('rtx_id')):
                 return Status(
                     213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
         # select default
@@ -1297,6 +1312,14 @@ class NotifyService(object):
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
+        # check key and secret is or not repeat
+        if new_params.get('key') and new_params.get('secret'):
+            if self.dtalk_robot_bo.get_model_by_key_secret(
+                    key=new_params.get('key'),
+                    secret=new_params.get('secret'),
+                    rtx_id=new_params.get('rtx_id')):
+                return Status(
+                    213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
 
         # select default
         if new_params.get('select'):
@@ -1764,6 +1787,7 @@ class NotifyService(object):
         name: 机器人名称
         key: robot-key
         secret: robot-secret
+        agent: agent-id
         description: 机器人描述
         select: 是否默认
         :return: json data
@@ -1795,12 +1819,15 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
-
         # check key and secret is or not repeat
-        if new_params.get('key') and new_params.get('secret'):
-            if self.qywx_robot_bo.get_model_by_key_secret(key=new_params.get('key'), secret=new_params.get('secret'), rtx_id=new_params.get('rtx_id')):
+        if new_params.get('key') and new_params.get('secret') and new_params.get('agent') :
+            if self.qywx_robot_bo.get_model_by_key_secret_agent(
+                    key=new_params.get('key'),
+                    secret=new_params.get('secret'),
+                    agent=new_params.get('agent'),
+                    rtx_id=new_params.get('rtx_id')):
                 return Status(
-                    213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
+                    213, 'failure', '机器人已存在，请勿重复添加', {}).json()
         # select default
         if new_params.get('select'):
             self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
@@ -1808,10 +1835,11 @@ class NotifyService(object):
         new_model = self.qywx_robot_bo.new_mode()
         new_model.rtx_id = new_params.get('rtx_id')
         new_model.name = new_params.get('name')
-        md5_id = md5(new_params.get('rtx_id')+new_params.get('key')+new_params.get('secret')+get_now())
+        md5_id = md5(new_params.get('rtx_id')+new_params.get('agent')+new_params.get('key')+new_params.get('secret')+get_now())
         new_model.md5_id = md5_id
         new_model.key = new_params.get('key')
         new_model.secret = new_params.get('secret')
+        new_model.agent = new_params.get('agent')
         new_model.select = new_params.get('select') or False
         new_model.description = new_params.get('description')
         new_model.create_time = get_now()
@@ -2005,6 +2033,15 @@ class NotifyService(object):
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
+        # check key and secret is or not repeat
+        if new_params.get('key') and new_params.get('secret') and new_params.get('agent'):
+            if self.qywx_robot_bo.get_model_by_key_secret_agent(
+                    key=new_params.get('key'),
+                    secret=new_params.get('secret'),
+                    agent=new_params.get('agent'),
+                    rtx_id=new_params.get('rtx_id')):
+                return Status(
+                    213, 'failure', '机器人已存在，请勿重复添加', {}).json()
 
         # select default
         if new_params.get('select'):
@@ -2013,6 +2050,7 @@ class NotifyService(object):
         model.name = new_params.get('name')
         model.key = new_params.get('key')
         model.secret = new_params.get('secret')
+        model.agent = new_params.get('agent')
         model.description = new_params.get('description')
         model.select = new_params.get('select') or False
         self.qywx_robot_bo.merge_model(model)

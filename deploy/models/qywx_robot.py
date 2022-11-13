@@ -56,6 +56,7 @@ class QywxRobotModel(base.ModelBase):
     md5_id = Column(String(55))
     key = Column(String(30))
     secret = Column(String(70))
+    agent = Column(String(8))
     select = Column(Boolean())
     description = Column(Text)
     create_time = Column(TIMESTAMP)

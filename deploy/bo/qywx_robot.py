@@ -73,10 +73,11 @@ class QywxRobotBo(BOBase):
         q = q.filter(QywxRobotModel.md5_id == str(md5))
         return q.first() if q else None
 
-    def get_model_by_key_secret(self, key, secret, rtx_id):
+    def get_model_by_key_secret_agent(self, key, secret, agent, rtx_id):
         q = self.session.query(QywxRobotModel)
         q = q.filter(QywxRobotModel.key == str(key))
         q = q.filter(QywxRobotModel.secret == str(secret))
+        q = q.filter(QywxRobotModel.agent == str(agent))
         q = q.filter(QywxRobotModel.rtx_id == str(rtx_id))
         q = q.filter(QywxRobotModel.is_del != 1)
         return q.first() if q else None
