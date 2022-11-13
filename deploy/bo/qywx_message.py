@@ -63,6 +63,8 @@ class QywxMessageBo(BOBase):
                                QywxMessageModel.type,
                                QywxMessageModel.md5_id,
                                QywxMessageModel.robot,
+                               QywxMessageModel.count,
+                               QywxMessageModel.last_send_time,
                                QywxMessageModel.create_time,
                                QywxMessageModel.delete_rtx,
                                QywxMessageModel.delete_time,

@@ -274,6 +274,8 @@ class NotifyService(object):
         'md5_id',
         'robot',
         'type',
+        'count',
+        'last_send_time',
         'create_time',
         'delete_rtx',
         'delete_time',
@@ -2164,12 +2166,20 @@ class NotifyService(object):
                 _res[attr] = model.robot
             elif attr == 'type':
                 _res[attr] = model.type
+            elif attr == 'count':
+                _res[attr] = model.count
             elif attr == 'enum_name':
                 _res['type_name'] = model.enum_name
+            elif attr == 'last_send_time':
+                print(model.last_send_time)
+                _res['last_send_time'] = d2s(model.last_send_time) \
+                    if model.last_send_time and model.last_send_time != '0000-00-00 00:00:00' else ''
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['create_time'] = d2s(model.create_time) \
+                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.create_time) if model.create_time else ''
+                _res['delete_time'] = d2s(model.delete_time) \
+                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx
             elif attr == 'is_del':
@@ -2453,12 +2463,14 @@ class NotifyService(object):
         new_model.content = new_params.get('content')
         new_model.user = new_params.get('user')
         new_model.type = new_params.get('type')
+        new_model.count = 0
         md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
         new_model.md5_id = md5_id
         new_model.robot = getattr(default_robot_model, 'md5_id', '')
         new_model.create_time = get_now()
         new_model.is_del = False
         new_model.delete_time = ''
+        new_model.last_send_time = ''
         # 添加try异常处理，防止数据库add失败
         try:
             self.qywx_bo.add_model(new_model)

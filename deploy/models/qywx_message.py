@@ -58,6 +58,8 @@ class QywxMessageModel(base.ModelBase):
     type = Column(String(5))
     md5_id = Column(String(55))
     robot = Column(String(55))
+    count = Column(Integer)
+    last_send_time = Column(TIMESTAMP)
     create_time = Column(TIMESTAMP)
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
