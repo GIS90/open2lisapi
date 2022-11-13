@@ -41,9 +41,9 @@ from itertools import groupby
 
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
-from deploy.utils.file_lib import FileLib
-from deploy.utils.store_lib import StoreLib
-from deploy.utils.excel_lib import ExcelLib
+from deploy.delibs.file_lib import FileLib
+from deploy.delibs.store_lib import StoreLib
+from deploy.delibs.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
 from deploy.bo.excel_result import ExcelResultBo
 from deploy.bo.enum import EnumBo
@@ -52,7 +52,7 @@ from deploy.bo.office_pdf import OfficePDFBo
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     OFFICE_LIMIT, OFFICE_STORE_BK, \
     ADMIN, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
-from deploy.utils.utils import get_now, d2s, md5, s2d, check_length
+from deploy.utils.utils import get_now, d2s, md5, check_length
 from deploy.utils.enums import *
 
 

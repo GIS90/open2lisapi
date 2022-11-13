@@ -36,8 +36,8 @@ import json
 
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
-from deploy.utils.file_lib import FileLib
-from deploy.utils.store_lib import StoreLib
+from deploy.delibs.file_lib import FileLib
+from deploy.delibs.store_lib import StoreLib
 from deploy.services.office import OfficeService
 from deploy.services.notify import NotifyService
 
