@@ -276,7 +276,8 @@ class NotifyService(object):
         'create_time',
         'delete_rtx',
         'delete_time',
-        'is_del'
+        'is_del',
+        'enum_name'
     ]
 
     req_qywx_add_attrs = [
@@ -290,6 +291,14 @@ class NotifyService(object):
         'title': 55,
         'content': 1000
     }
+
+    req_qywx_update_attrs = [
+        'rtx_id',
+        'title',
+        'content',
+        'type',
+        'md5'
+    ]
 
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
@@ -2139,6 +2148,8 @@ class NotifyService(object):
                 _res[attr] = model.robot
             elif attr == 'type':
                 _res[attr] = model.type
+            elif attr == 'enum_name':
+                _res['type_name'] = model.enum_name
             elif attr == 'create_time':
                 _res['create_time'] = d2s(model.create_time) if model.create_time else ''
             elif attr == 'delete_time':
@@ -2178,6 +2189,7 @@ class NotifyService(object):
             new_params.pop('rtx_id')
 
         # <get data>
+        new_params['enum_name'] = 'qywx-type'
         res, total = self.qywx_bo.get_all(new_params)
         if not res:
             return Status(
@@ -2297,7 +2309,7 @@ class NotifyService(object):
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
-        model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
+        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
@@ -2311,14 +2323,25 @@ class NotifyService(object):
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
-        # return
+        """  return data """
+        # enum
+        enums = self.enum_bo.get_model_by_name('qywx-type')
+        type_res = list()
+        for e in enums:
+            if not e: continue
+            type_res.append({'label': str(e.value), 'value': str(e.key)})
+        _res = {
+            'title': getattr(model, 'title', ''),
+            'content': getattr(model, 'content', ''),
+            'type': getattr(model, 'type', ''),
+            'type_lists': type_res
+        }
         return Status(
-            100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model, _type='detail')
-        ).json()
+            100, 'success', StatusMsgs.get(100), _res).json()
 
     def qywx_update(self, params: dict):
         """
-        qywx message information, contain:
+        update qywx message information, contain:
             - title 消息标题
             - content 消息内容
             - type 消息类型
@@ -2333,84 +2356,48 @@ class NotifyService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_dtalk_update_attrs and v:      # 不合法参数
+            if k not in self.req_qywx_update_attrs and v:      # 不合法参数
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v and k in self.req_dtalk_update_need_attrs:       # value check, is not allow null
+            # check: value is not null
+            if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            if k == 'name':      # check name and length
-                new_names = os.path.splitext(str(v))
-                if new_names[-1] not in self.EXCEL_FORMAT:
-                    return Status(
-                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}).json()
-                if not check_length(v, 80):  # check: length
-                    return Status(
-                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'title' and v:
-                if not check_length(v, 50):  # check: length
-                    return Status(
-                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'set_sheet':
-                if not isinstance(v, list):
-                    return Status(
-                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
-                v = ';'.join(v)
-            elif k == 'column':
-                if not isinstance(v, list):
-                    return Status(
-                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
-                if len(v) < 2:
-                    if not isinstance(v, list):
-                        return Status(
-                            213, 'failure', u'请求参数%s数据至少选择2列' % k, {}).json()
-                v = v
-            else:
-                v = str(v)
-            new_params[k] = v
+            new_params[k] = str(v)
+            # check: length
+        for _key, _value in self.req_qywx_add_length_check.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
-        # ========= check data
-        model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         if rtx_id != ADMIN and model.rtx_id != rtx_id:
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}).json()
+                309, 'failure', StatusMsgs.get(309), {}).json()
 
-        # update
-        # <update file real name>
-        if str(new_params.get('name')) != str(model.file_name):
-            res = self._update_real_file_name(model, new_params.get('name'))
-            if res:
-                model.file_name = res.get('name')
-                model.file_local_url = res.get('local_url')
-                model.file_store_url = res.get('store_url')
+        # --------------------------------------- update model --------------------------------------
         model.title = new_params.get('title')
-        model.set_sheet = new_params.get('set_sheet')
-        # sheet设置
-        cur_sheet = str(new_params.get('cur_sheet'))
-        model.cur_sheet = cur_sheet
-        # sheet title
-        title_json = json.loads(model.set_title) if model.set_title else {}
-        title_json[cur_sheet] = new_params.get('title') or ""
-        model.set_title = json.dumps(title_json)
-        # sheet column
-        set_column_json = json.loads(model.set_column)
-        if new_params.get('column'):
-            set_column_json[cur_sheet] = new_params.get('column')
-            model.set_column = json.dumps(set_column_json)
-        self.dtalk_bo.merge_model(model)
-        return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
-        ).json()
+        model.content = new_params.get('content')
+        model.type = new_params.get('type')
+        try:
+            self.qywx_bo.merge_model(model)
+            return Status(
+                100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}).json()
+        except:
+            return Status(
+                450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
 
     def qywx_add(self, params: dict) -> json:
         """
@@ -2440,10 +2427,7 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
-        print(new_params)
         default_robot_model = self.qywx_robot_bo.get_default_by_rtx(new_params.get('rtx_id'))
-        print('*' * 100)
-        print(default_robot_model)
         # --------------------------------------- add model --------------------------------------
         new_model = self.qywx_bo.new_mode()
         new_model.rtx_id = new_params.get('rtx_id')

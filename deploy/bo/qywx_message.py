@@ -37,6 +37,7 @@ from sqlalchemy import or_
 from deploy.utils.utils import get_now
 from deploy.bo.bo_base import BOBase
 from deploy.models.qywx_message import QywxMessageModel
+from deploy.models.enum import EnumModel
 
 
 class QywxMessageBo(BOBase):
@@ -54,8 +55,22 @@ class QywxMessageBo(BOBase):
         return q
 
     def get_all(self, params: dict):
-        q = self.session.query(QywxMessageModel)
+        q = self.session.query(QywxMessageModel.id,
+                               QywxMessageModel.rtx_id,
+                               QywxMessageModel.title,
+                               QywxMessageModel.content,
+                               QywxMessageModel.type,
+                               QywxMessageModel.md5_id,
+                               QywxMessageModel.robot,
+                               QywxMessageModel.create_time,
+                               QywxMessageModel.delete_rtx,
+                               QywxMessageModel.delete_time,
+                               QywxMessageModel.is_del,
+                               EnumModel.value.label('enum_name'))
+        q = q.filter(QywxMessageModel.type == EnumModel.key)
         q = q.filter(QywxMessageModel.is_del != 1)
+        if params.get('enum_name'):
+            q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
         if params.get('rtx_id'):
             q = q.filter(QywxMessageModel.rtx_id == str(params.get('rtx_id')))
         q = q.order_by(QywxMessageModel.create_time.desc())

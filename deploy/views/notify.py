@@ -663,7 +663,7 @@ def qywx_detail():
 @watcher(watcher_args=request)
 def qywx_update():
     """
-    qywx message information, contain:
+    update qywx message information, contain:
         - title 消息标题
         - content 消息内容
         - type 消息类型
