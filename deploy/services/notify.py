@@ -1313,6 +1313,7 @@ class NotifyService(object):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # check key and secret is or not repeat
+        """
         if new_params.get('key') and new_params.get('secret'):
             if self.dtalk_robot_bo.get_model_by_key_secret(
                     key=new_params.get('key'),
@@ -1320,7 +1321,7 @@ class NotifyService(object):
                     rtx_id=new_params.get('rtx_id')):
                 return Status(
                     213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
-
+        """
         # select default
         if new_params.get('select'):
             self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
@@ -2034,6 +2035,7 @@ class NotifyService(object):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # check key and secret is or not repeat
+        """
         if new_params.get('key') and new_params.get('secret') and new_params.get('agent'):
             if self.qywx_robot_bo.get_model_by_key_secret_agent(
                     key=new_params.get('key'),
@@ -2042,7 +2044,7 @@ class NotifyService(object):
                     rtx_id=new_params.get('rtx_id')):
                 return Status(
                     213, 'failure', '机器人已存在，请勿重复添加', {}).json()
-
+        """
         # select default
         if new_params.get('select'):
             self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
