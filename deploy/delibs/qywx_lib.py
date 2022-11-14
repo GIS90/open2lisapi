@@ -81,14 +81,11 @@ class QYWXLib(object):
         :param secret: 管理组凭证密钥
         :param agent_id: 机器人应用ID
         """
-        self.http = HttpLibApi()
         self.CORP_ID = corp_id
         self.SECRET = secret
         self.AGENT_ID = agent_id
+        self.http = HttpLibApi(QYWX_BASE_URL)
         self.token = self.__init_token()   # 每次实例化调用初始化access token
-        self.base_url = QYWX_BASE_URL
-        self.access_token_url = '%s%s' % (QYWX_BASE_URL, QYWX_ACCESS_TOKEN)
-        self.send_message_url = '%s%s' % (QYWX_BASE_URL, QYWX_SEND_MESSAGE)
 
     def __init_token(self):
         """
@@ -120,7 +117,7 @@ class QYWXLib(object):
             "corpid": self.CORP_ID,
             "corpsecret": self.SECRET
         }
-        status, response = self.http.get_json(url=self.access_token_url, params=data)
+        status, response = self.http.get_json(url=QYWX_ACCESS_TOKEN, params=data)
         if not status:
             return None
         return response.get("access_token") \
@@ -202,7 +199,6 @@ class QYWXLib(object):
         if not content:
             return Status(212, 'failure', '缺少消息内容', {}).json()
 
-        url = "%s?access_token=%s" % (self.send_message_url, self.token)
         data = {
             "touser": "|".join(to_user),
             "msgtype": "markdown",
@@ -213,7 +209,8 @@ class QYWXLib(object):
             "enable_duplicate_check": 0,
             "duplicate_check_interval": 1800
         }
-        status, response = requests.post(url=url, json=data)
+        url = "%s?access_token=%s" % (QYWX_SEND_MESSAGE, self.token)
+        status, response = self.http.post_json(url=url, data=data)
         if not status:
             return Status(501, 'failure', response.get('errmsg'), {}).json()
         if response.get("errcode") == 0 and response.get("errmsg") == "ok":

@@ -131,9 +131,6 @@ DTALK_CONTROL = []
 DTALK_INTERVAL = 0.5
 
 # QYWX企业微信
-QYWX_CORP_ID = 'ww21aaf65b6160dfda'
-QYWX_SECRET = 'jeLQB0tGoCqK2KSMUptwVheuVRMqSZ495YvR9PtM0j0'
-QYWX_AGENT_ID = 1000002
 QYWX_BASE_URL = 'https://qyapi.weixin.qq.com'
 QYWX_ACCESS_TOKEN = '/cgi-bin/gettoken'
 QYWX_SEND_MESSAGE = '/cgi-bin/message/send'
@@ -236,9 +233,6 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     DTALK_INTERVAL = _config_info['DINGTALK']['INTERVAL'] or DTALK_INTERVAL
 
     # QYWX
-    QYWX_CORP_ID = _config_info['QYWX']['CORP_ID'] or QYWX_CORP_ID
-    QYWX_SECRET = _config_info['QYWX']['SECRET'] or QYWX_SECRET
-    QYWX_AGENT_ID = _config_info['QYWX']['AGENT_ID'] or QYWX_AGENT_ID
     QYWX_BASE_URL = _config_info['QYWX']['BASE_URL'] or QYWX_BASE_URL
     QYWX_ACCESS_TOKEN = _config_info['QYWX']['ACCESS_TOKEN'] or QYWX_ACCESS_TOKEN
     QYWX_SEND_MESSAGE = _config_info['QYWX']['SEND_MESSAGE'] or QYWX_SEND_MESSAGE

@@ -51,6 +51,7 @@ from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
     DTALK_CONTROL, DTALK_INTERVAL, DTALK_ADD_IMAGE
 from deploy.delibs.store_lib import StoreLib
 from deploy.delibs.dtalk_lib import DtalkLib
+from deploy.delibs.qywx_lib import QYWXLib
 
 
 class NotifyService(object):
@@ -2163,13 +2164,17 @@ class NotifyService(object):
         if not model.key or not model.secret:
             return Status(
                 214, 'failure', "缺少KEY或SECRET，请完善配置信息", {}).json()
-        # TODO
+
         # ping test
-        # dtalk_api = DtalkLib(app_key=model.key, app_secret=model.secret)
-        # if not dtalk_api.is_avail():
-        #     return Status(
-        #         499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
-        # dtalk_api.close()
+        robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('md5'))
+        if not robot_model:
+            return Status(
+                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # --------------------------------------- send --------------------------------------
+        qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
+        if not qywx_lib.check_token():
+            return Status(
+                499, 'failure', 'PING失败，请检查配置' or StatusMsgs.get(499), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -2211,7 +2216,6 @@ class NotifyService(object):
             elif attr == 'enum_name':
                 _res['type_name'] = model.enum_name
             elif attr == 'last_send_time':
-                print(model.last_send_time)
                 _res['last_send_time'] = d2s(model.last_send_time) \
                     if model.last_send_time and model.last_send_time != '0000-00-00 00:00:00' else ''
             elif attr == 'create_time':
@@ -2638,17 +2642,35 @@ class NotifyService(object):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
+        robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('robot'))
+        if not robot_model:
+            return Status(
+                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # --------------------------------------- send --------------------------------------
+        qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
+        if not qywx_lib.check_token():
+            return Status(
+                499, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+        try:
+            to_user = new_params.get('user').split(';')
+            _q_res = qywx_lib.send_to_user_by_markdown(to_user, new_params.get('content'))
+            _q_res_json = json.loads(_q_res)
+        except Exception as e:
+            return Status(
+                499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()
         # --------------------------------------- update model --------------------------------------
         model.title = new_params.get('title')
         model.content = new_params.get('content')
         model.type = new_params.get('type')
         model.user = new_params.get('user')
         model.robot = new_params.get('robot')
+        model.count = model.count + 1
+        model.last_send_time = get_now()
         try:
             self.qywx_bo.merge_model(model)
         except:
             return Status(
                 450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+        return Status(
+            100, 'success', '成功', {}).json()
 
-        # --------------------------------------- send --------------------------------------
-        pass
