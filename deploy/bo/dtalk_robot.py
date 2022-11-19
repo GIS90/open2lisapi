@@ -85,7 +85,9 @@ class DtalkRobotBo(BOBase):
         q = self.session.query(DtalkRobotModel)
         q = q.filter(DtalkRobotModel.rtx_id == rtx_id)
         q = q.filter(DtalkRobotModel.is_del != 1)
-        q = q.update({DtalkRobotModel.select: False}, synchronize_session=False)
+        # fix bug
+        # q = q.update({DtalkRobotModel.select: False}, synchronize_session=False)
+        q = q.update({DtalkRobotModel.select: False})
         return q
 
     def batch_delete_by_md5(self, params):
