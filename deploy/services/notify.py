@@ -2653,8 +2653,17 @@ class NotifyService(object):
                 499, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
         try:
             to_user = new_params.get('user').split(';')
-            _q_res = qywx_lib.send_to_user_by_markdown(to_user, new_params.get('content'))
+            send_type = new_params.get('type') or '1'
+            send_type = str(send_type)
+            if send_type == '8':    # markdown消息
+                _q_res = qywx_lib.send_to_user_by_markdown(to_user, new_params.get('content'))
+            else:
+                return Status(
+                    499, 'failure', '企业微信暂不支持此类型消息', {}).json()
             _q_res_json = json.loads(_q_res)
+            if _q_res_json.get('status_id') != 100:
+                return Status(
+                    499, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
         except Exception as e:
             return Status(
                 499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()

@@ -60,9 +60,6 @@ class HttpLibApi(object):
         """ buildin get """
         headers = self._wrap_headers(headers, ctype=ctype)
         url = '%s%s' % (self.root, url)
-        print('*' * 100)
-        print(self.root)
-        print(url)
         params = params if params else {}
         try:
             response = requests.get(
