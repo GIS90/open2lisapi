@@ -724,7 +724,7 @@ class NotifyService(object):
 
     def dtalk_detail(self, params: dict):
         """
-        get the latest dtalk message detail information, by file md5
+        get the latest dtalk message detail information by md5
         :return: json data
         """
         # ================== parameters check && format ==================
@@ -763,11 +763,10 @@ class NotifyService(object):
 
     def dtalk_update(self, params: dict):
         """
-        update dtalk information, contain:
+        update dtalk information by md5, contain:
             - name 文件名称
             - title 消息标题
             - set_sheet 设置的sheet
-        by file md5
         :return: json data
         """
         # ====================== parameters check and format ======================
@@ -1212,7 +1211,7 @@ class NotifyService(object):
 
     def dtalk_robot_detail(self, params: dict):
         """
-        get dtalk robot detail information, by file md5
+        get dtalk robot detail information by md5
         :return: json data
         """
         if not params:
@@ -1252,13 +1251,12 @@ class NotifyService(object):
 
     def dtalk_robot_update(self, params: dict):
         """
-        update dtalk robot information, contain:
+        update dtalk robot information by md5, contain:
             - name 名称
             - key
             - secret
             - description 描述
             - select 选择
-        by file md5
         :return: json data
         """
         if not params:
@@ -1339,7 +1337,7 @@ class NotifyService(object):
 
     def dtalk_robot_select(self, params: dict):
         """
-         set dtalk robot select status, by file md5
+        set dtalk robot default select status by md5
         :return: json data
         """
         if not params:
@@ -1941,7 +1939,7 @@ class NotifyService(object):
 
     def qywx_robot_detail(self, params: dict):
         """
-        get qywx robot detail information, by file md5
+        get qywx robot latest detail information by md5
         :return: json data
         """
         if not params:
@@ -2063,7 +2061,7 @@ class NotifyService(object):
 
     def qywx_robot_select(self, params: dict):
         """
-        set qywx robot select status by md5
+        set qywx robot default select status by md5
         :return: json data
         """
         if not params:
@@ -2170,7 +2168,7 @@ class NotifyService(object):
         if not robot_model:
             return Status(
                 302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
-        # --------------------------------------- send --------------------------------------
+        # --------------------------------------- get token from 企业微信  --------------------------------------
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
@@ -2416,6 +2414,7 @@ class NotifyService(object):
             - title 消息标题
             - content 消息内容
             - type 消息类型
+            - user 用户列表
         by data md5
         :return: json data
         """
@@ -2600,8 +2599,9 @@ class NotifyService(object):
 
     def qywx_send(self, params: dict):
         """
-        发送企业微信消息记录初始化数据
-        :return: many json data
+        qywx send message to user list
+        发送企业微信消息
+        :return: json data
         """
         # ====================== parameters check and format ======================
         if not params:

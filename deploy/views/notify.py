@@ -72,7 +72,7 @@ def dtalk_list():
     except Exception as e:
         LOG.error("notify>dtalk list is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_delete/', methods=['GET', 'POST'], strict_slashes=False)
@@ -94,7 +94,7 @@ def dtalk_delete():
     except Exception as e:
         LOG.error("notify>delete one dtalk is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_deletes/', methods=['GET', 'POST'], strict_slashes=False)
@@ -116,14 +116,14 @@ def dtalk_deletes():
     except Exception as e:
         LOG.error("notify>delete many dtalk is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_detail():
     """
-    get the latest dtalk message detail information, by file md5
+    get the latest dtalk message detail information by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -137,18 +137,17 @@ def dtalk_detail():
     except Exception as e:
         LOG.error("notify>dtalk detail is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_update():
     """
-    update dtalk information, contain:
+    update dtalk information by md5, contain:
         - name 文件名称
         - title 消息标题
         - set_sheet 设置的sheet
-    by file md5
     :return: json data
     """
     if request.method == 'GET':
@@ -162,14 +161,15 @@ def dtalk_update():
     except Exception as e:
         LOG.error("notify>dtalk update is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_change_sheet/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_change_sheet():
     """
-    dtalk change sheet by sheet index 设置中切换sheet展示的内容切换
+    dtalk change sheet by sheet index
+    设置中切换sheet展示的内容切换
     :return: json data
     """
     if request.method == 'GET':
@@ -183,7 +183,7 @@ def dtalk_change_sheet():
     except Exception as e:
         LOG.error("notify>dtalk change sheet is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -203,7 +203,7 @@ def dtalk_robot_list():
     except Exception as e:
         LOG.error("notify>dtalk robot list is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -225,7 +225,7 @@ def dtalk_robot_add():
     except Exception as e:
         LOG.error("authority>dtalk robot add is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_delete/', methods=['GET', 'POST'], strict_slashes=False)
@@ -246,7 +246,7 @@ def dtalk_robot_delete():
     except Exception as e:
         LOG.error("notify>delete one dtalk robot is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_deletes/', methods=['GET', 'POST'], strict_slashes=False)
@@ -267,14 +267,14 @@ def dtalk_robot_deletes():
     except Exception as e:
         LOG.error("notify>delete many dtalk robot is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_robot_detail():
     """
-    get dtalk robot detail information, by file md5
+    get dtalk robot detail information by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -288,20 +288,19 @@ def dtalk_robot_detail():
     except Exception as e:
         LOG.error("notify>dtalk robot detail is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_robot_update():
     """
-    update dtalk robot information, contain:
+    update dtalk robot information by md5, contain:
         - name 名称
         - key
         - secret
         - description 描述
         - select 选择
-    by file md5
     :return: json data
     """
     if request.method == 'GET':
@@ -315,14 +314,14 @@ def dtalk_robot_update():
     except Exception as e:
         LOG.error("notify>dtalk robot update is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_select/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_robot_select():
     """
-    set dtalk robot select status, by file md5
+    set dtalk robot default select status by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -336,7 +335,7 @@ def dtalk_robot_select():
     except Exception as e:
         LOG.error("notify>dtalk robot select is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_robot_ping/', methods=['GET', 'POST'], strict_slashes=False)
@@ -357,7 +356,7 @@ def dtalk_robot_ping():
     except Exception as e:
         LOG.error("notify>dtalk robot ping is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_send_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -378,7 +377,7 @@ def dtalk_send_init():
     except Exception as e:
         LOG.error("notify>dtalk send init data is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/dtalk_send/', methods=['GET', 'POST'], strict_slashes=False)
@@ -399,7 +398,7 @@ def dtalk_send():
     except Exception as e:
         LOG.error("notify>dtalk send is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -419,7 +418,7 @@ def qywx_robot_list():
     except Exception as e:
         LOG.error("notify>qywx robot list is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -441,14 +440,14 @@ def qywx_robot_add():
     except Exception as e:
         LOG.error("authority>qywx robot add is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_delete/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_robot_delete():
     """
-    delete one dtalk robot data by md5
+    delete one qywx robot data by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -462,7 +461,7 @@ def qywx_robot_delete():
     except Exception as e:
         LOG.error("notify>delete one qywx robot is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_deletes/', methods=['GET', 'POST'], strict_slashes=False)
@@ -483,14 +482,14 @@ def qywx_robot_deletes():
     except Exception as e:
         LOG.error("notify>delete many qywx robot is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_robot_detail():
     """
-    get qywx robot detail information, by file md5
+    get qywx robot latest detail information by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -504,7 +503,7 @@ def qywx_robot_detail():
     except Exception as e:
         LOG.error("notify>qywx robot detail is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -531,14 +530,14 @@ def qywx_robot_update():
     except Exception as e:
         LOG.error("notify>qywx robot update is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_select/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_robot_select():
     """
-    set qywx robot select status by md5
+    set qywx robot default select status by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -552,7 +551,7 @@ def qywx_robot_select():
     except Exception as e:
         LOG.error("notify>qywx robot select is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_robot_ping/', methods=['GET', 'POST'], strict_slashes=False)
@@ -573,7 +572,7 @@ def qywx_robot_ping():
     except Exception as e:
         LOG.error("notify>qywx robot ping is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -593,7 +592,7 @@ def qywx_list():
     except Exception as e:
         LOG.error("notify>qywx list is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_delete/', methods=['GET', 'POST'], strict_slashes=False)
@@ -614,7 +613,7 @@ def qywx_delete():
     except Exception as e:
         LOG.error("notify>delete one qywx message is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_deletes/', methods=['GET', 'POST'], strict_slashes=False)
@@ -635,7 +634,7 @@ def qywx_deletes():
     except Exception as e:
         LOG.error("notify>delete many qywx message is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -656,7 +655,7 @@ def qywx_detail():
     except Exception as e:
         LOG.error("notify>qywx detail is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -667,6 +666,7 @@ def qywx_update():
         - title 消息标题
         - content 消息内容
         - type 消息类型
+        - user 用户列表
     by data md5
     :return: json data
     """
@@ -681,7 +681,7 @@ def qywx_update():
     except Exception as e:
         LOG.error("notify>qywx update is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -701,7 +701,7 @@ def qywx_add():
     except Exception as e:
         LOG.error("notify>qywx add is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_add_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -709,6 +709,7 @@ def qywx_add():
 def qywx_add_init():
     """
     新增企业微信消息记录初始化dialog枚举数据
+    特殊：get，无参
     :return: many json data
     """
     if request.method == 'POST':
@@ -721,7 +722,7 @@ def qywx_add_init():
     except Exception as e:
         LOG.error("notify>qywx add init is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_send_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -741,15 +742,16 @@ def qywx_send_init():
     except Exception as e:
         LOG.error("notify>qywx send init is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
 @notify.route('/qywx_send/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_send():
     """
-    发送企业微信消息记录初始化数据
-    :return: many json data
+    qywx send message to user list
+    发送企业微信消息
+    :return: json data
     """
     if request.method == 'GET':
         return Status(
@@ -761,5 +763,5 @@ def qywx_send():
     except Exception as e:
         LOG.error("notify>qywx send is error: %s" % e)
         return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
