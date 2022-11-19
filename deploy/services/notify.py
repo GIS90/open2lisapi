@@ -321,6 +321,19 @@ class NotifyService(object):
         'md5'
     ]
 
+    req_send_temp_attrs = [
+        'rtx_id'
+    ]
+
+    req_qywx_send_temp_attrs = [
+        'rtx_id',
+        'title',
+        'content',
+        'user',
+        'type',
+        'robot'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -2680,6 +2693,109 @@ class NotifyService(object):
         except:
             return Status(
                 450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+        return Status(
+            100, 'success', '成功', {}).json()
+
+    def qywx_send_init_temp(self, params: dict):
+        """
+        发送企业微信消息记录初始化数据
+        【临时】
+        :return: json data
+        """
+
+        # ================== parameters check && format ==================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_send_temp_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<<<< return data >>>>>>>>>>>>>>>>>>>>
+        # send type
+        enums = self.enum_bo.get_model_by_name('qywx-type')
+        type_res = list()
+        for e in enums:
+            if not e: continue
+            type_res.append({'label': str(e.value), 'value': str(e.key)})
+        # robot type
+        robots = self.qywx_robot_bo.get_model_by_rtx(rtx=new_params.get('rtx_id'))
+        robot_res = list()
+        select_robot = ''
+        for r in robots:
+            if not r: continue
+            robot_res.append({'label': str(r.name), 'value': str(r.md5_id)})
+            if r.select:
+                select_robot = str(r.md5_id)
+        _res = {
+            'type_lists': type_res,
+            'robot': select_robot,
+            'robot_lists': robot_res
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), _res).json()
+
+    def qywx_send_temp(self, params: dict):
+        """
+        qywx send message to user list
+        发送企业微信消息【临时】
+        :return: json data
+        """
+        # ====================== parameters check and format ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_qywx_send_temp_attrs and v:      # 不合法参数
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+            # check: length
+        for _key, _value in self.req_qywx_add_length_check.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # <<<<<<<<<<<<<<<<< 临时发送不记录 >>>>>>>>>>>>>>>>>>>>
+        robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('robot'))
+        if not robot_model:
+            return Status(
+                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # --------------------------------------- send --------------------------------------
+        qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
+        if not qywx_lib.check_token():
+            return Status(
+                499, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+        try:
+            to_user = new_params.get('user').split(';')
+            send_type = new_params.get('type') or '1'
+            send_type = str(send_type)
+            if send_type == '8':    # markdown消息
+                _q_res = qywx_lib.send_to_user_by_markdown(to_user, new_params.get('content'))
+            else:
+                return Status(
+                    499, 'failure', '企业微信暂不支持此类型消息', {}).json()
+            _q_res_json = json.loads(_q_res)
+            if _q_res_json.get('status_id') != 100:
+                return Status(
+                    499, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
+        except Exception as e:
+            return Status(
+                499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()
         return Status(
             100, 'success', '成功', {}).json()
 

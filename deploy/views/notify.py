@@ -765,3 +765,45 @@ def qywx_send():
         return Status(501, 'failure',
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
+
+@notify.route('/qywx_send_init_temp/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def qywx_send_init_temp():
+    """
+    发送企业微信消息记录初始化数据
+    【临时】
+    :return: many json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().qywx_send_init_temp(params)
+    except Exception as e:
+        LOG.error("notify>qywx send init temp is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/qywx_send_temp/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def qywx_send_temp():
+    """
+    qywx send message to user list
+    发送企业微信消息【临时】
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().qywx_send_temp(params)
+    except Exception as e:
+        LOG.error("notify>qywx send temp is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+
