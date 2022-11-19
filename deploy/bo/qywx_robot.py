@@ -86,7 +86,9 @@ class QywxRobotBo(BOBase):
         q = self.session.query(QywxRobotModel)
         q = q.filter(QywxRobotModel.rtx_id == rtx_id)
         q = q.filter(QywxRobotModel.is_del != 1)
-        q = q.update({QywxRobotModel.select: False}, synchronize_session=False)
+        # fix bug
+        # q = q.update({QywxRobotModel.select: False}, synchronize_session=False)
+        q = q.update({QywxRobotModel.select: False})
         return q
 
     def batch_delete_by_md5(self, params):
