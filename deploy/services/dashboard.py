@@ -621,22 +621,18 @@ class DashboardService(object):
                 2.1 如果是管理员，全部加入unselect
                 2.2 如果非管理员，判断是否有role权限，如果有加入unselect
             """
+            _d = {
+                "id": _r.id,    # 菜单id
+                "icon": _r.icon,    # 菜单图标
+                "name": "%s > %s" % (_one_level_menu.get(_r.pid), _r.title or _r.name)  # 菜单路径：一级菜单 > 二级菜单
+            }
             if int(_r.id) in shortcut_list:
-                select.append({
-                    "id": _r.id,
-                    "name": "%s > %s" % (_one_level_menu.get(_r.pid), _r.title or _r.name)
-                })
+                select.append(_d)
             else:
                 if is_admin:  # 具备管理员角色
-                    unselect.append({
-                        "id": _r.id,
-                        "name": "%s > %s" % (_one_level_menu.get(_r.pid), _r.title or _r.name)
-                    })
-                elif not is_admin and int(_r.id) in auth_list:  # 用户权限
-                    unselect.append({
-                        "id": _r.id,
-                        "name": "%s > %s" % (_one_level_menu.get(_r.pid), _r.title or _r.name)
-                    })
+                    unselect.append(_d)
+                elif not is_admin and int(_r.id) in auth_list:  # 用户设置权限
+                    unselect.append(_d)
                 else:   # 其他情况不加入
                     pass
         # return data
