@@ -55,7 +55,7 @@ CORS(common, supports_credentials=True)
 @watcher(watcher_args=request)
 def file_upload():
     """
-    单文件上传：one file upload to server(file store object)
+    one file upload to server(file store object)
     :return: json data
 
     前端form表单上传文件input name：files
@@ -75,7 +75,7 @@ def file_upload():
 
         return CommonService().file_upload(params, request.files.get('files'))
     except Exception as e:
-        LOG.error("common>upload is error: %s" % e)
+        LOG.error("common>file upload is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -84,7 +84,7 @@ def file_upload():
 @watcher(watcher_args=request)
 def file_uploads():
     """
-    多文件上传：many file upload to server(file store object)
+    many file upload to server(file store object)
     :return: json data
 
     前端form表单上传文件input name：files
@@ -104,7 +104,35 @@ def file_uploads():
 
         return CommonService().file_uploads(params, files)
     except Exception as e:
-        LOG.error("common>uploads is error: %s" % e)
+        LOG.error("common>file uploads is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
+
+@common.route('/image_wangeditor/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def image_wangeditor():
+    """
+    one image wang editor upload to server(file store object)
+    :return: json data
+
+    前端form表单上传文件input name：files
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.form
+        # 文件
+        files = request.files
+        if not files or (files and not files.get('files')):
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}).json()
+
+        return CommonService().image_wangeditor(params, request.files.get('files'))
+    except Exception as e:
+        LOG.error("common>image wang editor upload is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

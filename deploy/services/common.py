@@ -40,9 +40,11 @@ from deploy.delibs.file_lib import FileLib
 from deploy.delibs.store_lib import StoreLib
 from deploy.services.office import OfficeService
 from deploy.services.notify import NotifyService
+from deploy.delibs.image_lib import ImageLib
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, OFFICE_STORE_BK
 from deploy.utils.enums import *
+from deploy.utils.utils import get_now
 
 
 class CommonService(object):
@@ -69,6 +71,7 @@ class CommonService(object):
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.office_service = OfficeService()
         self.notify_service = NotifyService()
+        self.image_lib = ImageLib()
 
     def file_upload(self, params, upload_file, is_check_fmt: bool = True):
         """
@@ -192,3 +195,74 @@ class CommonService(object):
 
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
+
+    def image_wangeditor(self, params, image_file):
+        """
+        wang editor image upload load image to server
+        params: parameters
+        image_file: image file object
+
+        no database record, but to upload qiniu server
+
+        response格式说明：
+        正确：
+        {
+            "errno": 0, // 注意：值是数字，不能是字符串
+            "data": {
+                "url": "xxx", // 图片 src ，必须
+                "alt": "yyy", // 图片描述文字，非必须
+                "href": "zzz" // 图片的链接，非必须
+            }
+        }
+        错误：
+        {
+            "errno": 1, // 只要不等于 0 就行
+            "message": "失败信息"
+        }
+        """
+        # check parameters
+        if not params:
+            return {'errno': 212, 'message': '缺少请求参数'}
+        if not image_file:
+            return {'errno': 212, 'message': '缺少上传文件'}
+
+        try:
+            image_name = image_file.filename
+            # ============= image format check =============
+            if not self.image_lib.allow_format_img(image_name):
+                return {'errno': 401, 'message': '图片格式不支持'}
+            # ============= local store =============
+            local_res = self.image_lib.store_local(image_file, compress=False)
+            if local_res.get('status_id') != 100:
+                return {
+                    'errno': local_res.get('status_id'),
+                    'message': local_res.get('message') or '本地存储失败'
+                }
+            local_image_file = local_res.get('data').get('file')
+            # TODO 判断图片大小限制
+            # image_info = self.image_lib.scan(local_image_file)
+
+            # ============= upload store =============
+            store_image_name = '%s/%s' % (get_now(format="%Y%m%d"), local_res.get('data').get('name'))
+            store_res = self.store_lib.upload(store_name=store_image_name, local_file=local_image_file)
+            if store_res.get('status_id') != 100:
+                return {
+                    'errno': local_res.get('status_id'),
+                    'message': local_res.get('message') or '云存储失败'
+                }
+            # ---------------- return server url ----------------
+            image_url = store_res.get('data').get('url')
+            image_alt = str(image_name).split('.')[0]
+            return {
+                "errno": 0,
+                "data": {
+                    "url": image_url,
+                    "alt": image_alt
+                    # "href": _url
+                }
+            }
+        except Exception as e:
+            return {'errno': 501, 'message': '服务端API请求发生故障，请稍后尝试' or e}
+
+
+
