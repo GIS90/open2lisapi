@@ -115,6 +115,10 @@ class AuthorityService(object):
         'offset'
     ]
 
+    req_user_kv_list_attrs = [
+        'rtx_id'
+    ]
+
     user_list_attrs = [
         'id',
         'rtx_id',
@@ -1683,4 +1687,36 @@ class AuthorityService(object):
         message = '菜单禁用成功' if new_params.get('status') else '菜单启用成功'
         return Status(
             100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def user_kv_list(self, params: dict) -> dict:
+        """
+        get user list
+        return json data
+
+        default get user is no delete
+        """
+        # ---------------------- parameters check ----------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_user_kv_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            v = str(v)
+            new_params[k] = v
+        # /////////// return data
+        res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        new_res = list()
+        for _d in res:
+            if not _d: continue
+            new_res.append({'key': _d.rtx_id, 'value': _d.fullname})
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()

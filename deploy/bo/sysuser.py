@@ -80,10 +80,12 @@ class SysUserBo(BOBase):
         q = q.filter(SysUserModel.rtx_id == rtx_id)
         return q.first() if q else None
 
-    def get_all(self, params, is_admin=False):
+    def get_all(self, params, is_admin=False, is_del=False):
         q = self.session.query(SysUserModel)
         if not is_admin:
             q = q.filter(SysUserModel.rtx_id != ADMIN)
+        if is_del:
+            q = q.filter(SysUserModel.is_del != 1)
         if not q:
             return [], 0
         total = len(q.all())

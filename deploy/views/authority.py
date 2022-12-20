@@ -257,7 +257,7 @@ def role_select_list():
 @watcher(watcher_args=request)
 def user_list():
     """
-    get user list from db table role: limit, offset
+    get user list from db table sysuser: limit, offset
     many list data
     :return: json data
     """
@@ -524,5 +524,27 @@ def menu_status():
         return AuthorityService().menu_status(params)
     except Exception as e:
         LOG.error("authority>menu change status is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@auth.route('/user_kv_list/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def user_kv_list():
+    """
+    get user key-value list from db sysuser table
+    many list data
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().user_kv_list(params)
+    except Exception as e:
+        LOG.error("authority>user kv list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
