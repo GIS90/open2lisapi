@@ -153,7 +153,7 @@ class CommonService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
-    def file_upload_m(self, params, upload_files, is_check_fmt: bool = True):
+    def file_uploads(self, params, upload_files, is_check_fmt: bool = True):
         """
         多文件上传 && 存储（many office file to upload and store）
         params params: request params

@@ -51,9 +51,9 @@ common = Blueprint('common', __name__, url_prefix='/common')
 CORS(common, supports_credentials=True)
 
 
-@common.route('/upload/', methods=['GET', 'POST'], strict_slashes=False)
+@common.route('/file_upload/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
-def upload():
+def file_upload():
     """
     单文件上传：one file upload to server(file store object)
     :return: json data
@@ -80,9 +80,9 @@ def upload():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@common.route('/uploads/', methods=['GET', 'POST'], strict_slashes=False)
+@common.route('/file_uploads/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
-def uploads():
+def file_uploads():
     """
     多文件上传：many file upload to server(file store object)
     :return: json data
@@ -102,7 +102,7 @@ def uploads():
             return Status(
                 216, 'failure', StatusMsgs.get(216), {}).json()
 
-        return CommonService().file_upload_m(params, files)
+        return CommonService().file_uploads(params, files)
     except Exception as e:
         LOG.error("common>uploads is error: %s" % e)
         return Status(501, 'failure',
