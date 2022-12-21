@@ -575,3 +575,28 @@ CREATE TABLE `qywx_robot`  (
 ) COMMENT='企业微信-机器人配置表';
 
 CREATE UNIQUE INDEX qywx_robot_index ON qywx_robot (`md5_id`);
+
+
+-- create sqlbase
+DROP TABLES IF EXISTS `sqlbase`;
+
+CREATE TABLE `sqlbase`  (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `rtx_id` varchar(25) NOT NULL COMMENT '创建人RTX-ID',
+  `title` varchar(55) NOT NULL COMMENT '标题',
+  `md5_id` varchar(55) NOT NULL COMMENT '数据MD5-ID',
+  `author` varchar(25) NULL COMMENT '作者',
+  `recommend` integer NULL COMMENT '推荐度，数值型',
+  `summary` varchar(200) NULL COMMENT '简要',
+  `label` varchar(35) NULL COMMENT '标签，用英文;分割',
+  `public` bool DEFAULT False COMMENT '发布状态：True发布，False草稿',
+  `public_time` datetime COMMENT '发布时间',
+  `content` text NULL COMMENT '内容',
+  `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+  `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+  `delete_time` datetime COMMENT '删除时间',
+  `is_del` bool DEFAULT False COMMENT '是否删除',
+  PRIMARY KEY (`id`)
+);
+
+CREATE UNIQUE INDEX sqlbase_index ON sqlbase (`md5_id`);
