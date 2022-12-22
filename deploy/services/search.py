@@ -76,7 +76,7 @@ class SearchService(object):
         'is_del'
     ]
 
-    req_sqlbase_edit_attrs = [
+    req_sqlbase_add_attrs = [
         'rtx_id',
         'title',
         'author',
@@ -113,6 +113,19 @@ class SearchService(object):
 
     req_detail_attrs = [
         'rtx_id',
+        'md5'
+    ]
+
+    req_sqlbase_update_attrs = [
+        'rtx_id',
+        'title',
+        'author',
+        'recommend',
+        'summary',
+        'label',
+        'public_time',
+        'html',
+        'text',
         'md5'
     ]
 
@@ -244,7 +257,7 @@ class SearchService(object):
         for k, v in params.items():
             if not k: continue
             # check: not allow parameters
-            if k not in self.req_sqlbase_edit_attrs:
+            if k not in self.req_sqlbase_add_attrs:
                 return Status(
                     213, 'failure', '请求参数%s不合法' % k, {}).json()
             # check: value is not null
@@ -356,7 +369,7 @@ class SearchService(object):
                         "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
-    def qywx_detail(self, params: dict) -> json:
+    def sqlbase_detail(self, params: dict) -> json:
         """
         get the latest sqlbase detail information by md5
         :return: json data
@@ -399,7 +412,7 @@ class SearchService(object):
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
         _res = {
             'user': user_list,
-            'detail': self._sqlbase_model_to_dict(model)
+            'detail': self._sqlbase_model_to_dict(model, _type='detail')
         }
         return Status(
             100, 'success', StatusMsgs.get(100), _res).json()
@@ -425,7 +438,7 @@ class SearchService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_sqlbase_edit_attrs and v:      # 不合法参数
+            if k not in self.req_sqlbase_update_attrs and v:      # 不合法参数
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
