@@ -47,6 +47,8 @@ class SearchService(object):
     search service
     """
 
+    SHOW_TEXT_MAX = 55
+
     req_sqlbase_list_attrs = [
         'rtx_id',
         'limit',
@@ -64,7 +66,9 @@ class SearchService(object):
         'summary',
         'public',
         'public_time',
-        'content',
+        'html',
+        'text',
+        'count',
         'create_time',
         'delete_rtx',
         'delete_time',
@@ -80,7 +84,8 @@ class SearchService(object):
         'label',
         'public',
         'public_time',
-        'content',
+        'html',
+        'text'
     ]
 
     req_sqlbase_add_no_need_attrs = [
@@ -94,7 +99,6 @@ class SearchService(object):
         'author': 25,
         'summary': 200
     }
-
 
     def __init__(self):
         """
@@ -113,7 +117,7 @@ class SearchService(object):
         else:
             return t or ''
 
-    def _sqlbase_model_to_dict(self, model) -> dict:
+    def _sqlbase_model_to_dict(self, model, _type='list') -> dict:
         """
         sqlbase model object transfer to dict type
         """
@@ -123,29 +127,37 @@ class SearchService(object):
         for attr in self.sqlbase_list_attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'title':
-                _res[attr] = model.title
+                _res[attr] = getattr(model, 'title', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'author':
-                _res[attr] = model.author
+                _res[attr] = getattr(model, 'author', '')
             elif attr == 'recommend':
-                _res[attr] = model.recommend
+                _res[attr] = getattr(model, 'recommend', '')
             elif attr == 'summary':
-                _res[attr] = model.summary
+                _res[attr] = getattr(model, 'summary', '')
             elif attr == 'public':
-                _res[attr] = model.public
+                _res[attr] = getattr(model, 'public', '')
             elif attr == 'public_time':
                 _res[attr] = self._transfer_time(model.public_time)
-            elif attr == 'content':
-                _res[attr] = model.content
+            elif attr == 'html' and _type == 'detail':
+                _res[attr] = getattr(model, 'html', '')
+            elif attr == 'text':
+                text = getattr(model, 'text', '')
+                if text and _type == 'list' and len(text) > self.SHOW_TEXT_MAX:
+                    # 加了展示字数的限制，否则页面展示太多
+                    text = '%s...具体内容请查看详情' % text[0:self.SHOW_TEXT_MAX]
+                _res[attr] = text
+            elif attr == 'count':
+                _res[attr] = getattr(model, 'count', 0)
             elif attr == 'create_time':
                 _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx or ""
+                _res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'delete_time':
                 _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'is_del':
@@ -178,9 +190,9 @@ class SearchService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
-        # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
-            new_params.pop('rtx_id')
+        # **************** 全员获取ALL数据 *****************
+        # if new_params.get('rtx_id') == ADMIN:
+        new_params.pop('rtx_id')
         # <get data>
         res, total = self.sqlbase_bo.get_all(new_params)
         if not res:
@@ -191,7 +203,7 @@ class SearchService(object):
         n = 1
         for _d in res:
             if not _d: continue
-            _res_dict = self._sqlbase_model_to_dict(_d)
+            _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
@@ -234,6 +246,7 @@ class SearchService(object):
         new_params['md5_id'] = md5(new_params.get('title')+get_now()+new_params.get('rtx_id'))
         new_params['create_time'] = get_now()
         new_params['is_del'] = False
+        new_params['count'] = 0
         for key, value in new_params.items():
             if not key: continue
             setattr(new_model, key, value)

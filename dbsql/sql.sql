@@ -130,7 +130,7 @@ VALUES
 -- create menu && index
 DROP TABLES IF EXISTS `menu`;
 CREATE TABLE `menu`  (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `id` int default 0 NOT NULL AUTO_INCREMENT COMMENT '自增ID',
     `name` varchar(25) NOT NULL COMMENT '路由rtx-id，首字母大写',
     `path` varchar(35) NOT NULL COMMENT '路由path，首字母小写',
     `title` varchar(25) NOT NULL COMMENT '名称',
@@ -591,7 +591,9 @@ CREATE TABLE `sqlbase`  (
   `label` varchar(35) NULL COMMENT '标签，用英文;分割',
   `public` bool DEFAULT False COMMENT '发布状态：True发布，False草稿',
   `public_time` datetime COMMENT '发布时间',
-  `content` text NULL COMMENT '内容',
+  `html` text NULL COMMENT 'HTML格式内容',
+  `text` text NULL COMMENT 'TEXT内容',
+  `count` int DEFAULT 0 COMMENT '查看次数',
   `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
   `delete_rtx` varchar(25) COMMENT '删除用户rtx',
   `delete_time` datetime COMMENT '删除时间',
@@ -600,3 +602,5 @@ CREATE TABLE `sqlbase`  (
 );
 
 CREATE UNIQUE INDEX sqlbase_index ON sqlbase (`md5_id`);
+
+
