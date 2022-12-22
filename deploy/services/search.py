@@ -191,6 +191,7 @@ class SearchService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 全员获取ALL数据 *****************
+        req_rtx_id = new_params.get('rtx_id')
         # if new_params.get('rtx_id') == ADMIN:
         new_params.pop('rtx_id')
         # <get data>
@@ -206,6 +207,7 @@ class SearchService(object):
             _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
             if _res_dict:
                 _res_dict['id'] = n
+                _res_dict['edit'] = 'true' if req_rtx_id in [_res_dict.get('rtx_id'), ADMIN] else 'false'
                 new_res.append(_res_dict)
                 n += 1
         return Status(
