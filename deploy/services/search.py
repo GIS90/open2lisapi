@@ -35,6 +35,7 @@ Life is short, I use python.
 import json
 
 from deploy.bo.sqlbase import SqlbaseBo
+from deploy.bo.sysuser import SysUserBo
 
 from deploy.config import OFFICE_LIMIT, ADMIN
 from deploy.utils.status import Status
@@ -75,7 +76,7 @@ class SearchService(object):
         'is_del'
     ]
 
-    req_sqlbase_add_attrs = [
+    req_sqlbase_edit_attrs = [
         'rtx_id',
         'title',
         'author',
@@ -88,23 +89,39 @@ class SearchService(object):
         'text'
     ]
 
-    req_sqlbase_add_no_need_attrs = [
+    req_sqlbase_edit_no_need_attrs = [
         'summary',
         'label'
     ]
 
-    req_sqlbase_add_ck_len_attrs = {
+    req_sqlbase_edit_ck_len_attrs = {
         'rtx_id': 25,
         'title': 55,
         'author': 25,
         'summary': 200
     }
 
+    req_delete_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
+    req_deletes_attrs = [
+        'rtx_id',
+        'list'
+    ]
+
+    req_detail_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     def __init__(self):
         """
         search service class initialize
         """
         self.sqlbase_bo = SqlbaseBo()
+        self.sysuser_bo = SysUserBo()
 
     def _transfer_time(self, t):
         if not t:
@@ -227,16 +244,16 @@ class SearchService(object):
         for k, v in params.items():
             if not k: continue
             # check: not allow parameters
-            if k not in self.req_sqlbase_add_attrs:
+            if k not in self.req_sqlbase_edit_attrs:
                 return Status(
                     213, 'failure', '请求参数%s不合法' % k, {}).json()
             # check: value is not null
-            if not v and k not in self.req_sqlbase_add_no_need_attrs:  # is not null
+            if not v and k not in self.req_sqlbase_edit_no_need_attrs:  # is not null
                 return Status(
                     214, 'failure', '请求参数%s为必须信息' % k, {}).json()
             new_params[k] = v
         # parameters length check
-        for _key, _value in self.req_sqlbase_add_ck_len_attrs.items():
+        for _key, _value in self.req_sqlbase_edit_ck_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
@@ -257,3 +274,196 @@ class SearchService(object):
 
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
+
+    def sqlbase_delete(self, params: dict) -> json:
+        """
+        delete one sqlbase data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.sqlbase_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id not in [ADMIN, model.rtx_id]:
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}).json()
+        # <update data> 软删除
+        model.is_del = True
+        model.delete_rtx = rtx_id
+        model.delete_time = get_now()
+        self.sqlbase_bo.merge_model(model)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def sqlbase_deletes(self, params: dict) -> json:
+        """
+        delete many sqlbase data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        if new_params.get('rtx_id') == ADMIN:
+            new_params.pop('rtx_id')
+        # << batch delete >>
+        res = self.sqlbase_bo.batch_delete_by_md5(params=new_params)
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure',
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def qywx_detail(self, params: dict) -> json:
+        """
+        get the latest sqlbase detail information by md5
+        :return: json data
+        """
+        # ================== parameters check && format ==================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        model = self.sqlbase_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id not in [ADMIN, model.rtx_id]:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+        """  return data """
+        # all users
+        res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        user_list = list()
+        for _d in res:
+            if not _d: continue
+            user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
+        _res = {
+            'user': user_list,
+            'detail': self._sqlbase_model_to_dict(model)
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), _res).json()
+
+    def sqlbase_update(self, params: dict) -> json:
+        """
+        update sqlbase message information, contain:
+            - title 标题
+            - html/text 内容
+            - author 作者
+            - public—time 发布时间
+            - recommend 推荐度
+            - summary 简述
+            - label 标签
+        by data md5
+        :return: json data
+        """
+        # ====================== parameters check and format ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_sqlbase_edit_attrs and v:      # 不合法参数
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v and k not in self.req_sqlbase_edit_no_need_attrs:  # is not null
+                return Status(
+                    214, 'failure', '请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+            # check: length
+        for _key, _value in self.req_sqlbase_edit_ck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        model = self.sqlbase_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id not in [ADMIN, model.rtx_id]:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+
+        # --------------------------------------- update model --------------------------------------
+        for key, value in new_params.items():
+            if not key: continue
+            setattr(model, key, value)
+        try:
+            self.sqlbase_bo.merge_model(model)
+            return Status(
+                100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}).json()
+        except:
+            return Status(
+                450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()

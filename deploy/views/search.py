@@ -87,3 +87,96 @@ def sqlbase_add():
         LOG.error("search>sqlbase add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@search.route('/sqlbase_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def sqlbase_delete():
+    """
+    delete one sqlbase data by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return SearchService().sqlbase_delete(params)
+    except Exception as e:
+        LOG.error("search>delete one sqlbase is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@search.route('/sqlbase_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def sqlbase_deletes():
+    """
+    delete many sqlbase data by md5 list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return SearchService().sqlbase_deletes(params)
+    except Exception as e:
+        LOG.error("search>delete many sqlbase is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@search.route('/sqlbase_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def sqlbase_detail():
+    """
+    get the latest sqlbase detail information by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return SearchService().sqlbase_detail(params)
+    except Exception as e:
+        LOG.error("search>sqlbase detail is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@search.route('/sqlbase_update/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def sqlbase_update():
+    """
+    update sqlbase message information, contain:
+        - title 标题
+        - html/text 内容
+        - author 作者
+        - public—time 发布时间
+        - recommend 推荐度
+        - summary 简述
+        - label 标签
+    by data md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return SearchService().sqlbase_update(params)
+    except Exception as e:
+        LOG.error("search>sqlbase update is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+
