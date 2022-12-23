@@ -113,7 +113,8 @@ class SearchService(object):
 
     req_detail_attrs = [
         'rtx_id',
-        'md5'
+        'md5',
+        'type'
     ]
 
     req_sqlbase_update_attrs = [
@@ -388,6 +389,10 @@ class SearchService(object):
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
+        _type = new_params.get('type')
+        if _type not in ['edit', 'view']:
+            return Status(
+                213, 'failure', u'请求参数type不合法', {}).json()
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.sqlbase_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
@@ -399,21 +404,29 @@ class SearchService(object):
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
-        rtx_id = new_params.get('rtx_id')
-        if rtx_id not in [ADMIN, model.rtx_id]:
-            return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+        # rtx_id = new_params.get('rtx_id')
+        # if rtx_id not in [ADMIN, model.rtx_id]:
+        #     return Status(
+        #         309, 'failure', StatusMsgs.get(309), {}).json()
         """  return data """
         # all users
-        res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         user_list = list()
-        for _d in res:
+        for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
         _res = {
             'user': user_list,
             'detail': self._sqlbase_model_to_dict(model, _type='detail')
         }
+        """ 浏览文章增加次数 """
+        print(_type)
+        if _type == 'view':
+            try:
+                setattr(model, 'count', model.count + 1)
+                self.sqlbase_bo.merge_model(model)
+            except:
+                pass
         return Status(
             100, 'success', StatusMsgs.get(100), _res).json()
 
