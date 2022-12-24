@@ -53,7 +53,8 @@ GLOBAL_NEW_ENDPOINR = [
     'dashboard.pan_chart',
     'dashboard.index',
     'auth.user_list',
-    'info.dict_list'
+    'info.dict_list',
+    'search.sqlbase_list'
 ]
 
 
