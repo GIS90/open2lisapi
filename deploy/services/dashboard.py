@@ -273,7 +273,9 @@ class DashboardService(object):
             'office.excel_merge': "表格合并",
             'office.excel_split': "表格拆分",
             'office.office_pdf_to': "PDF转WORD",
-            'notify.dtalk_send': "钉钉绩效"
+            'notify.dtalk_send': "钉钉绩效",
+            'notify.qywx_send': "企微通知",
+            'search.sqlbase_add': "SQL仓库"
         }
         # <<<<<<<<<<<<<<<<<< get all func rank >>>>>>>>>>>>>>>>>>>
         _res = self.request_bo.get_func_rank(params={'func_names': list(func_names.keys())})
