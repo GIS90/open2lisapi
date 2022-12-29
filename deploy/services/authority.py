@@ -71,6 +71,12 @@ class AuthorityService(object):
         'introduction'
     ]
 
+    req_role_add_check_len_attrs = {
+        'rtx_id': 25,
+        'engname': 25,
+        'chnname': 35
+    }
+
     req_role_update_attrs = [
         'rtx_id',
         'md5',
@@ -269,6 +275,18 @@ class AuthorityService(object):
         self.sysuser_bo = SysUserBo()
         self.enum_bo = EnumBo()
 
+    @staticmethod
+    def _transfer_time(t):
+        if not t:
+            return ""
+
+        if not isinstance(t, str):
+            return d2s(t)
+        elif isinstance(t, str) and t == '0000-00-00 00:00:00':
+            return ""
+        else:
+            return t or ''
+
     def _role_model_to_dict(self, model, is_detail=False):
         """
         role model to dict data
@@ -298,21 +316,11 @@ class AuthorityService(object):
                 else:
                     res[attr] = model.introduction or ''
             elif attr == 'create_time':
-                if model.create_time and isinstance(model.create_time, str):
-                    res[attr] = model.create_time
-                elif model.create_time and isinstance(model.create_time, datetime.datetime):
-                    res[attr] = d2s(model.create_time)
-                else:
-                    res[attr] = ''
+                res[attr] = self._transfer_time(model.create_time)
             elif attr == 'create_rtx':
                 res[attr] = model.create_rtx
             elif attr == 'delete_time':
-                if model.delete_time and isinstance(model.delete_time, str):
-                    res[attr] = model.delete_time
-                elif model.delete_time and isinstance(model.delete_time, datetime.datetime):
-                    res[attr] = d2s(model.delete_time)
-                else:
-                    res[attr] = ''
+                res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
                 res[attr] = model.delete_rtx
             elif attr == 'is_del':
@@ -362,19 +370,13 @@ class AuthorityService(object):
             elif attr == 'role':  # 多角色，存储role的engname，也就是role的rtx_id
                 _res[attr] = str(model.role).split(';') if model.role else []
             elif attr == 'create_time':
-                _res[attr] = d2s(model.create_time) \
-                    if not isinstance(model.create_time, str) else model.create_time or ''
+                _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'create_rtx':
                 _res[attr] = model.create_rtx or ''
             elif attr == 'is_del':
                 _res[attr] = True if model.is_del else False
             elif attr == 'delete_time':
-                if not isinstance(model.delete_time, str):
-                    _res[attr] = d2s(model.delete_time)
-                elif isinstance(model.delete_time, str) and model.delete_time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                else:
-                    _res[attr] = model.delete_time or ''
+                _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx or ""
         else:
@@ -441,19 +443,13 @@ class AuthorityService(object):
                 else:
                     _res[attr] = '是' if model.breadcrumb else '否'
             elif attr == 'create_time':
-                _res[attr] = d2s(model.create_time) \
-                    if not isinstance(model.create_time, str) else model.create_time or ''
+                _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'create_rtx':
                 _res[attr] = model.create_rtx or ''
             elif attr == 'is_del':
                 _res[attr] = True if model.is_del else False
             elif attr == 'delete_time':
-                if not isinstance(model.delete_time, str):
-                    _res[attr] = d2s(model.delete_time)
-                elif isinstance(model.delete_time, str) and model.delete_time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                else:
-                    _res[attr] = model.delete_time or ''
+                _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx or ""
             elif attr == 'shortcut':
@@ -573,17 +569,13 @@ class AuthorityService(object):
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # check: length
-            if k == 'engname' and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'engname' and not check_length(v, 35):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'introduction' and not check_length(v, 55):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             new_params[k] = str(v)
+        # parameters check length
+        for _key, _value in self.req_role_add_check_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
         # ******************** check engname is or not repeat **********************
         model = self.role_bo.get_model_by_engname(new_params.get('engname'))
@@ -596,16 +588,20 @@ class AuthorityService(object):
             return Status(
                 213, 'failure', '角色MD5已存在，请重新输入RTX', {}).json()
         # ///////////////// add new model 、、、、、、、、、、
-        new_model = self.role_bo.new_mode()
-        new_model.engname = new_params.get('engname')
-        new_model.chnname = new_params.get('chnname')
-        new_model.md5_id = md5_id
-        new_model.authority = ''
-        new_model.introduction = new_params.get('introduction')
-        new_model.create_time = get_now()
-        new_model.create_rtx = new_params.get('rtx_id')
-        new_model.is_del = False
-        self.role_bo.add_model(new_model)
+        try:
+            new_model = self.role_bo.new_mode()
+            new_model.engname = new_params.get('engname')
+            new_model.chnname = new_params.get('chnname')
+            new_model.md5_id = md5_id
+            new_model.authority = ''
+            new_model.introduction = new_params.get('introduction')
+            new_model.create_time = get_now()
+            new_model.create_rtx = new_params.get('rtx_id')
+            new_model.is_del = False
+            self.role_bo.add_model(new_model)
+        except:
+            return Status(
+                320, 'failure', StatusMsgs.get(320), {'md5': md5_id}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
@@ -634,17 +630,13 @@ class AuthorityService(object):
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # check: length
-            if k == 'engname' and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'chnname' and not check_length(v, 35):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'introduction' and not check_length(v, 55):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
             new_params[k] = str(v)
+        # parameters check length
+        for _key, _value in self.req_role_add_check_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
         if new_params.get('engname') == ADMIN:  # ***** 管理员角色不允许更新 *****
             return Status(
@@ -668,10 +660,13 @@ class AuthorityService(object):
         if str(model.engname).strip() != str(new_params.get('engname')).strip():
             return Status(
                 304, 'failure', '角色RTX不允许更新', {}).json()
-
-        model.chnname = new_params.get('chnname')
-        model.introduction = new_params.get('introduction')
-        self.role_bo.merge_model(model)
+        try:
+            model.chnname = new_params.get('chnname')
+            model.introduction = new_params.get('introduction')
+            self.role_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -719,7 +714,11 @@ class AuthorityService(object):
                 return Status(
                     302, 'failure', u'管理员角色不允许操作，请重新选择', {}).json()
         # ------------------- batch delete data -----------------------
-        res = self.role_bo.batch_delete_by_md5(params=new_params)
+        try:
+            res = self.role_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -769,10 +768,14 @@ class AuthorityService(object):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # /////////////// 软删除数据
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.role_bo.merge_model(model)
+        try:
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.role_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -791,8 +794,7 @@ class AuthorityService(object):
             return Status(
                 214, 'failure', '缺少md5请求参数', {}).json()
         # ==================== check data ======================
-        role_model = self.role_bo.get_model_by_md5(
-            md5=params.get('md5'))
+        role_model = self.role_bo.get_model_by_md5(md5=params.get('md5'))
         # not exist
         if not role_model:
             return Status(
@@ -889,8 +891,12 @@ class AuthorityService(object):
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # save authority
-        model.authority = new_params.get('keys')
-        self.role_bo.merge_model(model)
+        try:
+            model.authority = new_params.get('keys')
+            self.role_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1027,23 +1033,27 @@ class AuthorityService(object):
             return Status(
                 213, 'failure', '用户邮箱已存在，请重新输入', {}).json()
         ''' add new model '''
-        new_model = self.sysuser_bo.new_mode()
-        new_model.rtx_id = new_params.get('rtx_id')
-        new_model.fullname = new_params.get('name')
         md5_id = md5(new_params.get('rtx_id'))
-        new_model.md5_id = md5_id
-        new_model.password = new_params.get('password') or USER_DEFAULT_PASSWORD    # 默认密码
-        new_model.phone = new_params.get('phone') or ""
-        new_model.email = new_params.get('email') or ""
-        new_model.avatar = USER_DEFAULT_AVATAR  # 新增用户默认头像
-        new_model.department = ""
-        new_model.role = new_params.get('role') or ""
-        new_model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD  # 默认米哦啊叔
-        new_model.create_time = get_now()
-        new_model.create_rtx = new_params.get('add_rtx_id')
-        new_model.is_del = False
-        new_model.delete_time = ''
-        self.role_bo.add_model(new_model)
+        try:
+            new_model = self.sysuser_bo.new_mode()
+            new_model.rtx_id = new_params.get('rtx_id')
+            new_model.fullname = new_params.get('name')
+            new_model.md5_id = md5_id
+            new_model.password = new_params.get('password') or USER_DEFAULT_PASSWORD    # 默认密码
+            new_model.phone = new_params.get('phone') or ""
+            new_model.email = new_params.get('email') or ""
+            new_model.avatar = USER_DEFAULT_AVATAR  # 新增用户默认头像
+            new_model.department = ""
+            new_model.role = new_params.get('role') or ""
+            new_model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD  # 默认米哦啊叔
+            new_model.create_time = get_now()
+            new_model.create_rtx = new_params.get('add_rtx_id')
+            new_model.is_del = False
+            new_model.delete_time = ''
+            self.sysuser_bo.add_model(new_model)
+        except:
+            return Status(
+                320, 'failure', StatusMsgs.get(320), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
@@ -1087,10 +1097,15 @@ class AuthorityService(object):
                 return Status(
                     302, 'failure', u'管理员用户不允许注销，请重新选择', {}).json()
         # batch注销
-        res = self.sysuser_bo.batch_delete_by_md5_list(params=new_params)
+        try:
+            res = self.sysuser_bo.batch_delete_by_md5_list(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
         return Status(100, 'success', '用户注销成功' or StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(100, 'failure', "成功：[%s]，失败：[%s]" % (res, (len(new_params.get('list')) - res)), {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
+            else Status(100, 'failure', "成功：[%s]，失败：[%s]" % (res, (len(new_params.get('list')) - res)),
+                        {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
     def user_status(self, params: dict) -> dict:
         """
@@ -1136,11 +1151,15 @@ class AuthorityService(object):
             return Status(
                 300, 'failure', '管理员用户不允许操作' or StatusMsgs.get(300), {}).json()
         # ----------- change status -----------
-        model.is_del = new_params.get('status')
-        if new_params.get('status'):
-            model.delete_rtx = new_params.get('rtx_id')
-            model.delete_time = get_now()
-        self.role_bo.merge_model(model)
+        try:
+            model.is_del = new_params.get('status')
+            if new_params.get('status'):
+                model.delete_rtx = new_params.get('rtx_id')
+                model.delete_time = get_now()
+            self.role_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
         message = '用户注销成功' if new_params.get('status') else '用户启用成功'
         return Status(
             100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
@@ -1249,12 +1268,16 @@ class AuthorityService(object):
                 300, 'failure', '管理员用户不允许操作' or StatusMsgs.get(300), {}).json()
 
         # <<<<<<<<<<<<<<<< update user model >>>>>>>>>>>>>>>>>>
-        model.fullname = new_params.get('name')
-        model.phone = new_params.get('phone')
-        model.email = new_params.get('email')
-        model.role = new_params.get('role')
-        model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD
-        self.role_bo.merge_model(model)
+        try:
+            model.fullname = new_params.get('name')
+            model.phone = new_params.get('phone')
+            model.email = new_params.get('email')
+            model.role = new_params.get('role')
+            model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD
+            self.sysuser_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {}
         ).json()
@@ -1280,15 +1303,17 @@ class AuthorityService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '用户已注销' or StatusMsgs.get(302), {}).json()
-
-        # reset password
-        # 方式一
-        setattr(model, 'password', USER_DEFAULT_PASSWORD)
-        self.sysuser_bo.merge_model_no_trans(model)
-        # 方式二
-        # model.password = USER_DEFAULT_PASSWORD
-        # self.sysuser_bo.merge_model(model)
-
+        try:
+            # reset password
+            # 方式一
+            setattr(model, 'password', USER_DEFAULT_PASSWORD)
+            self.sysuser_bo.merge_model_no_trans(model)
+            # 方式二
+            # model.password = USER_DEFAULT_PASSWORD
+            # self.sysuser_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
@@ -1493,25 +1518,29 @@ class AuthorityService(object):
         if model:
             return Status(
                 302, 'failure', '菜单RTX名称已存在' or StatusMsgs.get(302), {}).json()
-        # create new model
-        new_model = self.menu_bo.new_mode()
-        # 默认值
-        new_params['md5_id'] = md5(new_params.get('name'))
-        new_params['create_time'] = get_now()
-        new_params['is_del'] = False
-        new_params['order_id'] = 0
-        # shortcut 特殊处理
-        new_params['is_shortcut'] = new_params.get('shortcut')
-        new_params.pop('shortcut')
-        for key, value in new_params.items():
-            if not key: continue
-            if key == 'rtx_id':
-                setattr(new_model, 'create_rtx', value)
+        """         add new model """
+        try:
+            # create new model
+            new_model = self.menu_bo.new_mode()
+            # 默认值
+            new_params['md5_id'] = md5(new_params.get('name'))
+            new_params['create_time'] = get_now()
+            new_params['is_del'] = False
+            new_params['order_id'] = 0
+            # shortcut 特殊处理
+            new_params['is_shortcut'] = new_params.get('shortcut')
+            new_params.pop('shortcut')
+            for key, value in new_params.items():
+                if not key: continue
+                if key == 'rtx_id':
+                    setattr(new_model, 'create_rtx', value)
+                else:
+                    setattr(new_model, key, value)
             else:
-                setattr(new_model, key, value)
-        else:
-            self.menu_bo.add_model(new_model)
-
+                self.menu_bo.add_model(new_model)
+        except:
+            return Status(
+                320, 'failure', StatusMsgs.get(320), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
@@ -1608,36 +1637,39 @@ class AuthorityService(object):
                 302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
         # update model
         # 只有新旧值不一致更新
-        if model.name != new_params.get('name'):
-            model.name = new_params.get('name')
-        if model.path != new_params.get('path'):
-            model.path = new_params.get('path')
-        if model.title != new_params.get('title'):
-            model.title = new_params.get('title')
-        if model.pid != new_params.get('pid'):
-            model.pid = new_params.get('pid')
-        if model.level != new_params.get('level'):
-            model.level = new_params.get('level')
-        if model.component != new_params.get('component'):
-            model.component = new_params.get('component') or self.DEFAULT_COMPONENT
-        if model.redirect != new_params.get('redirect'):
-            model.redirect = new_params.get('redirect')
-        if model.icon != new_params.get('icon'):
-            model.icon = new_params.get('icon')
-        if model.hidden != new_params.get('hidden'):
-            model.hidden = new_params.get('hidden')
-        if model.cache != new_params.get('cache'):
-            model.cache = new_params.get('cache')
-        if model.affix != new_params.get('affix'):
-            model.affix = new_params.get('affix')
-        if model.breadcrumb != new_params.get('breadcrumb'):
-            model.breadcrumb = new_params.get('breadcrumb')
-        if model.order_id != new_params.get('order_id'):
-            model.order_id = new_params.get('order_id')
-        if model.is_shortcut != new_params.get('shortcut'):
-            model.is_shortcut = new_params.get('shortcut')
-        self.menu_bo.merge_model(model)
-
+        try:
+            if model.name != new_params.get('name'):
+                model.name = new_params.get('name')
+            if model.path != new_params.get('path'):
+                model.path = new_params.get('path')
+            if model.title != new_params.get('title'):
+                model.title = new_params.get('title')
+            if model.pid != new_params.get('pid'):
+                model.pid = new_params.get('pid')
+            if model.level != new_params.get('level'):
+                model.level = new_params.get('level')
+            if model.component != new_params.get('component'):
+                model.component = new_params.get('component') or self.DEFAULT_COMPONENT
+            if model.redirect != new_params.get('redirect'):
+                model.redirect = new_params.get('redirect')
+            if model.icon != new_params.get('icon'):
+                model.icon = new_params.get('icon')
+            if model.hidden != new_params.get('hidden'):
+                model.hidden = new_params.get('hidden')
+            if model.cache != new_params.get('cache'):
+                model.cache = new_params.get('cache')
+            if model.affix != new_params.get('affix'):
+                model.affix = new_params.get('affix')
+            if model.breadcrumb != new_params.get('breadcrumb'):
+                model.breadcrumb = new_params.get('breadcrumb')
+            if model.order_id != new_params.get('order_id'):
+                model.order_id = new_params.get('order_id')
+            if model.is_shortcut != new_params.get('shortcut'):
+                model.is_shortcut = new_params.get('shortcut')
+            self.menu_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'success', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
@@ -1659,7 +1691,7 @@ class AuthorityService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_menu_status_attrs: # 不合法请求参数
+            if k not in self.req_menu_status_attrs:     # 不合法请求参数
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if not v and k != 'status':     # value check, is not allow null
@@ -1679,11 +1711,15 @@ class AuthorityService(object):
             return Status(
                 302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
         # change status
-        model.is_del = new_params.get('status')
-        if new_params.get('status'):
-            model.delete_rtx = new_params.get('rtx_id')
-            model.delete_time = get_now()
-        self.menu_bo.merge_model(model)
+        try:
+            model.is_del = new_params.get('status')
+            if new_params.get('status'):
+                model.delete_rtx = new_params.get('rtx_id')
+                model.delete_time = get_now()
+            self.menu_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'success', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         message = '菜单禁用成功' if new_params.get('status') else '菜单启用成功'
         return Status(
             100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
@@ -1695,6 +1731,9 @@ class AuthorityService(object):
         return json data
 
         default get user is no delete
+
+        key-value格式：
+            {'key': _d.rtx_id, 'value': _d.fullname}
         """
         # ---------------------- parameters check ----------------------
         if not params:
@@ -1708,7 +1747,7 @@ class AuthorityService(object):
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             v = str(v)
             new_params[k] = v
-        # /////////// return data
+        # /////////// return data \\\\\\\\\\\\
         res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         if not res:
             return Status(
