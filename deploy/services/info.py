@@ -112,6 +112,21 @@ class InfoService(object):
         'order_id'
     ]
 
+    req_dict_update_need_attrs = [
+        'rtx_id',
+        'md5',
+        'key',
+        'value',
+        'description'
+    ]
+
+    req_dict_update_check_len_attrs = {
+        'rtx_id': 25,
+        'name': 25,
+        'key': 25,
+        'value': 55
+    }
+
     req_dict_names_attrs = [
         'rtx_id'
     ]
@@ -125,6 +140,22 @@ class InfoService(object):
         'order_id',
         'type'
     ]
+
+    req_dict_add_need_attrs = [
+        'rtx_id',
+        'name',
+        'key',
+        'value',
+        'description',
+        'type'
+    ]
+
+    req_dict_add_check_len_attrs = {
+        'rtx_id': 25,
+        'name': 25,
+        'key': 25,
+        'value': 55
+    }
 
     req_depart_list_attrs = [
         'rtx_id'
@@ -220,7 +251,8 @@ class InfoService(object):
         self.depart_bo = DepartmentBo()
         self.api_bo = ApiBo()
 
-    def _transfer_time(self, t):
+    @staticmethod
+    def _transfer_time(t):
         if not t:
             return ""
 
@@ -406,10 +438,14 @@ class InfoService(object):
             return Status(
                 304, 'failure', '数据已删除，不允许设置' or StatusMsgs.get(304), {}).json()
         # ----------- change status -----------
-        model.status = new_params.get('status')
-        model.update_rtx = new_params.get('rtx_id')
-        model.update_time = get_now()
-        self.enum_bo.merge_model(model)
+        try:
+            model.status = new_params.get('status')
+            model.update_rtx = new_params.get('rtx_id')
+            model.update_time = get_now()
+            self.enum_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -446,10 +482,14 @@ class InfoService(object):
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # <update data>
-        setattr(model, 'is_del', True)
-        setattr(model, 'delete_rtx', new_params.get('rtx_id'))
-        setattr(model, 'delete_time', get_now())
-        self.enum_bo.merge_model(model)
+        try:
+            setattr(model, 'is_del', True)
+            setattr(model, 'delete_rtx', new_params.get('rtx_id'))
+            setattr(model, 'delete_time', get_now())
+            self.enum_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -481,7 +521,11 @@ class InfoService(object):
             else:
                 new_params[k] = str(v)
         # << batch delete >>
-        res = self.enum_bo.batch_delete_by_md5(params=new_params)
+        try:
+            res = self.enum_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -515,7 +559,11 @@ class InfoService(object):
             else:
                 new_params[k] = str(v)
         # << batch disable >>
-        res = self.enum_bo.batch_disable_by_md5(params=new_params)
+        try:
+            res = self.enum_bo.batch_disable_by_md5(params=new_params)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -567,41 +615,37 @@ class InfoService(object):
             - order_id 排序ID
         :return: json data
         """
-        # ==================== check parameters ====================
+        # ----------------- check and format --------------------
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-        # new parameters
+        # parameters check
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            # check: not allow parameters
-            if k not in self.req_dict_update_attrs:
+            if k not in self.req_dict_update_attrs:  # illegal parameter
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            # check: value is not null
-            if not v and k not in ['order_id', 'status']:
+            if not v and k in self.req_dict_update_need_attrs:  # parameter is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # check: length
-            if k == 'key' and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'value' and not check_length(v, 55):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'description' and not check_length(v, 255):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'status' and not isinstance(v, bool):
+            if k == 'status' and not isinstance(v, bool):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
-            elif k == 'order_id':  # 顺序ID特殊判断处理
-                if v and not str(v).isdigit():
-                    return Status(
-                        213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                v = int(v) if v else 1  # 默认order_id：1
-            new_params[k] = str(v) if k not in ['order_id', 'status'] else v
+            new_params[k] = v
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
+        if order_id and not order_id.isdigit():
+            return Status(
+                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+        # parameters check length
+        for _key, _value in self.req_dict_update_check_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
         # ========= check data
         model = self.enum_bo.get_model_by_md5(new_params.get('md5'))
@@ -614,12 +658,16 @@ class InfoService(object):
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # --------------------------------------- update model --------------------------------------
-        model.key = new_params.get('key')
-        model.value = new_params.get('value')
-        model.description = new_params.get('description')
-        model.status = new_params.get('status') or False    # 默认值False，非禁用状态
-        model.order_id = new_params.get('order_id')   # 无order_id，默认值1
-        self.enum_bo.merge_model(model)
+        try:
+            model.key = new_params.get('key')
+            model.value = new_params.get('value')
+            model.description = new_params.get('description')
+            model.status = new_params.get('status') or False    # 默认值False，非禁用状态
+            model.order_id = new_params.get('order_id')   # 无order_id，默认值1
+            self.enum_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -687,34 +735,29 @@ class InfoService(object):
             if k not in self.req_dict_add_attrs:  # illegal parameter
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v and k not in ['order_id', 'status']:       # parameter is not allow null
+            if not v and k in self.req_dict_add_need_attrs:       # parameter is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # check: length
-            if k == 'name' and not check_length(v, 25):
+            new_params[k] = v
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
+        if order_id and not order_id.isdigit():
+            return Status(
+                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+        # type类型特殊检查【新增 && 维护】
+        _type = new_params.get('type')
+        if _type not in [1, 2, '1', '2']:
+            return Status(
+                213, 'failure', u'请求参数type不允许', {}).json()
+        # parameters check length
+        for _key, _value in self.req_dict_add_check_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'key' and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'value' and not check_length(v, 55):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'description' and not check_length(v, 255):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'status' and not isinstance(v, bool):
-                return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
-            elif k == 'type' and v not in [1, 2, '1', '2']:     # type类型特殊检查
-                return Status(
-                    213, 'failure', u'请求参数%s不允许' % k, {}).json()
-            elif k == 'order_id':  # 顺序ID特殊判断处理
-                if v and not str(v).isdigit():
-                    return Status(
-                        213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                v = int(v) if v else 1  # 默认order_id：1
-            new_params[k] = str(v) if k not in ['order_id', 'status'] else v
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
         # <<<<<<<<<<<<<<< 模型类型判断 >>>>>>>>>>>>>>>>>
         """
         类型：
@@ -743,16 +786,20 @@ class InfoService(object):
             return Status(
                 301, 'failure', "数据已存在，请更换MD5" or StatusMsgs.get(301), {}).json()
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< add model >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        new_model = self.enum_bo.new_mode()
-        for attr in self.req_dict_add_attrs:
-            if not attr or attr in ['rtx_id', 'type']: continue
-            setattr(new_model, attr, new_params.get(attr))
-        setattr(new_model, 'md5_id', md5_id)
-        setattr(new_model, 'create_rtx', new_params.get('rtx_id'))
-        setattr(new_model, 'create_time', get_now())
-        setattr(new_model, 'is_del', False)     # 是否删除
-        setattr(new_model, 'status', True)      # 状态
-        self.enum_bo.add_model(new_model)
+        try:
+            new_model = self.enum_bo.new_mode()
+            for attr in self.req_dict_add_attrs:
+                if not attr or attr in ['rtx_id', 'type']: continue
+                setattr(new_model, attr, new_params.get(attr))
+            setattr(new_model, 'md5_id', md5_id)
+            setattr(new_model, 'create_rtx', new_params.get('rtx_id'))
+            setattr(new_model, 'create_time', get_now())
+            setattr(new_model, 'is_del', False)     # 是否删除
+            setattr(new_model, 'status', True)      # 状态
+            self.enum_bo.add_model(new_model)
+        except:
+            return Status(
+                320, 'failure', StatusMsgs.get(320), {'md5': md5_id}).json()
         # return data
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
@@ -791,27 +838,15 @@ class InfoService(object):
             elif attr == 'create_rtx' and _type in ['list']:
                 _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
             elif attr == 'create_time' and _type in ['list']:
-                _time = model.create_time if getattr(model, 'create_time') else ""
-                if _time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                    continue
-                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+                _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'update_rtx' and _type in ['list']:
                 _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
             elif attr == 'update_time' and _type in ['list']:
-                _time = model.update_time if getattr(model, 'update_time') else ""
-                if _time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                    continue
-                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+                _res[attr] = self._transfer_time(model.update_time)
             elif attr == 'delete_rtx' and _type in ['list']:
                 _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
             elif attr == 'delete_time' and _type in ['list']:
-                _time = model.delete_time if getattr(model, 'delete_time') else ""
-                if _time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                    continue
-                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+                _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'is_del' and _type in ['list']:
                 _res[attr] = True if getattr(model, 'is_del') else False
             elif attr == 'order_id' and _type in ['list', 'tree']:
@@ -1118,6 +1153,8 @@ class InfoService(object):
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
                 213, 'failure', u'请求参数order_id只允许为数字', {}).json()
@@ -1190,6 +1227,8 @@ class InfoService(object):
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
                 213, 'failure', u'请求参数order_id只允许为数字', {}).json()
