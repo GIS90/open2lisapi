@@ -33,12 +33,14 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python info.py
 # ------------------------------------------------------------
+import json
 from operator import itemgetter
 from itertools import groupby
 
 from deploy.bo.enum import EnumBo
 from deploy.bo.sysuser import SysUserBo
 from deploy.bo.department import DepartmentBo
+from deploy.bo.api import ApiBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import d2s, get_now, check_length, md5
@@ -149,6 +151,64 @@ class InfoService(object):
         'order_id'
     ]
 
+    api_list_attrs = [
+        # 'id',
+        'blueprint',
+        'apiname',
+        'endpoint',
+        'md5_id',
+        'path',
+        'type',
+        'short',
+        'long',
+        'create_time',
+        'create_rtx',
+        'delete_time',
+        'delete_rtx',
+        'last_update_time',
+        'last_update_rtx',
+        'is_del'
+    ]
+
+    req_api_add_attrs = [
+        'rtx_id',
+        'blueprint',
+        'apiname',
+        'type',
+        'short',
+        'long',
+        'order_id'
+    ]
+
+    req_api_add_need_attrs = [
+        'rtx_id',
+        'blueprint',
+        'apiname',
+        'type',
+        'short',
+        'long'
+    ]
+
+    req_api_add_ck_len_attrs = {
+        'rtx_id': 25,
+        'blueprint': 15,
+        'apiname': 25,
+        'type': 15,
+        'short': 35,
+        'long': 120
+    }
+
+    req_api_update_attrs = [
+        'rtx_id',
+        'blueprint',
+        'apiname',
+        'type',
+        'short',
+        'long',
+        'order_id',
+        'md5'
+    ]
+
     def __init__(self):
         """
         information service class initialize
@@ -158,6 +218,18 @@ class InfoService(object):
         self.enum_bo = EnumBo()
         self.sysuser_bo = SysUserBo()
         self.depart_bo = DepartmentBo()
+        self.api_bo = ApiBo()
+
+    def _transfer_time(self, t):
+        if not t:
+            return ""
+
+        if not isinstance(t, str):
+            return d2s(t)
+        elif isinstance(t, str) and t == '0000-00-00 00:00:00':
+            return ""
+        else:
+            return t or ''
 
     def _enum_model_to_dict(self, model, _type='list'):
         """
@@ -184,27 +256,62 @@ class InfoService(object):
             elif attr == 'create_rtx':
                 _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
             elif attr == 'create_time':
-                _time = model.create_time if getattr(model, 'create_time') else ""
-                if _time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                    continue
-                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+                _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'update_rtx':
                 _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
             elif attr == 'update_time':
-                _time = model.update_time if getattr(model, 'update_time') else ""
-                if _time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                    continue
-                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+                _res[attr] = self._transfer_time(model.update_time)
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
             elif attr == 'delete_time':
-                _time = model.delete_time if getattr(model, 'delete_time') else ""
-                if _time == '0000-00-00 00:00:00':
-                    _res[attr] = ''
-                    continue
-                _res[attr] = _time if isinstance(_time, str) else d2s(_time)
+                _res[attr] = self._transfer_time(model.delete_time)
+            elif attr == 'is_del':
+                _res[attr] = True if getattr(model, 'is_del') else False
+            elif attr == 'order_id':
+                _res[attr] = model.order_id if getattr(model, 'order_id') else 1
+        else:
+            return _res
+
+    def _api_model_to_dict(self, model, _type='list'):
+        """
+        api model transfer to dict data
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.api_list_attrs:
+            if not attr: continue
+            if attr == 'id':
+                _res[attr] = model.id if getattr(model, 'name') else ""
+            elif attr == 'blueprint':
+                _res[attr] = model.blueprint if getattr(model, 'blueprint') else ""
+            elif attr == 'apiname':
+                _res[attr] = model.apiname if getattr(model, 'apiname') else ""
+            elif attr == 'endpoint':
+                _res[attr] = model.endpoint if getattr(model, 'endpoint') else ""
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
+            elif attr == 'path':
+                _res[attr] = model.path if getattr(model, 'path') else ""
+            elif attr == 'type':
+                _res[attr] = model.type if getattr(model, 'type') else ""
+            elif attr == 'short':
+                _res[attr] = model.short if getattr(model, 'short') else ""
+            elif attr == 'long':
+                _res[attr] = model.long if getattr(model, 'long') else ""
+            elif attr == 'create_rtx':
+                _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
+            elif attr == 'create_time':
+                _res[attr] = self._transfer_time(model.create_time)
+            elif attr == 'update_rtx':
+                _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
+            elif attr == 'update_time':
+                _res[attr] = self._transfer_time(model.update_time)
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
+            elif attr == 'delete_time':
+                _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'is_del':
                 _res[attr] = True if getattr(model, 'is_del') else False
             elif attr == 'order_id':
@@ -812,4 +919,303 @@ class InfoService(object):
         """
         return Status(
             100, 'success', StatusMsgs.get(100), {}
+        ).json()
+
+    def api_list(self, params: dict) -> dict:
+        """
+        get api list from api table by params
+        params is dict
+        return json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_dict_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if k == 'limit':
+                v = int(v) if v else self.PAGE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            else:
+                v = str(v) if v else ''
+            new_params[k] = v
+
+        # **************** <get data> *****************
+        res, total = self.api_bo.get_all(new_params)
+        # no data
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._api_model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def api_delete(self, params: dict) -> dict:
+        """
+        delete one api data by md5
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.api_bo.get_model_by_md5(md5_id=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # < update data >
+        try:
+            setattr(model, 'is_del', True)
+            setattr(model, 'delete_rtx', new_params.get('rtx_id'))
+            setattr(model, 'delete_time', get_now())
+            self.enum_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def api_deletes(self, params: dict) -> dict:
+        """
+        delete many api data by md5 list
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new format parameter
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:     # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # << batch delete >>
+        try:
+            res = self.enum_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(303, 'failure',
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def api_detail(self, params: dict) -> json:
+        """
+        get api detail information by md5
+        :return: json data
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:  # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
+        model = self.api_bo.get_model_by_md5(md5_id=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), self._api_model_to_dict(model, _type='detail')
+        ).json()
+
+    def api_add(self, params: dict):
+        """
+        add api model, contain:
+            - blueprint
+            - apiname
+            - type
+            - short
+            - long
+            - order_id
+        其中:
+            - endpoint = blueprint.apiname
+            - path = /blueprint/apiname
+        :return: json data
+
+        思路：
+        1.参数校验
+        2.新增
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_api_add_attrs:  # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k in self.req_api_add_need_attrs:       # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = v
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if order_id and not order_id.isdigit():
+            return Status(
+                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+        # parameters check length
+        for _key, _value in self.req_api_add_ck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # <<<<<<<<<<<<<<< md5模型判断 >>>>>>>>>>>>>>>>>
+        md5_id = md5('%s-%s' % (new_params.get('blueprint'), new_params.get('apiname')))
+        model_md5 = self.api_bo.get_model_by_md5(md5_id)
+        if model_md5:
+            return Status(
+                301, 'failure', "数据已存在" or StatusMsgs.get(301), {}).json()
+        # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< add model >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+        try:
+            new_model = self.api_bo.new_mode()
+            for _k, _v in new_params.items():
+                if _k in ['rtx_id']:
+                    setattr(new_model, 'create_rtx', _v)
+                else:
+                    setattr(new_model, _k, _v)
+            setattr(new_model, 'md5_id', md5_id)
+            setattr(new_model, 'endpoint', '%s.%s' % (new_params.get('blueprint'), new_params.get('apiname')))
+            setattr(new_model, 'path', '/%s/%s' % (new_params.get('blueprint'), new_params.get('apiname')))
+            setattr(new_model, 'create_time', get_now())
+            setattr(new_model, 'is_del', False)     # 是否删除
+            self.enum_bo.add_model(new_model)
+        except:
+            return Status(
+                320, 'failure', StatusMsgs.get(320), {'md5': new_params.get('md5')}).json()
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
+
+    def api_update(self, params: dict):
+        """
+        update the exist api model, contain:
+            - blueprint
+            - apiname
+            - type
+            - short
+            - long
+            - order_id
+        其中:
+            - endpoint = blueprint.apiname
+            - path = /blueprint/apiname
+        :return: json data
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_api_update_attrs:  # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v and k in self.req_api_add_need_attrs:       # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = v
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if order_id and not order_id.isdigit():
+            return Status(
+                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+        # parameters check length
+        for _key, _value in self.req_api_add_ck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # <<<<<<<<<<<<<<< check data >>>>>>>>>>>>>>>>>
+        model = self.api_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                304, 'failure', StatusMsgs.get(304), {}).json()
+        # --------------------------------------- update model --------------------------------------
+        new_params.pop('rtx_id')
+        new_params.pop('md5')
+        try:
+            for _k, _v in new_params.items():
+                setattr(model, _k, _v)
+            self.enum_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()

@@ -274,3 +274,144 @@ def depart_update():
         LOG.error("info>depart update is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/api_add/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def api_add():
+    """
+    information > add new api model, contain:
+        - blueprint
+        - apiname
+        - type
+        - short
+        - long
+        - order_id
+    其中:
+        - endpoint = blueprint.apiname
+        - path = /blueprint/apiname
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().api_add(params)
+    except Exception as e:
+        LOG.error("info>api add is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/api_list/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def api_list():
+    """
+    information > get api list from api table by params
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().api_list(params)
+    except Exception as e:
+        LOG.error("info>api list is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/api_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def api_delete():
+    """
+    information > delete one api data by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().api_delete(params)
+    except Exception as e:
+        LOG.error("info>api delete one is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/api_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def api_deletes():
+    """
+    information > delete many api data by md5 list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().api_deletes(params)
+    except Exception as e:
+        LOG.error("info>api delete many is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/api_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def api_detail():
+    """
+    information > get api detail information by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().api_detail(params)
+    except Exception as e:
+        LOG.error("info>api detail is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/api_update/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def api_update():
+    """
+    information > api dict data information by md5, contain:
+        - blueprint
+        - apiname
+        - type
+        - short
+        - long
+        - order_id
+    其中:
+        - endpoint = blueprint.apiname
+        - path = /blueprint/apiname
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().api_update(params)
+    except Exception as e:
+        LOG.error("info>api update is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

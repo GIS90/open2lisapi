@@ -71,8 +71,10 @@ class RequestBo(BOBase):
                                ApiModel.short,
                                ApiModel.long)
         q = q.filter(RequestModel.blueprint == ApiModel.blueprint)
+        q = q.filter(RequestModel.apiname == ApiModel.apiname)
         q = q.filter(RequestModel.endpoint == ApiModel.endpoint)
         # q = q.filter(RequestModel.path == ApiModel.path)
+        q = q.filter(ApiModel.is_del != 1)
         if params.get('rtx_id'):
             q = q.filter(RequestModel.rtx_id == params.get('rtx_id'))
         q = q.order_by(RequestModel.create_time.desc())
@@ -83,7 +85,6 @@ class RequestBo(BOBase):
             q = q.offset(params.get('offset'))
         if params.get('limit'):
             q = q.limit(params.get('limit'))
-        # print(q)
         return q.all(), total
 
     def get_user_count_by_time(self, params):

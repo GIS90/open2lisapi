@@ -232,6 +232,7 @@ CREATE TABLE `api`  (
     `blueprint` varchar(15) NOT NULL COMMENT 'API接口blueprint',
     `apiname` varchar(25) NOT NULL COMMENT 'API接口View方法名称',
     `endpoint` varchar(41) NOT NULL COMMENT 'API接口endpoint',
+    `md5_id` varchar(41) NOT NULL COMMENT 'MD5',
     `path` varchar(45) NOT NULL COMMENT 'API接口path，与request表关联',
     `type` varchar(15) NOT NULL default 'success' COMMENT 'API接口类型：primary登录/success数据获取/warning/danger退出/info新增/更新/删除数据',
     `short` varchar(35) NULL COMMENT 'API接口简述',
@@ -240,7 +241,10 @@ CREATE TABLE `api`  (
     `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
     `delete_time` timestamp COMMENT '删除时间',
     `delete_rtx` varchar(25) COMMENT '删除操作人',
+    `update_time` timestamp COMMENT '最近修改时间',
+    `update_rtx` varchar(25) COMMENT '最近修改操作人',
     `is_del` bool default FALSE COMMENT '是否已删除',
+    `order_id` int default 1 NULL COMMENT '顺序ID',
 
     PRIMARY KEY (`id`),
     UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
