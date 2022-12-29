@@ -351,6 +351,18 @@ class NotifyService(object):
         self.qywx_robot_bo = QywxRobotBo()
         self.enum_bo = EnumBo()
 
+    @staticmethod
+    def _transfer_time(t):
+        if not t:
+            return ""
+
+        if not isinstance(t, str):
+            return d2s(t)
+        elif isinstance(t, str) and t == '0000-00-00 00:00:00':
+            return ""
+        else:
+            return t or ''
+
     def get_excel_headers(self, excel_file):
         """
         get excel base information
@@ -595,11 +607,9 @@ class NotifyService(object):
                 cur_sheet = str(model.cur_sheet) if model.cur_sheet else "0"
                 _res['set_title'] = title_json.get(cur_sheet) or ""
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) \
-                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
+                _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.delete_time) \
-                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
+                _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
                 _res[attr] = model.delete_rtx
             elif attr == 'is_del':
@@ -691,10 +701,14 @@ class NotifyService(object):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.dtalk_bo.merge_model(model)
+        try:
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.dtalk_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -728,7 +742,11 @@ class NotifyService(object):
         if new_params.get('rtx_id') == ADMIN:
             new_params.pop('rtx_id')
         # << batch delete >>
-        res = self.dtalk_bo.batch_delete_by_md5(params=new_params)
+        try:
+            res = self.dtalk_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -766,7 +784,7 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        if rtx_id not in [ADMIN, model.rtx_id]:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return
