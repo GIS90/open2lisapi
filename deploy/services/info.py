@@ -1143,6 +1143,10 @@ class InfoService(object):
                 else:
                     setattr(new_model, _k, _v)
             setattr(new_model, 'md5_id', md5_id)
+            """ 
+            - endpoint = blueprint.apiname
+            - path = /blueprint/apiname
+            """
             setattr(new_model, 'endpoint', '%s.%s' % (new_params.get('blueprint'), new_params.get('apiname')))
             setattr(new_model, 'path', '/%s/%s' % (new_params.get('blueprint'), new_params.get('apiname')))
             setattr(new_model, 'create_time', get_now())
@@ -1212,6 +1216,12 @@ class InfoService(object):
         try:
             for _k, _v in new_params.items():
                 setattr(model, _k, _v)
+            """ 
+            - endpoint = blueprint.apiname
+            - path = /blueprint/apiname
+            """
+            setattr(model, 'endpoint', '%s.%s' % (new_params.get('blueprint'), new_params.get('apiname')))
+            setattr(model, 'path', '/%s/%s' % (new_params.get('blueprint'), new_params.get('apiname')))
             self.enum_bo.merge_model(model)
         except:
             return Status(
