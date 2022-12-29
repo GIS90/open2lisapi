@@ -272,20 +272,22 @@ class SearchService(object):
             if not check_length(new_params.get(_key), _value):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
-
-        # create new model
-        new_model = self.sqlbase_bo.new_mode()
-        # 默认值
-        new_params['md5_id'] = md5(new_params.get('title')+get_now()+new_params.get('rtx_id'))
-        new_params['create_time'] = get_now()
-        new_params['is_del'] = False
-        new_params['count'] = 0
-        for key, value in new_params.items():
-            if not key: continue
-            setattr(new_model, key, value)
-        else:
-            self.sqlbase_bo.add_model(new_model)
-
+        try:
+            # create new model
+            new_model = self.sqlbase_bo.new_mode()
+            # 默认值
+            new_params['md5_id'] = md5(new_params.get('title')+get_now()+new_params.get('rtx_id'))
+            new_params['create_time'] = get_now()
+            new_params['is_del'] = False
+            new_params['count'] = 0
+            for key, value in new_params.items():
+                if not key: continue
+                setattr(new_model, key, value)
+            else:
+                self.sqlbase_bo.add_model(new_model)
+        except:
+            return Status(
+                320, 'failure', StatusMsgs.get(320), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
@@ -326,10 +328,14 @@ class SearchService(object):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.sqlbase_bo.merge_model(model)
+        try:
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.sqlbase_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -363,7 +369,11 @@ class SearchService(object):
         if new_params.get('rtx_id') == ADMIN:
             new_params.pop('rtx_id')
         # << batch delete >>
-        res = self.sqlbase_bo.batch_delete_by_md5(params=new_params)
+        try:
+            res = self.sqlbase_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -420,7 +430,6 @@ class SearchService(object):
             'detail': self._sqlbase_model_to_dict(model, _type='detail')
         }
         """ 浏览文章增加次数 """
-        print(_type)
         if _type == 'view':
             try:
                 setattr(model, 'count', model.count + 1)
