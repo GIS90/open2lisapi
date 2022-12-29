@@ -73,7 +73,7 @@ class CommonService(object):
         self.notify_service = NotifyService()
         self.image_lib = ImageLib()
 
-    def file_upload(self, params, upload_file, is_check_fmt: bool = True):
+    def file_upload(self, params, upload_file, is_check_fmt: bool = True) -> json:
         """
         one file upload to server(file store object)
         params params: request params, rtx_id and file type
@@ -104,7 +104,7 @@ class CommonService(object):
             # necessary value check
             if not v and k in self.req_upload_attrs:
                 return Status(
-                    212, 'failure', u'未指定%s请求参数' % k, {}
+                    212, 'failure', u'缺少%s请求参数' % k, {}
                 ).json()
 
         # ======================= local store =======================
@@ -119,15 +119,15 @@ class CommonService(object):
         if not is_ok:
             return Status(
                 220, 'failure', StatusMsgs.get(220), {}).json()
-        # file upload to store object, manual control
-        if OFFICE_STORE_BK:
-            store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
-                                              local_file=store_msg.get('path'))
-            if store_res.get('status_id') != 100:
-                return Status(store_res.get('status_id'),
-                              'failure',
-                              store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
-                              {}).json()
+        # ======================= 【云存储】 =======================
+        # file upload to store object
+        store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
+                                          local_file=store_msg.get('path'))
+        if store_res.get('status_id') != 100:
+            return Status(store_res.get('status_id'),
+                          'failure',
+                          store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
+                          {}).json()
 
         # ======================= db store =======================
         store_msg['rtx_id'] = params.get('rtx_id')
@@ -156,7 +156,7 @@ class CommonService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
-    def file_uploads(self, params, upload_files, is_check_fmt: bool = True):
+    def file_uploads(self, params, upload_files, is_check_fmt: bool = True) -> json:
         """
         多文件上传 && 存储（many office file to upload and store）
         params params: request params
@@ -196,7 +196,7 @@ class CommonService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
-    def image_wangeditor(self, params, image_file):
+    def image_wangeditor(self, params, image_file) -> dict:
         """
         wang editor image upload load image to server
         params: parameters
