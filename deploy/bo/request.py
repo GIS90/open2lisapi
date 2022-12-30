@@ -78,7 +78,7 @@ class RequestBo(BOBase):
         if params.get('rtx_id'):
             q = q.filter(RequestModel.rtx_id == params.get('rtx_id'))
         q = q.order_by(RequestModel.create_time.desc())
-        print(q)
+        # print(q)
         if not q:
             return [], 0
         total = len(q.all())
