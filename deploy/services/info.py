@@ -196,9 +196,10 @@ class InfoService(object):
         'create_rtx',
         'delete_time',
         'delete_rtx',
-        'last_update_time',
-        'last_update_rtx',
-        'is_del'
+        'update_time',
+        'update_rtx',
+        'is_del',
+        'order_id'
     ]
 
     req_api_add_attrs = [
@@ -238,6 +239,10 @@ class InfoService(object):
         'long',
         'order_id',
         'md5'
+    ]
+
+    req_api_types_attrs = [
+        'rtx_id'
     ]
 
     def __init__(self):
@@ -1037,7 +1042,7 @@ class InfoService(object):
             setattr(model, 'is_del', True)
             setattr(model, 'delete_rtx', new_params.get('rtx_id'))
             setattr(model, 'delete_time', get_now())
-            self.enum_bo.merge_model(model)
+            self.api_bo.merge_model(model)
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
@@ -1072,8 +1077,9 @@ class InfoService(object):
             else:
                 new_params[k] = str(v)
         # << batch delete >>
+        res = self.api_bo.batch_delete_by_md5(params=new_params)
         try:
-            res = self.enum_bo.batch_delete_by_md5(params=new_params)
+            pass
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
@@ -1113,9 +1119,22 @@ class InfoService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # -------------- return data -----------------
+        # type list
+        type_models = self.enum_bo.get_model_by_name(name='api-type')
+        _type_res = list()
+        # not exist
+        for _m in type_models:
+            if not _m: continue
+            _type_res.append({'key': _m.key, 'value': _m.value})
+        # detail
+        _res = {
+            'detail': self._api_model_to_dict(model, _type='detail'),
+            'type': _type_res
+        }
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), self._api_model_to_dict(model, _type='detail')
+            100, 'success', StatusMsgs.get(100), _res
         ).json()
 
     def api_add(self, params: dict):
@@ -1177,6 +1196,7 @@ class InfoService(object):
             for _k, _v in new_params.items():
                 if _k in ['rtx_id']:
                     setattr(new_model, 'create_rtx', _v)
+                    setattr(new_model, 'update_rtx', _v)
                 else:
                     setattr(new_model, _k, _v)
             setattr(new_model, 'md5_id', md5_id)
@@ -1187,8 +1207,9 @@ class InfoService(object):
             setattr(new_model, 'endpoint', '%s.%s' % (new_params.get('blueprint'), new_params.get('apiname')))
             setattr(new_model, 'path', '/%s/%s' % (new_params.get('blueprint'), new_params.get('apiname')))
             setattr(new_model, 'create_time', get_now())
+            setattr(new_model, 'update_time', get_now())
             setattr(new_model, 'is_del', False)     # 是否删除
-            self.enum_bo.add_model(new_model)
+            self.api_bo.add_model(new_model)
         except:
             return Status(
                 320, 'failure', StatusMsgs.get(320), {'md5': new_params.get('md5')}).json()
@@ -1250,6 +1271,7 @@ class InfoService(object):
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # --------------------------------------- update model --------------------------------------
+        rtx_id = new_params.get('rtx_id')
         new_params.pop('rtx_id')
         new_params.pop('md5')
         try:
@@ -1261,10 +1283,48 @@ class InfoService(object):
             """
             setattr(model, 'endpoint', '%s.%s' % (new_params.get('blueprint'), new_params.get('apiname')))
             setattr(model, 'path', '/%s/%s' % (new_params.get('blueprint'), new_params.get('apiname')))
-            self.enum_bo.merge_model(model)
+            setattr(model, 'update_time', get_now())
+            setattr(model, 'update_rtx', rtx_id)
+            self.api_bo.merge_model(model)
         except:
             return Status(
                 322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def api_types(self, params: dict):
+        """
+        get api type list: key-value
+        :return: json data
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_api_types_attrs:  # illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:       # parameter is not allow null
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
+        models = self.enum_bo.get_model_by_name(name='api-type')
+        # no data
+        if not models:
+            return Status(
+                100, 'success', StatusMsgs.get(100), []).json()
+        _res = list()
+        # not exist
+        for _m in models:
+            if not _m: continue
+            _res.append({'key': _m.key, 'value': _m.value})
+        # return data
+        return Status(
+            100, 'success', StatusMsgs.get(100), _res
         ).json()
