@@ -1077,9 +1077,8 @@ class InfoService(object):
             else:
                 new_params[k] = str(v)
         # << batch delete >>
-        res = self.api_bo.batch_delete_by_md5(params=new_params)
         try:
-            pass
+            res = self.api_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
