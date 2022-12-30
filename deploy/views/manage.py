@@ -41,7 +41,7 @@ from deploy.utils.status import Status
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
 from deploy.utils.status_msg import StatusMsgs
-
+from deploy.utils.watcher import watcher
 
 manage = Blueprint('manage', __name__, url_prefix='/manage')
 CORS(manage, supports_credentials=True)
@@ -51,7 +51,8 @@ request_service = RequestService()
 
 
 @manage.route('/login/', methods=['GET', 'POST'], strict_slashes=False)
-def login_in():
+@watcher(watcher_args=request)
+def login():
     """
     login：login in to system
     :return: json data
@@ -105,7 +106,8 @@ def login_in():
 
 
 @manage.route('/logout/', methods=['GET', 'POST'], strict_slashes=False)
-def login_out():
+@watcher(watcher_args=request)
+def logout():
     """
     logout：user login out the system
     :return: json data
