@@ -51,10 +51,10 @@ class ApiModel(base.ModelBase):
 
     id = Column(Integer, primary_key=True)
     blueprint = Column(String(15))
-    apiname = Column(String(25))
-    endpoint = Column(String(41))
+    apiname = Column(String(35))
+    endpoint = Column(String(55))
     md5_id = Column(String(55))
-    path = Column(String(45))
+    path = Column(String(55))
     type = Column(String(15))
     short = Column(String(35))
     long = Column(String(120))
