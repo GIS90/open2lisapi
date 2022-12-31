@@ -224,7 +224,7 @@ class InfoService(object):
     req_api_add_ck_len_attrs = {
         'rtx_id': 25,
         'blueprint': 15,
-        'apiname': 25,
+        'apiname': 35,
         'type': 15,
         'short': 35,
         'long': 120
