@@ -1526,7 +1526,7 @@ class AuthorityService(object):
             new_params['md5_id'] = md5(new_params.get('name'))
             new_params['create_time'] = get_now()
             new_params['is_del'] = False
-            new_params['order_id'] = 0
+            new_params['order_id'] = 1
             # shortcut 特殊处理
             new_params['is_shortcut'] = new_params.get('shortcut')
             new_params.pop('shortcut')
