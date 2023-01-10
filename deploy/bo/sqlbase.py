@@ -32,7 +32,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python sqlbase.py
 # ------------------------------------------------------------
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.sqlbase import SqlbaseModel
@@ -72,12 +72,11 @@ class SqlbaseBo(BOBase):
             q = q.filter(SqlbaseModel.recommend.in_(params.get('recommend')))
         if params.get('label'):    # 标签
             q = q.filter(SqlbaseModel.label.in_(params.get('label')))
-        if params.get('title'):  # 标题
-            q = q.filter(SqlbaseModel.title.like(params.get('title')))
-        if params.get('summary'):  # 摘要
-            q = q.filter(SqlbaseModel.summary.like(params.get('summary')))
         if params.get('content'):  # 内容
-            q = q.filter(SqlbaseModel.text.like(params.get('content')))
+            q = q.filter(or_(
+                SqlbaseModel.title.like(params.get('content')),
+                SqlbaseModel.text.like(params.get('content'))
+            ))
         if params.get('create_time_start'):  # 起始创建时间
             q = q.filter(SqlbaseModel.create_time >= params.get('create_time_start'))
         if params.get('create_time_end'):  # 结束创建时间
