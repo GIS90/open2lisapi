@@ -243,15 +243,13 @@ class SearchService(object):
                 new_res.append(_res_dict)
                 n += 1
         """ all user k-v list"""
-        """
         user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         user_list = list()
         for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
-        """
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total, 'user': user_list}
         ).json()
 
     def sqlbase_add(self, params: dict) -> dict:
