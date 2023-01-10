@@ -61,8 +61,35 @@ class SqlbaseBo(BOBase):
             q = q.filter(SqlbaseModel.public == True)
         if not params.get('public'):
             q = q.filter(SqlbaseModel.public == False)
-        if params.get('rtx_id'):
-            q = q.filter(SqlbaseModel.rtx_id == str(params.get('rtx_id')))
+        # if params.get('rtx_id'):
+        #     q = q.filter(SqlbaseModel.rtx_id == str(params.get('rtx_id')))
+        """多参数高级筛选"""
+        if params.get('create_rtx'):    # 创建用户RTX
+            q = q.filter(SqlbaseModel.rtx_id.in_(params.get('create_rtx')))
+        if params.get('author'):    # 作者
+            q = q.filter(SqlbaseModel.author.in_(params.get('author')))
+        if params.get('recommend'):    # 推荐度
+            q = q.filter(SqlbaseModel.recommend.in_(params.get('recommend')))
+        if params.get('label'):    # 标签
+            q = q.filter(SqlbaseModel.label.in_(params.get('label')))
+        if params.get('title'):  # 标题
+            q = q.filter(SqlbaseModel.title.like(params.get('title')))
+        if params.get('summary'):  # 摘要
+            q = q.filter(SqlbaseModel.summary.like(params.get('summary')))
+        if params.get('content'):  # 内容
+            q = q.filter(SqlbaseModel.text.like(params.get('content')))
+        if params.get('create_time_start'):  # 起始创建时间
+            q = q.filter(SqlbaseModel.create_time >= params.get('create_time_start'))
+        if params.get('create_time_end'):  # 结束创建时间
+            q = q.filter(SqlbaseModel.create_time <= params.get('create_time_end'))
+        if params.get('public_time_start'):  # 起始发布时间
+            q = q.filter(SqlbaseModel.public_time >= params.get('public_time_start'))
+        if params.get('public_time_end'):  # 结束发布时间
+            q = q.filter(SqlbaseModel.public_time <= params.get('public_time_end'))
+        if params.get('count_start'):  # 浏览次数上限
+            q = q.filter(SqlbaseModel.count >= params.get('count_start'))
+        if params.get('count_end'):  # 浏览次数下限
+            q = q.filter(SqlbaseModel.count <= params.get('count_end'))
         q = q.order_by(SqlbaseModel.create_time.desc())
         if not q:
             return [], 0

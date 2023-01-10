@@ -51,11 +51,50 @@ class SearchService(object):
     SHOW_TEXT_MAX = 55
 
     req_sqlbase_list_attrs = [
-        'rtx_id',
-        'limit',
-        'offset',
-        'public'
+        'rtx_id',   # 查询用户rtx
+        'limit',    # 条数
+        'offset',   # 偏移多少条
+        'public',
+        'create_time_start',    # 起始创建时间
+        'create_time_end',  # 结束创建时间
+        'create_rtx',   # 创建用户RTX
+        'title',    # 标题
+        'author',   # 作者（定义数组，支持多选）
+        'public_time_start',     # 起始发布时间
+        'public_time_end',  # 结束发布时间
+        'recommend',     # 推荐度
+        'summary',   # 摘要
+        'label',     # 标签
+        'content',  # 内容
+        'count_start',  # 浏览次数上限
+        'count_end'     # 浏览次数下限
     ]
+
+    req_sqlbase_list_search_list_types = [
+        'create_rtx',
+        'author',
+        'recommend',
+        'label'
+    ]
+
+    req_sqlbase_list_search_int_types = [
+        'count_start',
+        'count_end'
+    ]
+
+    req_sqlbase_list_search_date_types = [
+        'create_time_start',  # 起始创建时间
+        'create_time_end',  # 结束创建时间
+        'public_time_start',  # 起始发布时间
+        'public_time_end'  # 结束发布时间
+    ]
+
+    req_sqlbase_list_search_like_types = [
+        'title',
+        'summary',
+        'content'
+    ]
+
 
     sqlbase_list_attrs = [
         # 'id',
@@ -209,18 +248,37 @@ class SearchService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_sqlbase_list_attrs and v:
+            if k not in self.req_sqlbase_list_attrs and v:  # is illegal parameter
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if k == 'limit':
+            if k in self.req_sqlbase_list_search_list_types:    # 处理列表参数
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s为列表类型' % k, {}).json()
+            if k in self.req_sqlbase_list_search_date_types and v:      # 处理时间查询参数，str类型
+                if not isinstance(v, str):
+                    return Status(
+                        213, 'failure', u'请求参数%s为字符串类型' % k, {}).json()
+                if str(v).endswith('start'):
+                    v = '%s 00:00:00' % str(v)
+                elif str(v).endswith('end'):
+                    v = '%s 23:59:59' % str(v)
+            if k in self.req_sqlbase_list_search_like_types and v:      # like 查询参数
+                v = '%' + str(v) + '%'
+            if k in self.req_sqlbase_list_search_int_types and v:      # int类型查询参数
+                if not str(v).isdigit():
+                    return Status(
+                        213, 'failure', u'请求参数%s为数字类型' % k, {}).json()
+                v = int(v)
+            elif k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
             elif k == 'public':
                 v = True if v else False
-            else:
-                v = str(v) if v else ''
+            # 参数写入new-params
             new_params[k] = v
+
         # **************** 全员获取ALL数据 *****************
         req_rtx_id = new_params.get('rtx_id')
         # if new_params.get('rtx_id') == ADMIN:
