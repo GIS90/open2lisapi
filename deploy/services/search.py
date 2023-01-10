@@ -231,6 +231,7 @@ class SearchService(object):
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
+        """ sqlbase list """
         new_res = list()
         n = 1
         for _d in res:
@@ -241,6 +242,14 @@ class SearchService(object):
                 _res_dict['edit'] = 'true' if req_rtx_id in [_res_dict.get('rtx_id'), ADMIN] else 'false'
                 new_res.append(_res_dict)
                 n += 1
+        """ all user k-v list"""
+        """
+        user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        user_list = list()
+        for _d in user_res:
+            if not _d: continue
+            user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
+        """
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
