@@ -242,6 +242,16 @@ class AuthorityService(object):
         'shortcut'
     ]
 
+    req_menu_ckeck_len_attrs = {
+        'rtx_id': 25,
+        'name': 25,
+        'title': 25,
+        'path': 35,
+        'icon': 25,
+        'component': 25,
+        'redirect': 35
+    }
+
     req_menu_add_attrs = [
         'rtx_id',
         'name',
@@ -256,7 +266,8 @@ class AuthorityService(object):
         'cache',
         'affix',
         'breadcrumb',
-        'shortcut'
+        'shortcut',
+        'order_id'
     ]
 
     req_menu_status_attrs = [
@@ -1493,16 +1504,6 @@ class AuthorityService(object):
             if not v and k not in self.req_menu_no_need_attrs:  # is not null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # parameters length check
-            if k in ['name', 'component', 'icon'] and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度限制25' % k, {}).json()
-            elif k in ['path', 'title', 'icon'] and not check_length(v, 35):
-                return Status(
-                    213, 'failure', u'请求参数%s长度限制35' % k, {}).json()
-            elif k == 'redirect' and v and not check_length(v, 55):
-                return Status(
-                    213, 'failure', u'请求参数%s长度限制55' % k, {}).json()
 
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
@@ -1512,13 +1513,24 @@ class AuthorityService(object):
                 v = str(v)
             new_params[k] = v
 
+        # parameters length check
+        for _key, _value in self.req_menu_ckeck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
+
         # check name is or not exist, name is unique
         model = self.menu_bo.get_model_by_name(new_params.get('name'))
         # model is exist
         if model:
             return Status(
                 302, 'failure', '菜单RTX名称已存在' or StatusMsgs.get(302), {}).json()
-        """         add new model """
+        """ add new model """
         try:
             # create new model
             new_model = self.menu_bo.new_mode()
@@ -1526,7 +1538,6 @@ class AuthorityService(object):
             new_params['md5_id'] = md5(new_params.get('name'))
             new_params['create_time'] = get_now()
             new_params['is_del'] = False
-            new_params['order_id'] = 1
             # shortcut 特殊处理
             new_params['is_shortcut'] = new_params.get('shortcut')
             new_params.pop('shortcut')
@@ -1588,47 +1599,39 @@ class AuthorityService(object):
         update menu detail information from db table menu, menu is dict object
         :return: json data
         """
+        # parameters check && format parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
-        # parameters check && format parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_menu_update_attrs:     # illegal parameters
+            if k not in self.req_menu_update_attrs:  # illegal
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v and k not in self.req_menu_no_need_attrs:  # value is not null
+            if not v and k not in self.req_menu_no_need_attrs:  # is not null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # parameters length check
-            if k in ['name', 'component', 'icon'] and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度限制25' % k, {}).json()
-            elif k in ['path', 'title', 'icon'] and not check_length(v, 35):
-                return Status(
-                    213, 'failure', u'请求参数%s长度限制35' % k, {}).json()
-            elif k == 'redirect' and v and not check_length(v, 55):
-                return Status(
-                    213, 'failure', u'请求参数%s长度限制55' % k, {}).json()
 
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
-            elif k == 'order_id':       # 顺序ID特殊判断处理
-                if v and not str(v).isdigit():
-                    return Status(
-                        213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                v = int(v) if v else 1  # 默认order_id：1
             elif k in self.req_menu_int_update_attrs:
-                if v and not str(v).isdigit():
-                    return Status(
-                        213, 'failure', u'请求参数%s只允许为数字' % k, {}).json()
-                if v:
-                    v = int(v)
+                v = int(v)
             else:
                 v = str(v)
             new_params[k] = v
+
+        # parameters length check
+        for _key, _value in self.req_menu_ckeck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
+
         # <<<<<<<<<<<<< ======== model by md5 ======== >>>>>>>>>>>>>>
         model = self.menu_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
