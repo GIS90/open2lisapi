@@ -51,7 +51,7 @@ from deploy.bo.office_pdf import OfficePDFBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     OFFICE_LIMIT, OFFICE_STORE_BK, \
-    ADMIN, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
+    ADMIN, ADMIN_AUTH_LIST, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
 from deploy.utils.utils import get_now, d2s, md5, check_length
 from deploy.utils.enums import *
 
@@ -645,7 +645,8 @@ class OfficeService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])         # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # <<<<<<<<<<<<<<< models >>>>>>>>>>>>>>>>
         new_params['enum_name'] = 'excel-type'
@@ -766,7 +767,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])     # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
 
@@ -823,7 +825,8 @@ class OfficeService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # 软删除
@@ -850,7 +853,7 @@ class OfficeService(object):
             if k not in self.req_deletes_attrs:     # illegal key
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v: # parameter is not allow null
+            if not v:       # parameter is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
@@ -861,7 +864,8 @@ class OfficeService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # 批量软删除
         res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
@@ -1028,7 +1032,8 @@ class OfficeService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
 
         """     ============ get models list ==========    """
@@ -1095,7 +1100,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         """ update model """
@@ -1147,7 +1153,8 @@ class OfficeService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # 软删除
@@ -1185,7 +1192,8 @@ class OfficeService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # 批量软删除
         res = self.excel_result_bo.batch_delete_by_md5(params=new_params)
@@ -1234,7 +1242,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         """ ------ 格式化数据 ------ """
@@ -1306,7 +1315,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # format return data
@@ -1396,7 +1406,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # file not exist
@@ -1512,7 +1523,8 @@ class OfficeService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # <<<<<<<<<<<<<< get all models >>>>>>>>>>>>>>>
         res, total = self.office_pdf_bo.get_all(new_params)
@@ -1566,7 +1578,8 @@ class OfficeService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id != ADMIN not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return
@@ -1653,7 +1666,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
 
@@ -1699,7 +1713,8 @@ class OfficeService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # 软删除
@@ -1739,7 +1754,8 @@ class OfficeService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # 批量软删除
         res = self.office_pdf_bo.batch_delete_by_md5(params=new_params)
@@ -1833,7 +1849,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
