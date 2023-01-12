@@ -27,6 +27,9 @@ python version:
 Enjoy the good life everyday！！!
 Life is short, I use python.
 
+
+ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+权限管理，无特权账号
 ------------------------------------------------
 """
 
