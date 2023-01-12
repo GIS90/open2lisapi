@@ -40,7 +40,7 @@ from deploy.bo.sysuser import SysUserBo
 from deploy.config import OFFICE_LIMIT, ADMIN
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import d2s, get_now, md5, check_length
+from deploy.utils.utils import d2s, get_now, md5, check_length, s2d
 
 
 class SearchService(object):
@@ -80,7 +80,7 @@ class SearchService(object):
         'count_end'
     ]
 
-    req_sqlbase_list_search_date_types = [
+    req_sqlbase_list_search_time_types = [
         'create_time_start',  # 起始创建时间
         'create_time_end',  # 结束创建时间
         'public_time_start',  # 起始发布时间
@@ -251,14 +251,16 @@ class SearchService(object):
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s为列表类型' % k, {}).json()
-            if k in self.req_sqlbase_list_search_date_types and v:      # 处理时间查询参数，str类型
+            if k in self.req_sqlbase_list_search_time_types and v:      # 处理时间查询参数，str类型
                 if not isinstance(v, str):
                     return Status(
                         213, 'failure', u'请求参数%s为字符串类型' % k, {}).json()
-                if str(v).endswith('start'):
-                    v = '%s 00:00:00' % str(v)
-                elif str(v).endswith('end'):
-                    v = '%s 23:59:59' % str(v)
+                if v:
+                    try:
+                        datetime_v = s2d(v)
+                    except:
+                        return Status(
+                            213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
             if k in self.req_sqlbase_list_search_like_types and v:      # like 查询参数
                 v = '%' + str(v) + '%'
             if k in self.req_sqlbase_list_search_int_types and v:      # int类型查询参数
