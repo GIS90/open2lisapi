@@ -153,6 +153,10 @@ mysqldump
 
 https://github.com/GIS90/open2lui/issues
 
+### 特权账号
+
+配置文件中有个ADMIN_AUTH_LIST配置，这个是记录与管理员账号相同权限的账户RTX，对所有的数据具有读取、更新、删除等操作。
+
 > ## 其他
 
 ### supervisor
