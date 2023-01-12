@@ -504,7 +504,7 @@ class AuthorityService(object):
             new_params[k] = v
 
         # ///////////////// get data ///////////////////
-        res, total = self.role_bo.get_all(new_params)
+        res, total = self.role_bo.get_all(new_params)       # 全部数据
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
@@ -724,6 +724,10 @@ class AuthorityService(object):
             if _d.engname == ADMIN:
                 return Status(
                     302, 'failure', u'管理员角色不允许操作，请重新选择', {}).json()
+        # **************** 管理员获取ALL数据 *****************
+        ADMIN_AUTH_LIST.extend([ADMIN])     # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+            new_params.pop('rtx_id')
         # ------------------- batch delete data -----------------------
         try:
             res = self.role_bo.batch_delete_by_md5(params=new_params)
@@ -960,7 +964,7 @@ class AuthorityService(object):
                 v = str(v)
             new_params[k] = v
         # /////////// return data
-        res, total = self.sysuser_bo.get_all(new_params, is_admin=False)
+        res, total = self.sysuser_bo.get_all(new_params, is_admin=False)    # 全员数据
         if not res:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()

@@ -175,11 +175,10 @@ def role_delete():
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
-    # 参数
-    params = request.get_json() or {}
-    return AuthorityService().role_delete(params)
     try:
-        pass
+        # 参数
+        params = request.get_json() or {}
+        return AuthorityService().role_delete(params)
     except Exception as e:
         LOG.error("authority>role delete is error: %s" % e)
         return Status(501, 'failure',
