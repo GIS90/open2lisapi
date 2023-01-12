@@ -47,7 +47,7 @@ from deploy.bo.enum import EnumBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
-    STORE_BASE_URL, STORE_SPACE_NAME, ADMIN, \
+    STORE_BASE_URL, STORE_SPACE_NAME, ADMIN, ADMIN_AUTH_LIST, \
     DTALK_CONTROL, DTALK_INTERVAL, DTALK_ADD_IMAGE
 from deploy.delibs.store_lib import StoreLib
 from deploy.delibs.dtalk_lib import DtalkLib
@@ -642,7 +642,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
 
         # <get data>
@@ -697,7 +698,8 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
@@ -739,7 +741,8 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
@@ -784,7 +787,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id not in [ADMIN, model.rtx_id]:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return
@@ -856,7 +860,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
 
@@ -922,7 +927,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
@@ -1059,7 +1065,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # <get data>
         res, total = self.dtalk_robot_bo.get_all(new_params)
@@ -1192,7 +1199,8 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data>
@@ -1230,7 +1238,8 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # << batch delete >>
         res = self.dtalk_robot_bo.batch_delete_by_md5(params=new_params)
@@ -1272,7 +1281,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return data
@@ -1339,7 +1349,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # check key and secret is or not repeat
@@ -1404,7 +1415,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # status
@@ -1612,7 +1624,8 @@ class NotifyService(object):
                 302, 'failure', 'dtalk数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and dtalk_model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, dtalk_model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         """ dtalk robot check """
@@ -1750,7 +1763,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # not key or not secret
@@ -1791,7 +1805,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # <get data>
         res, total = self.qywx_robot_bo.get_all(new_params)
@@ -1920,7 +1935,8 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data>
@@ -1958,7 +1974,8 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # << batch delete >>
         res = self.qywx_robot_bo.batch_delete_by_md5(params=new_params)
@@ -2002,7 +2019,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return data
@@ -2061,7 +2079,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # select default
@@ -2117,7 +2136,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # status
@@ -2175,7 +2195,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # not key or not secret
@@ -2273,7 +2294,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
 
         # <get data>
@@ -2329,7 +2351,8 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
@@ -2367,7 +2390,8 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # << batch delete >>
         res = self.qywx_bo.batch_delete_by_md5(params=new_params)
@@ -2408,7 +2432,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         """  return data """
@@ -2473,7 +2498,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
@@ -2589,7 +2615,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         """  return data """
@@ -2658,7 +2685,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
