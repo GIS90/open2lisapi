@@ -66,6 +66,7 @@ VERSION = 'v1.0.0'
 DEBUG = True
 SECRET_KEY = 'belivemeIcanfly'
 ADMIN = 'admin'
+ADMIN_AUTH_LIST = []
 
 # DB(sqlalchemy)，default is mysql
 DB_LINK = None
@@ -159,6 +160,7 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     DEBUG = _config_info['SERVER']['DEBUG'] or DEBUG
     SECRET_KEY = _config_info['SERVER']['SECRET_KEY'] or SECRET_KEY
     ADMIN = _config_info['SERVER']['ADMIN'] or ADMIN
+    ADMIN_AUTH_LIST = _config_info['SERVER']['ADMIN_AUTH_LIST'] or ADMIN_AUTH_LIST
 
     # DB(sqlalchemy)，default is mysql
     DB_LINK = _config_info['DB']['DB_LINK'] or DB_LINK

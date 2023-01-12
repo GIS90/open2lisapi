@@ -5,6 +5,7 @@ SERVER:
   DEBUG: True
   SECRET_KEY: IbelivemeIcanfly
   ADMIN: admin
+  ADMIN_AUTH_LIST: ['test1234']
 
 
 # 日志

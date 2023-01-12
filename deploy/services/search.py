@@ -37,7 +37,7 @@ import json
 from deploy.bo.sqlbase import SqlbaseBo
 from deploy.bo.sysuser import SysUserBo
 
-from deploy.config import OFFICE_LIMIT, ADMIN
+from deploy.config import OFFICE_LIMIT, ADMIN, ADMIN_AUTH_LIST
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import d2s, get_now, md5, check_length, s2d
@@ -257,7 +257,7 @@ class SearchService(object):
                         213, 'failure', u'请求参数%s为字符串类型' % k, {}).json()
                 if v:
                     try:
-                        datetime_v = s2d(v)
+                        s2d(v)
                     except:
                         return Status(
                             213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
@@ -279,7 +279,6 @@ class SearchService(object):
 
         # **************** 全员获取ALL数据 *****************
         req_rtx_id = new_params.get('rtx_id')
-        # if new_params.get('rtx_id') == ADMIN:
         new_params.pop('rtx_id')
         # <get data>
         res, total = self.sqlbase_bo.get_all(new_params)
@@ -387,7 +386,8 @@ class SearchService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id not in [ADMIN, model.rtx_id]:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
@@ -429,7 +429,8 @@ class SearchService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        if new_params.get('rtx_id') == ADMIN:
+        ADMIN_AUTH_LIST.extend([ADMIN])     # 特权账号
+        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
@@ -550,7 +551,8 @@ class SearchService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        if rtx_id not in [ADMIN, model.rtx_id]:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 

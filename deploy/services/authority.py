@@ -46,7 +46,7 @@ from deploy.bo.sysuser import SysUserBo
 from deploy.bo.enum import EnumBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM, \
-    ADMIN, MENU_ONE_LEVEL, MENU_ROOT_ID, \
+    ADMIN, ADMIN_AUTH_LIST, MENU_ONE_LEVEL, MENU_ROOT_ID, \
     USER_DEFAULT_AVATAR, USER_DEFAULT_PASSWORD, USER_DEFAULT_INTROD
 from deploy.utils.utils import d2s, get_now, md5, check_length
 
@@ -775,7 +775,8 @@ class AuthorityService(object):
                 304, 'failure', '管理员角色不允许删除', {}).json()
         # authority
         rtx_id = new_params.get('rtx_id')
-        if rtx_id != ADMIN and model.rtx_id != rtx_id:
+        ADMIN_AUTH_LIST.extend([ADMIN, model.create_rtx])
+        if rtx_id not in ADMIN_AUTH_LIST:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # /////////////// 软删除数据
