@@ -1020,10 +1020,10 @@ class OfficeService(object):
                 v = '%' + str(v) + '%'
             elif k == 'start_time' and v:   # filter: start_time
                 v = d2s(v) if isinstance(v, datetime.datetime) \
-                    else '%s 00:00:00' % v
+                    else v
             elif k == 'end_time' and v:   # filter: end_time
                 v = d2s(v) if isinstance(v, datetime.datetime) \
-                    else '%s 23:59:59' % v
+                    else v
             else:
                 v = str(v) if v else ''
             new_params[k] = v
