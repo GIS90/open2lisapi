@@ -122,8 +122,8 @@ class InfoService(object):
 
     req_dict_update_check_len_attrs = {
         'rtx_id': 25,
-        'name': 25,
-        'key': 25,
+        'name': 35,
+        'key': 55,
         'value': 55
     }
 
@@ -152,8 +152,8 @@ class InfoService(object):
 
     req_dict_add_check_len_attrs = {
         'rtx_id': 25,
-        'name': 25,
-        'key': 25,
+        'name': 35,
+        'key': 55,
         'value': 55
     }
 

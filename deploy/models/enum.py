@@ -51,9 +51,9 @@ class EnumModel(base.ModelBase):
     __tablename__ = 'enum'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(25))
+    name = Column(String(35))
     md5_id = Column(String(55))
-    key = Column(String(25))
+    key = Column(String(55))
     value = Column(String(55))
     description = Column(Text)
     status = Column(Boolean())

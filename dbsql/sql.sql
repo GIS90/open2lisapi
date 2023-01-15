@@ -261,9 +261,9 @@ delete from api;
 DROP TABLES IF EXISTS `enum`;
 CREATE TABLE `enum`  (
     `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `name` varchar(25) NOT NULL COMMENT '枚举名称',
+    `name` varchar(35) NOT NULL COMMENT '枚举名称',
     `md5_id` varchar(55) NOT NULL COMMENT '枚举md5-id，以name为md5',
-    `key` varchar(25) NOT NULL COMMENT '枚举子集对应的key',
+    `key` varchar(55) NOT NULL COMMENT '枚举子集对应的key',
     `value` varchar(55) NOT NULL COMMENT '枚举子集对应的value',
     `description` text COMMENT '枚举子集对应的value说明',
     `status` bool default TRUE COMMENT '状态',
