@@ -212,9 +212,11 @@ class QYWXLib(object):
         :return: json
         """
         new_content = dict()
+        if not content:
+            return new_content
         if ftype not in self.types:
             return new_content
-
+        # 依据消息类型格式化数据
         if ftype in self.content_types:
             new_content['content'] = content.get('data')
             return new_content
@@ -315,21 +317,25 @@ class QYWXLib(object):
                 return Status(
                     213, 'failure', 'duplicate_check_interval参数值不合法，只允许1秒或者4小时', {}).json()
         # 参数 >>>>> 基础data对象参数
-        format_content = self.format_content(ftype=stype, content=content),
+        format_content = self.format_content(ftype=stype, content=content)
         if not format_content:
             return Status(
                 213, 'failure', '格式化的消息体为空', {}).json()
-
+        # 发送的数据
         data = {
-            "touser": "|".join(to_user),
-            "toparty": "|".join(to_party),
-            "totag": "|".join(to_tag),
             "agentid": self.AGENT_ID,
             "msgtype": stype,
             stype: format_content,
             "enable_duplicate_check": enable_duplicate_check,
             "duplicate_check_interval": duplicate_check_interval
         }
+        # 参数 >>>>> 用户
+        if to_user:
+            data['touser'] = "|".join(to_user)
+        if to_party:
+            data['toparty'] = "|".join(to_party)
+        if to_tag:
+            data['totag'] = "|".join(to_tag)
         # 参数 >>>>> 额外data对象参数
         if stype in self.safe_kwagrs_types:
             data['safe'] = safe
