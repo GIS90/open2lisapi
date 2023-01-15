@@ -135,6 +135,7 @@ DTALK_INTERVAL = 0.5
 QYWX_BASE_URL = 'https://qyapi.weixin.qq.com'
 QYWX_ACCESS_TOKEN = '/cgi-bin/gettoken'
 QYWX_SEND_MESSAGE = '/cgi-bin/message/send'
+QYWX_SEND_BACK = '/cgi-bin/message/recall'
 
 # others
 NOBN = 'NoNameBody'
@@ -238,4 +239,5 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     QYWX_BASE_URL = _config_info['QYWX']['BASE_URL'] or QYWX_BASE_URL
     QYWX_ACCESS_TOKEN = _config_info['QYWX']['ACCESS_TOKEN'] or QYWX_ACCESS_TOKEN
     QYWX_SEND_MESSAGE = _config_info['QYWX']['SEND_MESSAGE'] or QYWX_SEND_MESSAGE
+    QYWX_SEND_BACK = _config_info['QYWX']['SEND_BACK'] or QYWX_SEND_BACK
 

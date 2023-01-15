@@ -100,6 +100,7 @@ QYWX:
   BASE_URL: https://qyapi.weixin.qq.com
   ACCESS_TOKEN: /cgi-bin/gettoken
   SEND_MESSAGE: /cgi-bin/message/send
+  SEND_BACK: /cgi-bin/message/recall
 
 
 # 其他配置

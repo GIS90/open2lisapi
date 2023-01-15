@@ -95,7 +95,8 @@ import json
 from deploy.delibs.http_lib import HttpLibApi
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.config import QYWX_BASE_URL, QYWX_SEND_MESSAGE, QYWX_ACCESS_TOKEN
+from deploy.config import QYWX_BASE_URL, QYWX_SEND_MESSAGE, \
+    QYWX_ACCESS_TOKEN, QYWX_SEND_BACK
 
 
 class QYWXLib(object):
@@ -345,6 +346,51 @@ class QYWXLib(object):
         """ main """
         try:
             url = "%s?access_token=%s" % (QYWX_SEND_MESSAGE, self.token)
+            status, response = self.http.post_json(url=url, data=data)
+            if not status:
+                return Status(
+                    501, 'failure', response.get('errmsg'), {}).json()
+            if response.get("errcode") == 0 and response.get("errmsg") == "ok":
+                return Status(
+                    100, 'success', '成功', {}).json()
+            else:
+                return Status(
+                    501, 'failure', response.get('errmsg'), {}).json()
+        except:
+            return Status(501, 'failure', StatusMsgs.get(501), {}).json()
+
+    def sendback(self, message_id: str) -> json:
+        """
+        撤回24小时内通过发送应用消息接口推送的消息，仅可撤回企业微信端的数据
+
+        :param message_id: 消息ID
+        :return: json
+
+        参数说明：
+            参数	        必须	        说明
+            access_token	是	            access_token
+            msgid	        是	            消息ID
+
+        参考示例：https://developer.work.weixin.qq.com/document/path/94867
+        """
+        """ --------------------- parameters check --------------------- """
+        if not self.token:
+            return Status(
+                212, 'failure', '请检查access token是否获取成功', {}).json()
+        if not message_id:
+            return Status(
+                212, 'failure', '缺少message_id参数', {}).json()
+        if not isinstance(message_id, str):
+            return Status(
+                213, 'failure', 'message_id参数支持str类型', {}).json()
+
+        # 发送的数据
+        data = {
+            "msgid": message_id
+        }
+        """ main """
+        try:
+            url = "%s?access_token=%s" % (QYWX_SEND_BACK, self.token)
             status, response = self.http.post_json(url=url, data=data)
             if not status:
                 return Status(
