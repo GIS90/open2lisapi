@@ -2665,8 +2665,12 @@ class NotifyService(object):
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k == 'user':     # user参数特殊性检查，不允许中文；分号
+                if str(v).find('；') > -1:
+                    return Status(
+                        213, 'failure', u'请求参数%s分号为英文' % k, {}).json()
             new_params[k] = str(v)
-            # check: length
+        # check: length
         for _key, _value in self.req_qywx_add_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
@@ -2698,20 +2702,21 @@ class NotifyService(object):
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
-                499, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
         try:
             to_user = new_params.get('user').split(';')
-            send_type = new_params.get('type') or '1'
-            send_type = str(send_type)
-            if send_type == '8':    # markdown消息
-                _q_res = qywx_lib.send_to_user_by_markdown(to_user, new_params.get('content'))
+            send_type = str(new_params.get('type'))
+            new_content = dict()
+            if send_type in ['text', 'markdown']:    # text, markdown消息
+                new_content['data'] = new_params.get('content')
+                _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
             else:
                 return Status(
-                    499, 'failure', '企业微信暂不支持此类型消息', {}).json()
+                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
             _q_res_json = json.loads(_q_res)
             if _q_res_json.get('status_id') != 100:
                 return Status(
-                    499, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
+                    480, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
         except Exception as e:
             return Status(
                 499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()
@@ -2797,8 +2802,12 @@ class NotifyService(object):
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            if k == 'user':     # user参数特殊性检查，不允许中文；分号
+                if str(v).find('；') > -1:
+                    return Status(
+                        213, 'failure', u'请求参数%s分号为英文' % k, {}).json()
             new_params[k] = str(v)
-            # check: length
+        # check: length
         for _key, _value in self.req_qywx_add_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
@@ -2814,20 +2823,21 @@ class NotifyService(object):
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
-                499, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
         try:
             to_user = new_params.get('user').split(';')
-            send_type = new_params.get('type') or '1'
-            send_type = str(send_type)
-            if send_type == '8':    # markdown消息
-                _q_res = qywx_lib.send_to_user_by_markdown(to_user, new_params.get('content'))
+            send_type = str(new_params.get('type'))
+            new_content = dict()
+            if send_type in ['text', 'markdown']:  # text, markdown消息
+                new_content['data'] = new_params.get('content')
+                _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
             else:
                 return Status(
-                    499, 'failure', '企业微信暂不支持此类型消息', {}).json()
+                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
             _q_res_json = json.loads(_q_res)
             if _q_res_json.get('status_id') != 100:
                 return Status(
-                    499, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
+                    480, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
         except Exception as e:
             return Status(
                 499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()

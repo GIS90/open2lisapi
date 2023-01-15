@@ -46,9 +46,34 @@ reference urls:
       "response_code": "xyzxyz"
     }
   --------------------------------------------------------------------------------------
-  - 错误码查询工具：https://open.work.weixin.qq.com/devtool/query
-  - 发消息API参考：https://developer.work.weixin.qq.com/document/path/90236
-  - MARKDOWN语法：https://developer.work.weixin.qq.com/document/path/90236#%E6%94%AF%E6%8C%81%E7%9A%84markdown%E8%AF%AD%E6%B3%95
+
+ACCESS_TOKEN请求方式：POST（HTTPS）
+请求地址： https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=ACCESS_TOKEN
+
+返回示例：
+    {
+      "errcode" : 0,
+      "errmsg" : "ok",
+      "invaliduser" : "userid1|userid2",
+      "invalidparty" : "partyid1|partyid2",
+      "invalidtag": "tagid1|tagid2",
+      "unlicenseduser" : "userid3|userid4",
+      "msgid": "xxxx",
+      "response_code": "xyzxyz"
+    }
+    - errcode：返回码
+    - errmsg：对返回码的文本描述内容
+    - invaliduser：不合法的userid，不区分大小写，统一转为小写
+    - invalidparty：不合法的partyid
+    - invalidtag：不合法的标签id
+    - unlicenseduser：没有基础接口许可(包含已过期)的userid
+    - msgid：消息id，用于撤回应用消息
+    - response_code：仅消息类型为“按钮交互型”，“投票选择型”和“多项选择型”的模板卡片消息返回，应用可使用response_code调用更新模版卡片消息接口，24小时内有效，且只能使用一次
+
+
+- 错误码查询工具：https://open.work.weixin.qq.com/devtool/query
+- 发消息API参考：https://developer.work.weixin.qq.com/document/path/90236
+- MARKDOWN语法：https://developer.work.weixin.qq.com/document/path/90236#%E6%94%AF%E6%8C%81%E7%9A%84markdown%E8%AF%AD%E6%B3%95
 
 
 python version:
@@ -65,8 +90,11 @@ Life is short, I use python.
 # usage: /usr/bin/python qywx_lib.py
 # ------------------------------------------------------------
 import requests
+import json
+
 from deploy.delibs.http_lib import HttpLibApi
 from deploy.utils.status import Status
+from deploy.utils.status_msg import StatusMsgs
 from deploy.config import QYWX_BASE_URL, QYWX_SEND_MESSAGE, QYWX_ACCESS_TOKEN
 
 
@@ -74,6 +102,51 @@ class QYWXLib(object):
     """
     QYWX class
     """
+
+    types = [
+        'text',         # 文本
+        # 'image',        # 图片消息
+        # 'voice',        # 语音消息
+        # 'video',        # 视频消息
+        # 'file',         # 文件消息
+        # 'textcard',     # 文本卡片消息
+        # 'news',         # 图文消息
+        # 'mpnews',       # 多图文消息（mpnews类型的图文消息，跟普通的图文消息一致，唯一的差异是图文内容存储在企业微信。多次发送mpnews，会被认为是不同的图文，阅读、点赞的统计会被分开计算。）
+        'markdown',     # markdown消息
+        # 'miniprogram_notice',     # 小程序通知消息
+        # 'template_card@text_notice',              # 模板卡片消息 > 文本通知型
+        # 'template_card@news_notice',              # 模板卡片消息 > 图文展示型
+        # 'template_card@button_interaction',       # 模板卡片消息 > 按钮交互型
+        # 'template_card@vote_interaction',         # 模板卡片消息 > 投票选择型
+        # 'template_card@multiple_interaction',     # 模板卡片消息 > 多项选择型
+    ]
+
+    safe_kwagrs_types = [
+        'text',   # 文本
+        'image',  # 图片消息
+        'video',  # 视频消息
+        'file',   # 文件消息
+        'mpnews'  # 图文消息
+    ]
+
+    enable_id_trans_kwagrs_types = [
+        'text',         # 文本
+        'textcard',     # 文本卡片消息
+        'news',         # 图文消息
+        'mpnews',       # 多图文消息
+        'miniprogram_notice',  # 小程序通知消息
+        'template_card@text_notice',              # 模板卡片消息 > 文本通知型
+        'template_card@news_notice',              # 模板卡片消息 > 图文展示型
+        'template_card@button_interaction',       # 模板卡片消息 > 按钮交互型
+        'template_card@vote_interaction',         # 模板卡片消息 > 投票选择型
+        'template_card@multiple_interaction',     # 模板卡片消息 > 多项选择型
+    ]
+
+    content_types = [
+        'text',  # 文本
+        'markdown'  # markdown消息
+    ]
+
     def __init__(self, corp_id, secret, agent_id):
         """
         Initialize parameter
@@ -130,30 +203,48 @@ class QYWXLib(object):
         """
         return True if self.token else False
 
-    def send_to_user_by_markdown(self, to_user: list, content: str, **kwargs):
+    def format_content(self, ftype: str = 'text', content: dict = {}) -> dict:
         """
-        用户私发消息 >>> markdown语法消息体
+        根据发送消息的类型格式化消息体内容
+        :param ftype: 消息体类型
+        :param content: 消息体内容
 
-        send message to user list by the content of markdown type data
-        :param to_user: 企业微信用户ID列表，列表类型参数
-        :param content: markdown消息体
+        :return: json
+        """
+        new_content = dict()
+        if ftype not in self.types:
+            return new_content
+
+        if ftype in self.content_types:
+            new_content['content'] = content.get('data')
+            return new_content
+        else:
+            return new_content
+
+    def send(self, to_user=[], to_party=[], to_tag=[],
+             content={}, stype: str = 'text', **kwargs) -> json:
+        """
+        send message to user or part or tag list by the content of data
+        :param to_user: 指定接收消息的成员，成员ID列表，最多支持100个，指定为"@all"，则向该企业应用的全部成员发送
+        :param to_party: 指定接收消息的部门，部门ID列表，最多支持100个，指定为"@all"，则向该企业应用的全部成员发送
+        :param to_tag: 指定接收消息的标签，标签ID列表，最多支持100个，指定为"@all"，则向该企业应用的全部成员发送
+        :param stype: 消息类型，默认text文本类型
+        :param content: 消息体内容
         :param kwargs: 其他key-value参数
         :return: json
 
-
-        请求方式：POST（HTTPS）
-        请求地址： https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=ACCESS_TOKEN
-            - ACCESS_TOKEN：access token
         请求数据：
             {
                "touser" : "UserID1|UserID2|UserID3",
                "toparty" : "PartyID1|PartyID2",
                "totag" : "TagID1 | TagID2",
-               "msgtype": "markdown",
-               "agentid" : 1,
-               "markdown": {
-                    "content": ""
+               "agentid": 1,
+               "msgtype": 消息体类型,
+               消息体类型: {
+                    消息体
                },
+               safe: 0,
+               enable_id_trans: 0,
                "enable_duplicate_check": 0,
                "duplicate_check_interval": 1800
             }
@@ -162,58 +253,101 @@ class QYWXLib(object):
             touser	        否	            成员ID列表（消息接收者，多个接收者用‘|’分隔，最多支持1000个）。特殊情况：指定为@all，则向关注该企业应用的全部成员发送
             toparty	        否	            部门ID列表，多个接收者用‘|’分隔，最多支持100个。当touser为@all时忽略本参数
             totag	        否	            标签ID列表，多个接收者用‘|’分隔，最多支持100个。当touser为@all时忽略本参数
-            msgtype	        是	            消息类型，此时固定为：markdown
             agentid	        是	            企业应用的id，整型。企业内部开发，可在应用的设置页面查看；第三方服务商，可通过接口 获取企业授权信息 获取该参数值
-            content	        是	            markdown内容，最长不超过2048个字节，必须是utf8编码
+            msgtype	        是	            消息类型
+            content	        是	            消息体
+            enable_id_trans	否	            表示是否开启id转译，0表示否，1表示是，默认0。仅第三方应用需要用到，企业自建应用可以忽略。
             enable_duplicate_check	否	    表示是否开启重复消息检查，0表示否，1表示是，默认0
-            duplicate_check_interval	否	表示是否重复消息检查的时间间隔，默认1800s，最大不超过4小时
-        返回示例：
-            {
-              "errcode" : 0,
-              "errmsg" : "ok",
-              "invaliduser" : "userid1|userid2",
-              "invalidparty" : "partyid1|partyid2",
-              "invalidtag": "tagid1|tagid2",
-              "unlicenseduser" : "userid3|userid4",
-              "msgid": "xxxx",
-              "response_code": "xyzxyz"
-            }
-            - errcode：返回码
-            - errmsg：对返回码的文本描述内容
-            - invaliduser：不合法的userid，不区分大小写，统一转为小写
-            - invalidparty：不合法的partyid
-            - invalidtag：不合法的标签id
-            - unlicenseduser：没有基础接口许可(包含已过期)的userid
-            - msgid：消息id，用于撤回应用消息
-            - response_code：仅消息类型为“按钮交互型”，“投票选择型”和“多项选择型”的模板卡片消息返回，应用可使用response_code调用更新模版卡片消息接口，24小时内有效，且只能使用一次
+            duplicate_check_
+            interval	否	表示是否重复消息检查的时间间隔，默认1800s，最大不超过4小时
 
-        发消息API参考：https://developer.work.weixin.qq.com/document/path/90236
-        MARKDOWN语法：https://developer.work.weixin.qq.com/document/path/90236#%E6%94%AF%E6%8C%81%E7%9A%84markdown%E8%AF%AD%E6%B3%95
+        备注：
+            touser、toparty、totag不能同时为空
         """
+        """ --------------------- parameters check --------------------- """
         if not self.token:
-            return Status(212, 'failure', '请检查access token是否获取成功', {}).json()
-        if not to_user:
-            return Status(212, 'failure', '缺少用户列表', {}).json()
-        if not isinstance(to_user, list):
-            return Status(213, 'failure', '用户列表必须为List类型', {}).json()
+            return Status(
+                212, 'failure', '请检查access token是否获取成功', {}).json()
+        if not isinstance(to_user, list) \
+                or not isinstance(to_party, list) \
+                or not isinstance(to_tag, list):
+            return Status(
+                213, 'failure', '接收用户或者部门参数必须为List类型', {}).json()
+        if not any([to_user, to_party, to_tag]):
+            return Status(
+                212, 'failure', '缺少接收用户或者部门列表', {}).json()
         if not content:
-            return Status(212, 'failure', '缺少消息内容', {}).json()
+            return Status(
+                212, 'failure', '缺少消息内容', {}).json()
+        if not isinstance(content, dict):
+            return Status(
+                213, 'failure', '消息体参数必须为Dict类型', {}).json()
+        if stype not in self.types:
+            return Status(
+                213, 'failure', '消息类型错误', {}).json()
+        """ ================== 默认参数 ================== """
+        # 表示是否是保密消息，0表示可对外分享，1表示不能分享且内容显示水印，2表示仅限在企业内分享，默认为0；注意仅mpnews类型的消息支持safe值为2，其他消息类型不支持
+        safe = 0         # 默认值
+        if kwargs.get('safe'):
+            safe = kwargs.get('safe')
+            if safe not in (0, 1):
+                return Status(
+                    213, 'failure', 'safe参数值不合法，只允许0或者1', {}).json()
+        # 表示是否开启id转译，0表示否，1表示是，默认0。仅第三方应用需要用到，企业自建应用可以忽略
+        enable_id_trans = 0  # 默认值
+        if kwargs.get('enable_id_trans'):
+            enable_id_trans = kwargs.get('enable_id_trans')
+            if enable_id_trans not in (0, 1):
+                return Status(
+                    213, 'failure', 'enable_id_trans参数值不合法，只允许0或者1', {}).json()
+        # 表示是否开启重复消息检查，0表示否，1表示是，默认0
+        enable_duplicate_check = 0  # 默认值
+        if kwargs.get('enable_duplicate_check'):
+            enable_duplicate_check = kwargs.get('enable_duplicate_check')
+            if enable_duplicate_check not in (0, 1):
+                return Status(
+                    213, 'failure', 'enable_duplicate_check参数值不合法，只允许0或者1', {}).json()
+        # 表示是否重复消息检查的时间间隔，默认1800s，最大不超过4小时
+        duplicate_check_interval = 1800  # 默认值
+        if kwargs.get('duplicate_check_interval'):
+            duplicate_check_interval = kwargs.get('duplicate_check_interval')
+            if duplicate_check_interval < 1 or duplicate_check_interval > 4 * 60 * 60:
+                return Status(
+                    213, 'failure', 'duplicate_check_interval参数值不合法，只允许1秒或者4小时', {}).json()
+        # 参数 >>>>> 基础data对象参数
+        format_content = self.format_content(ftype=stype, content=content),
+        if not format_content:
+            return Status(
+                213, 'failure', '格式化的消息体为空', {}).json()
 
         data = {
             "touser": "|".join(to_user),
-            "msgtype": "markdown",
+            "toparty": "|".join(to_party),
+            "totag": "|".join(to_tag),
             "agentid": self.AGENT_ID,
-            "markdown": {
-                "content": content
-            },
-            "enable_duplicate_check": 0,
-            "duplicate_check_interval": 1800
+            "msgtype": stype,
+            stype: format_content,
+            "enable_duplicate_check": enable_duplicate_check,
+            "duplicate_check_interval": duplicate_check_interval
         }
-        url = "%s?access_token=%s" % (QYWX_SEND_MESSAGE, self.token)
-        status, response = self.http.post_json(url=url, data=data)
-        if not status:
-            return Status(501, 'failure', response.get('errmsg'), {}).json()
-        if response.get("errcode") == 0 and response.get("errmsg") == "ok":
-            return Status(100, 'success', '成功', {}).json()
-        else:
-            return Status(501, 'failure', response.get('errmsg'), {}).json()
+        # 参数 >>>>> 额外data对象参数
+        if stype in self.safe_kwagrs_types:
+            data['safe'] = safe
+        if stype in self.enable_id_trans_kwagrs_types:
+            data['enable_id_trans'] = enable_id_trans
+
+        """ main """
+        try:
+            url = "%s?access_token=%s" % (QYWX_SEND_MESSAGE, self.token)
+            status, response = self.http.post_json(url=url, data=data)
+            if not status:
+                return Status(
+                    501, 'failure', response.get('errmsg'), {}).json()
+            if response.get("errcode") == 0 and response.get("errmsg") == "ok":
+                return Status(
+                    100, 'success', '成功', {}).json()
+            else:
+                return Status(
+                    501, 'failure', response.get('errmsg'), {}).json()
+        except:
+            return Status(501, 'failure', StatusMsgs.get(501), {}).json()
