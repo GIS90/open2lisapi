@@ -2706,6 +2706,9 @@ class NotifyService(object):
         try:
             to_user = new_params.get('user').split(';')
             send_type = str(new_params.get('type'))
+            if send_type not in qywx_lib.types:
+                return Status(
+                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
             new_content = dict()
             if send_type in ['text', 'markdown']:    # text, markdown消息
                 new_content['data'] = new_params.get('content')
@@ -2827,6 +2830,9 @@ class NotifyService(object):
         try:
             to_user = new_params.get('user').split(';')
             send_type = str(new_params.get('type'))
+            if send_type not in qywx_lib.types:
+                return Status(
+                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
             new_content = dict()
             if send_type in ['text', 'markdown']:  # text, markdown消息
                 new_content['data'] = new_params.get('content')
