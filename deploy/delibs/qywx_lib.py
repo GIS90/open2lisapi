@@ -349,13 +349,13 @@ class QYWXLib(object):
             status, response = self.http.post_json(url=url, data=data)
             if not status:
                 return Status(
-                    501, 'failure', response.get('errmsg'), {}).json()
+                    501, 'failure', response.get('errmsg'), response).json()
             if response.get("errcode") == 0 and response.get("errmsg") == "ok":
                 return Status(
-                    100, 'success', '成功', {}).json()
+                    100, 'success', '成功', response).json()
             else:
                 return Status(
-                    501, 'failure', response.get('errmsg'), {}).json()
+                    501, 'failure', response.get('errmsg'), response).json()
         except:
             return Status(501, 'failure', StatusMsgs.get(501), {}).json()
 
@@ -394,12 +394,12 @@ class QYWXLib(object):
             status, response = self.http.post_json(url=url, data=data)
             if not status:
                 return Status(
-                    501, 'failure', response.get('errmsg'), {}).json()
+                    501, 'failure', response.get('errmsg'), response).json()
             if response.get("errcode") == 0 and response.get("errmsg") == "ok":
                 return Status(
-                    100, 'success', '成功', {}).json()
+                    100, 'success', '成功', response).json()
             else:
                 return Status(
-                    501, 'failure', response.get('errmsg'), {}).json()
+                    501, 'failure', response.get('errmsg'), response).json()
         except:
             return Status(501, 'failure', StatusMsgs.get(501), {}).json()
