@@ -281,47 +281,61 @@ CREATE TABLE `enum`  (
 ) COMMENT='ENUM枚举表';
 -- delete
 delete from enum;
+-- select
+-- 	CONCAT("('", `name`, "', '", `md5_id`, "', '", `key`, "', '", `value`, "', '", `description`, "', ", `status`, ", '", `create_rtx`, "', ", `order_id`, ")")
+-- from enum
+-- where is_del != 1
+-- order by `name`, order_id
+
 -- insert data
 insert into
 enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`)
 VALUES
--- bool
-('bool-type', '9dfa56939efce58a64ec76651bfb1320', '1', '是', '是', TRUE, 'admin', 1),
-('bool-type', '47191a26aa630c57701f6034b9fa495a', '0', '否', '否', TRUE, 'admin', 2),
--- excel-type
-('excel-type', 'ecf0b1978b354bfcf243ef316c252101', '1', '合并', '表格处理方式合并', TRUE, 'admin', 1),
-('excel-type', '67128fcae7732df36a12e6e760aa39c7', '2', '拆分', '表格处理方式拆分', TRUE, 'admin', 2),
--- excel-split-store
-('excel-split-store', '37ca191a1f70223c75c002fe80066a79', '1', '多表一Sheet', '表格拆分多表一Sheet存储方式', TRUE, 'admin', 1),
-('excel-split-store', '1cf44e3c01b8c185e829a912375c3d88', '2', '一表多Sheet', '表格拆分一表多Sheet存储方式', TRUE, 'admin', 2),
+-- api-type
+('api-type', '6e0902c24a7c2ba5eff38c893288454f', 'primary', '新增', 'API接口操作类型 > 数据库 > 新增', 1, 'admin', 1)
+('api-type', '055360b96a9712758ba22cea8cb4cda0', 'success', '删除', 'API接口操作类型 > 数据库 > 删除', 1, 'admin', 2)
+('api-type', '42c142615a0f68e436d8f6021d566ec2', 'info', '修改', 'API接口操作类型 > 数据库 > 修改', 1, 'admin', 3)
+('api-type', 'cba31eaae518a4695c40d22f87812072', 'warning', '查询', 'API接口操作类型 > 数据库 > 查询', 1, 'admin', 4)
+('api-type', 'b00d5918839a894ccbaaac80749ece31', 'danger', '操作类', 'API接口操作类型 > 操作类API', 1, 'admin', 5)
+('api-type', '880dd7c28a310b64eb79d962c0fc412e', 'error', '其他类', 'API接口操作类型 > 其他类API', 1, 'admin', 6)
+-- bool-type
+('bool-type', '9dfa56939efce58a64ec76651bfb1320', '1', '是', '布尔型枚举值：True', 1, 'admin', 1)
+('bool-type', '47191a26aa630c57701f6034b9fa495a', '0', '否', '布尔型枚举值：False', 1, 'admin', 2)
 -- excel-num
-('excel-num', 'ed6bfec14176d9717f16049ceaef1997', '1', '行', '行', TRUE, 'admin', 1),
-('excel-num', '41a761bd675bda3f95fabb16987675e9', '2', '列', '列', TRUE, 'admin', 2),
+('excel-num', 'ed6bfec14176d9717f16049ceaef1997', '1', '行', '表格拆分 > 拆分方式 > 行', 1, 'admin', 1)
+('excel-num', '41a761bd675bda3f95fabb16987675e9', '2', '列', '表格拆分 > 拆分方式 > 列', 1, 'admin', 2)
+-- excel-split-store
+('excel-split-store', '37ca191a1f70223c75c002fe80066a79', '1', '多表一Sheet', '表格拆分 > 存储方式 > 多表一Sheet', 1, 'admin', 1)
+('excel-split-store', '1cf44e3c01b8c185e829a912375c3d88', '2', '一表多Sheet', '表格拆分 > 存储方式 > 一表多Sheet', 1, 'admin', 2)
+-- excel-type
+('excel-type', 'ecf0b1978b354bfcf243ef316c252101', '1', '合并', '表格处理方式 > 合并', 1, 'admin', 1)
+('excel-type', '67128fcae7732df36a12e6e760aa39c7', '2', '拆分', '表格处理方式 > 拆分', 1, 'admin', 2)
+-- file-type
+('file-type', '9086ab2a079b27a89e959a7588063e13', '1', 'WORD', '文件类型 > WORD文档', 1, 'admin', 1)
+('file-type', 'f65e091a48c00c5439e6bf536b35c03a', '2', 'EXCEL', '文件类型 > EXCEL表格', 1, 'admin', 2)
+('file-type', 'd9e8eab4ac9e4dba2d7798b64a335e36', '3', 'PPT', '文件类型 > PPT演示文稿', 1, 'admin', 3)
+('file-type', 'b3e251df695d0d1381f356c9a2de6f81', '4', '文本', '文件类型 > 文本文件', 1, 'admin', 4)
+('file-type', 'e88041819de93ea5fe50d02816b6d443', '5', 'PDF', '文件类型 > PDF文件', 1, 'admin', 5)
+('file-type', '8ba23dbd99ce1fd1721848806f396a2d', '99', '其他', '文件类型 > 其他类型文件', 1, 'admin', 6)
 -- menu-level
-('menu-level', 'fae5bfbcfdebe7d1a522fd2d10c91284', '1', '一级菜单', '一级菜单', TRUE, 'admin', 1),
-('menu-level', '7da62425a607c5fc8d0e5f4d07875a1f', '2', '二级菜单', '二级菜单', TRUE, 'admin', 2),
--- 文件类型
-('file-type', '9086ab2a079b27a89e959a7588063e13', '1', 'WORD', 'WORD文档', TRUE, 'admin', 1),
-('file-type', 'f65e091a48c00c5439e6bf536b35c03a', '2', 'EXCEL', 'EXCEL表格', TRUE, 'admin', 2),
-('file-type', 'd9e8eab4ac9e4dba2d7798b64a335e36', '3', 'PPT', 'PPT演示文稿', TRUE, 'admin', 3),
-('file-type', 'b3e251df695d0d1381f356c9a2de6f81', '4', '文本', '文本文件', TRUE, 'admin', 4),
-('file-type', 'e88041819de93ea5fe50d02816b6d443', '5', 'PDF', 'PDF文件', TRUE, 'admin', 5),
-('file-type', '8ba23dbd99ce1fd1721848806f396a2d', '99', '其他', '其他类型文件', TRUE, 'admin', 6),
--- 企业微信消息通知类型
-('qywx-type', '882c0c19dbc420c129e696532e75f027', '1', '文本消息', '文本消息', TRUE, 'admin', 1),
-('qywx-type', '3fc72ebfbc1cccb57c0be9755cd05a6a', '2', '图片消息', '图片消息', TRUE, 'admin', 2),
-('qywx-type', 'f93a4f42766340e21d84d117f0e8ee2b', '3', '语音消息', '语音消息', TRUE, 'admin', 3),
-('qywx-type', '88f8a7b7e659c25e1168830587273a95', '4', '视频消息', '视频消息', TRUE, 'admin', 4),
-('qywx-type', '6bb6b85b36e06aeb31ecfe7ab1f4d894', '5', '文件消息', '文件消息', TRUE, 'admin', 5),
-('qywx-type', 'b4fd5e4d7e033fe6c022d9d9237efd17', '6', '文本卡片消息', '文本卡片消息', TRUE, 'admin', 6),
-('qywx-type', '259225b177117c2f44b39de0ae3d3457', '7', '图文消息', '图文消息', TRUE, 'admin', 7),
-('qywx-type', 'febc81425c4542429956d7cf3477bb46', '8', 'markdown消息', 'markdown消息', TRUE, 'admin', 8),
-('qywx-type', '88e59bdf04e4843ca649e33f7872bcbb', '9', '小程序通知消息', '小程序通知消息', TRUE, 'admin', 9),
-('qywx-type', 'd046e3333d903c8962e927571660452f', '10', '模板卡片消息', '模板卡片消息', TRUE, 'admin', 10),
-('qywx-type', 'ac16c01dd7d8dba4955a3d545e9735ed', '11', '图文展示型', '图文展示型', TRUE, 'admin', 11),
-('qywx-type', 'dd0f671168f19ddb5f668d41255af1e3', '12', '按钮交互型', '按钮交互型', TRUE, 'admin', 12),
-('qywx-type', '799a806618960fcab348b78cf5de437f', '13', '投票选择型', '投票选择型', TRUE, 'admin', 13),
-('qywx-type', '8d9e7f8c234be7d9149395393af7634c', '14', '多项选择型', '多项选择型', TRUE, 'admin', 14);
+('menu-level', 'fae5bfbcfdebe7d1a522fd2d10c91284', '1', '一级菜单', '菜单级别 > 一级菜单', 1, 'admin', 1)
+('menu-level', '7da62425a607c5fc8d0e5f4d07875a1f', '2', '二级菜单', '菜单级别 > 二级菜单', 1, 'admin', 2)
+-- qywx-type
+('qywx-type', '882c0c19dbc420c129e696532e75f027', 'text', '文本消息', '企业微信消息类型 > 文本消息', 1, 'admin', 1)
+('qywx-type', '3fc72ebfbc1cccb57c0be9755cd05a6a', 'image', '图片消息', '企业微信消息类型 > 图片消息', 0, 'admin', 2)
+('qywx-type', 'f93a4f42766340e21d84d117f0e8ee2b', 'voice', '语音消息', '企业微信消息类型 > 语音消息', 0, 'admin', 3)
+('qywx-type', '88f8a7b7e659c25e1168830587273a95', 'video', '视频消息', '企业微信消息类型 > 视频消息', 0, 'admin', 4)
+('qywx-type', '6bb6b85b36e06aeb31ecfe7ab1f4d894', 'file', '文件消息', '企业微信消息类型 > 文件消息', 0, 'admin', 5)
+('qywx-type', 'b4fd5e4d7e033fe6c022d9d9237efd17', 'textcard', '文本卡片消息', '企业微信消息类型 > 文本卡片消息', 0, 'admin', 6)
+('qywx-type', '259225b177117c2f44b39de0ae3d3457', 'news', '图文消息', '企业微信消息类型 > 图文消息', 0, 'admin', 7)
+('qywx-type', '4da311801e0c3b85161223855540be41', 'mpnews', '多图文消息', '企业微信消息类型 > 多图文消息', 0, 'admin', 8)
+('qywx-type', 'febc81425c4542429956d7cf3477bb46', 'markdown', 'markdown消息', '企业微信消息类型 > markdown消息', 1, 'admin', 9)
+('qywx-type', '88e59bdf04e4843ca649e33f7872bcbb', 'miniprogram_notice', '小程序通知消息', '企业微信消息类型 > 小程序通知消息', 0, 'admin', 10)
+('qywx-type', 'd046e3333d903c8962e927571660452f', 'template_card@text_notice', '模板卡片消息 > 文本通知型', '企业微信消息类型 > 模板卡片消息 > 文本通知型', 0, 'admin', 11)
+('qywx-type', '684fb803a898eeb2497c6b5e6921e0b6', 'template_card@news_notice', '模板卡片消息 > 图文展示型', '企业微信消息类型 > 模板卡片消息 > 图文展示型', 0, 'admin', 12)
+('qywx-type', '1848b73595df91d0c29cdf5127897040', 'template_card@button_interaction', '模板卡片消息 > 按钮交互型', '企业微信消息类型 > 模板卡片消息 > 按钮交互型', 0, 'admin', 13)
+('qywx-type', '16bef9b5ef7a95422d8b355714e92367', 'template_card@vote_interaction', '模板卡片消息 > 投票选择型', '企业微信消息类型 > 模板卡片消息 > 投票选择型', 0, 'admin', 14)
+('qywx-type', 'a805e896e02b83115987743cff27d507', 'template_card@multiple_interaction', '模板卡片消息 > 多项选择型', '企业微信消息类型 > 模板卡片消息 > 多项选择型', 0, 'admin', 15)
 
 
 
