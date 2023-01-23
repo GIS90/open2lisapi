@@ -65,4 +65,5 @@ class QywxMessageModel(base.ModelBase):
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+    is_back = Column(Boolean())
 

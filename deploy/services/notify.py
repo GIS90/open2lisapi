@@ -48,7 +48,7 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
     STORE_BASE_URL, STORE_SPACE_NAME, ADMIN, ADMIN_AUTH_LIST, \
-    DTALK_CONTROL, DTALK_INTERVAL, DTALK_ADD_IMAGE
+    DTALK_CONTROL, DTALK_INTERVAL, DTALK_ADD_IMAGE, AUTH_NUM
 from deploy.delibs.store_lib import StoreLib
 from deploy.delibs.dtalk_lib import DtalkLib
 from deploy.delibs.qywx_lib import QYWXLib
@@ -285,7 +285,9 @@ class NotifyService(object):
         'delete_rtx',
         'delete_time',
         'is_del',
-        'enum_name'
+        'enum_name',
+        'is_back',
+        'msg_id'
     ]
 
     req_qywx_add_attrs = [
@@ -332,6 +334,11 @@ class NotifyService(object):
         'user',
         'type',
         'robot'
+    ]
+
+    req_qywx_backsend_attrs = [
+        'rtx_id',
+        'md5'
     ]
 
     EXCEL_FORMAT = ['.xls', '.xlsx']
@@ -2218,7 +2225,7 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def _qywx_model_to_dict(self, model):
+    def _qywx_model_to_dict(self, model, _type='list'):
         """
         qywx message model to dict
         params model: qywx model object
@@ -2242,10 +2249,18 @@ class NotifyService(object):
                 _res[attr] = model.title
             elif attr == 'content':
                 _res[attr] = model.content
+                if _type == 'list':
+                    _res[attr] = model.content or '' \
+                        if len(model.content) < AUTH_NUM \
+                        else '%s...查看详情' % str(model.content)[:AUTH_NUM - 1]
+                else:
+                    _res[attr] = model.content or ''
             elif attr == 'user':
                 _res[attr] = model.user
             elif attr == 'md5_id':
                 _res[attr] = model.md5_id
+            elif attr == 'msg_id':
+                _res[attr] = model.msg_id
             elif attr == 'robot':
                 _res[attr] = model.robot
             elif attr == 'type':
@@ -2267,6 +2282,8 @@ class NotifyService(object):
                 _res[attr] = model.delete_rtx
             elif attr == 'is_del':
                 _res[attr] = model.is_del or False
+            elif attr == 'is_back':
+                _res[attr] = model.is_back or False
         else:
             return _res
 
@@ -2558,6 +2575,7 @@ class NotifyService(object):
         new_model.robot = getattr(default_robot_model, 'md5_id', '')
         new_model.create_time = get_now()
         new_model.is_del = False
+        new_model.is_back = False
         new_model.delete_time = ''
         new_model.last_send_time = ''
         # 添加try异常处理，防止数据库add失败
@@ -2724,14 +2742,14 @@ class NotifyService(object):
             return Status(
                 499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()
         # --------------------------------------- update model --------------------------------------
-        model.title = new_params.get('title')
-        model.content = new_params.get('content')
-        model.type = new_params.get('type')
-        model.user = new_params.get('user')
-        model.robot = new_params.get('robot')
-        model.count = model.count + 1
-        model.last_send_time = get_now()
         try:
+            model.title = new_params.get('title')
+            model.content = new_params.get('content')
+            model.type = new_params.get('type')
+            model.user = new_params.get('user')
+            model.robot = new_params.get('robot')
+            model.count = model.count + 1
+            model.last_send_time = get_now()
             if _q_res_json and _q_res_json.get('data') and _q_res_json.get('data').get('msgid'):
                 model.msg_id = _q_res_json.get('data').get('msgid')
             self.qywx_bo.merge_model(model)
@@ -2852,3 +2870,78 @@ class NotifyService(object):
         return Status(
             100, 'success', '成功', {}).json()
 
+    def qywx_sendback(self, params: dict):
+        """
+        撤销最近24小时内发的企业微信消息
+        :return: json data
+        """
+        # ====================== parameters check and format ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_qywx_backsend_attrs and v:      # 不合法参数
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+        # is not send
+        if model and not model.msg_id:
+            return Status(
+                308, 'failure', '消息未发送，不允许撤销', {}).json()
+        # not robot
+        if model and not model.robot:
+            return Status(
+                308, 'failure', '消息未设置消息机器人，不允许撤销', {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
+        if rtx_id not in ADMIN_AUTH_LIST:
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+
+        robot_model = self.qywx_robot_bo.get_model_by_md5(model.robot)
+        if not robot_model:
+            return Status(
+                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # --------------------------------------- 撤销消息 --------------------------------------
+        qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
+        if not qywx_lib.check_token():
+            return Status(
+                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+        try:
+            _q_res = qywx_lib.sendback(message_id=model.msg_id)
+            _q_res_json = json.loads(_q_res)
+            if _q_res_json.get('status_id') != 100:
+                return Status(
+                    480, 'failure', '企业微信撤销消息故障：%s' % _q_res_json.get('message'), {}).json()
+        except Exception as e:
+            return Status(
+                499, 'failure', '企业微信撤销消息故障：%s' % e, {}).json()
+        # --------------------------------------- update model --------------------------------------
+
+        try:
+            model.is_back = True
+            self.qywx_bo.merge_model(model)
+        except:
+            return Status(
+                450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+        return Status(
+            100, 'success', '成功', {}).json()

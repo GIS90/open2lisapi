@@ -566,6 +566,7 @@ CREATE TABLE `qywx_message`  (
     `delete_rtx` varchar(25) COMMENT '删除用户rtx',
     `delete_time` datetime COMMENT '删除时间',
     `is_del` bool DEFAULT False COMMENT '是否删除',
+    `is_back` bool DEFAULT False COMMENT '消息是否撤销成功',
 
     PRIMARY KEY (`id`)
 ) COMMENT='企业微信消息表';

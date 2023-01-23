@@ -69,6 +69,8 @@ class QywxMessageBo(BOBase):
                                QywxMessageModel.delete_rtx,
                                QywxMessageModel.delete_time,
                                QywxMessageModel.is_del,
+                               QywxMessageModel.is_back,
+                               QywxMessageModel.msg_id,
                                EnumModel.value.label('enum_name'))
         q = q.filter(QywxMessageModel.type == EnumModel.key)
         q = q.filter(QywxMessageModel.is_del != 1)
