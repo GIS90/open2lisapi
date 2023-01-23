@@ -2732,6 +2732,8 @@ class NotifyService(object):
         model.count = model.count + 1
         model.last_send_time = get_now()
         try:
+            if _q_res_json and _q_res_json.get('data') and _q_res_json.get('data').get('msgid'):
+                model.msg_id = _q_res_json.get('data').get('msgid')
             self.qywx_bo.merge_model(model)
         except:
             return Status(

@@ -558,6 +558,7 @@ CREATE TABLE `qywx_message`  (
     `user` text NOT NULL COMMENT '消息接受人列表，用英文;分割',
     `type` varchar(5) COMMENT '消息类型：文字、图文、MARKDOWN，具体类型参考enum表',
     `md5_id` varchar(55) NOT NULL COMMENT '数据记录MD5',
+    `msg_id` varchar(86) NOT NULL COMMENT '消息message_id，用于撤销消息，只记录最近一次返回的ID',
     `robot` varchar(55) NULL COMMENT '企业微信机器人配置md5-id',
     `count` int DEFAULT 0 COMMENT '发送次数',
     `last_send_time` datetime COMMENT '最新发送时间',
