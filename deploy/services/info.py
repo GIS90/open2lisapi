@@ -105,7 +105,7 @@ class InfoService(object):
     req_dict_update_attrs = [
         'rtx_id',
         'md5',
-        'key',
+        # 'key',    # 禁用key更新字段
         'value',
         'status',
         'description',
@@ -115,7 +115,7 @@ class InfoService(object):
     req_dict_update_need_attrs = [
         'rtx_id',
         'md5',
-        'key',
+        # 'key',    # 禁用key更新字段
         'value',
         'description'
     ]
@@ -123,7 +123,7 @@ class InfoService(object):
     req_dict_update_check_len_attrs = {
         'rtx_id': 25,
         'name': 35,
-        'key': 55,
+        # 'key': 55,    # 禁用key更新字段
         'value': 55
     }
 
@@ -664,7 +664,7 @@ class InfoService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # --------------------------------------- update model --------------------------------------
         try:
-            model.key = new_params.get('key')
+            # model.key = new_params.get('key')     # 禁用key更新
             model.value = new_params.get('value')
             model.description = new_params.get('description')
             model.status = new_params.get('status') or False    # 默认值False，非禁用状态
