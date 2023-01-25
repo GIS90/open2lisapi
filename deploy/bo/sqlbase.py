@@ -70,6 +70,8 @@ class SqlbaseBo(BOBase):
             q = q.filter(SqlbaseModel.author.in_(params.get('author')))
         if params.get('recommend'):    # 推荐度
             q = q.filter(SqlbaseModel.recommend.in_(params.get('recommend')))
+        if params.get('database'):  # 数据库
+            q = q.filter(SqlbaseModel.database.in_(params.get('database')))
         if params.get('label'):    # 标签
             q = q.filter(SqlbaseModel.label.in_(params.get('label')))
         if params.get('content'):  # 内容

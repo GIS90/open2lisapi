@@ -63,6 +63,7 @@ class SearchService(object):
         'public_time_start',     # 起始发布时间
         'public_time_end',  # 结束发布时间
         'recommend',     # 推荐度
+        'database',     # 数据库类型
         'label',     # 标签
         'content',  # 内容
         'count_start',  # 浏览次数上限
@@ -73,6 +74,7 @@ class SearchService(object):
         'create_rtx',
         'author',
         'recommend',
+        'database',
         'label'
     ]
 
@@ -313,8 +315,20 @@ class SearchService(object):
         for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
+        # all database type
+        database_res = self.enum_bo.get_model_by_name(name='db-type')
+        database_list = list()
+        for _d in database_res:
+            if not _d: continue
+            database_list.append({'key': _d.key, 'value': _d.value})
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total, 'user': user_list}
+            100, 'success', StatusMsgs.get(100),
+            {
+                'list': new_res,
+                'total': total,
+                'user': user_list,
+                'database': database_list
+            }
         ).json()
 
     def sqlbase_add(self, params: dict) -> dict:
