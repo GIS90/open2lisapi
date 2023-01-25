@@ -89,6 +89,27 @@ def sqlbase_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
+@search.route('/sqlbase_add_init/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def sqlbase_add_init():
+    """
+    sql data enum list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return SearchService().sqlbase_add_init(params)
+    except Exception as e:
+        LOG.error("search>sqlbase add init is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
 @search.route('/sqlbase_delete/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def sqlbase_delete():

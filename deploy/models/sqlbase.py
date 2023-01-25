@@ -55,6 +55,7 @@ class SqlbaseModel(base.ModelBase):
     md5_id = Column(String(55))
     author = Column(String(25))
     recommend = Column(Integer)
+    database = Column(String(55))
     summary = Column(String(200))
     label = Column(String(35))
     public = Column(Boolean())

@@ -36,6 +36,7 @@ import json
 
 from deploy.bo.sqlbase import SqlbaseBo
 from deploy.bo.sysuser import SysUserBo
+from deploy.bo.enum import EnumBo
 
 from deploy.config import OFFICE_LIMIT, ADMIN, ADMIN_AUTH_LIST
 from deploy.utils.status import Status
@@ -91,7 +92,6 @@ class SearchService(object):
         'content'
     ]
 
-
     sqlbase_list_attrs = [
         # 'id',
         'rtx_id',
@@ -100,6 +100,7 @@ class SearchService(object):
         'author',
         'recommend',
         'summary',
+        'database',
         'public',
         'public_time',
         'html',
@@ -116,12 +117,17 @@ class SearchService(object):
         'title',
         'author',
         'recommend',
+        'database',
         'summary',
         'label',
         'public',
         'public_time',
         'html',
         'text'
+    ]
+
+    req_add_init_attrs = [
+        'rtx_id'
     ]
 
     req_sqlbase_edit_no_need_attrs = [
@@ -157,6 +163,7 @@ class SearchService(object):
         'title',
         'author',
         'recommend',
+        'database',
         'summary',
         'label',
         'public_time',
@@ -171,6 +178,7 @@ class SearchService(object):
         """
         self.sqlbase_bo = SqlbaseBo()
         self.sysuser_bo = SysUserBo()
+        self.enum_bo = EnumBo()
 
     def _transfer_time(self, t):
         if not t:
@@ -204,6 +212,8 @@ class SearchService(object):
                 _res[attr] = getattr(model, 'author', '')
             elif attr == 'recommend':
                 _res[attr] = getattr(model, 'recommend', '')
+            elif attr == 'database':
+                _res[attr] = getattr(model, 'database', '')
             elif attr == 'summary':
                 _res[attr] = getattr(model, 'summary', '')
             elif attr == 'public':
@@ -353,6 +363,46 @@ class SearchService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
+    def sqlbase_add_init(self, params: dict) -> json:
+        """
+        sql data enum list
+        :return: json data
+        """
+        # ================== parameters check && format ==================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_add_init_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        # all users
+        user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        user_list = list()
+        for _d in user_res:
+            if not _d: continue
+            user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
+        # all database type
+        database_res = self.enum_bo.get_model_by_name(name='db-type')
+        database_list = list()
+        for _d in database_res:
+            if not _d: continue
+            database_list.append({'key': _d.key, 'value': _d.value})
+        _res = {
+            'user': user_list,
+            'database': database_list
+        }
+        return Status(
+            100, 'success', StatusMsgs.get(100), _res).json()
+
     def sqlbase_delete(self, params: dict) -> json:
         """
         delete one sqlbase data by params
@@ -489,8 +539,15 @@ class SearchService(object):
         for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
+        # all database type
+        database_res = self.enum_bo.get_model_by_name(name='db-type')
+        database_list = list()
+        for _d in database_res:
+            if not _d: continue
+            database_list.append({'key': _d.key, 'value': _d.value})
         _res = {
             'user': user_list,
+            'database': database_list,
             'detail': self._sqlbase_model_to_dict(model, _type='detail')
         }
         """ 浏览文章增加次数 """
