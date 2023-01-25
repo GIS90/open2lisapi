@@ -607,7 +607,7 @@ CREATE TABLE `sqlbase`  (
   `md5_id` varchar(55) NOT NULL COMMENT '数据MD5-ID',
   `author` varchar(25) NULL COMMENT '作者',
   `recommend` integer NULL COMMENT '推荐度，数值型',
-  `database` varchar(55) NULL COMMENT '数据库类型，存储的是enum的md5，类型为：db-type',
+  `database` varchar(55) NULL COMMENT '数据库类型，存储的是enum的key，类型为：db-type',
   `summary` varchar(200) NULL COMMENT '简要',
   `label` varchar(35) NULL COMMENT '标签，用英文;分割',
   `public` bool DEFAULT False COMMENT '发布状态：True发布，False草稿',
