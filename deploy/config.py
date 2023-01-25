@@ -93,7 +93,7 @@ USER_AVATAR_STORE_URL = "http://avatar.pygo2.top"
 USER_AVATAR_STORE_NAME = "avatar-default"
 
 # store
-_CACHE = '/static/cache'
+_CACHE = '/deploy/static/cache'
 STORE_BASE_URL = 'http://store.pygo2.top'
 STORE_ACCESS = 'mRF0cKGUJcfv7ry_Wyvc24cDNWEQz9DAKo_UOn0G'
 STORE_SECRET = 'xabmlB9zZ_MRwtgofQJzUxINnmcO_VUfkXYILx_Q'
@@ -198,7 +198,13 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     STORE_ACCESS = _config_info['STORE']['ACCESS'] or STORE_ACCESS
     STORE_SECRET = _config_info['STORE']['SECRET'] or STORE_SECRET
     STORE_SPACE_NAME = _config_info['STORE']['SPACE_NAME'] or STORE_SPACE_NAME
-    STORE_CACHE = _config_info['STORE']['CACHE'] or _CACHE
+    if _config_info['STORE']['CACHE']:
+        STORE_CACHE = _config_info['STORE']['CACHE']
+    else:
+        STORE_CACHE = os.path.join(os.path.dirname(_get_cur_folder()), _CACHE)
+    if not os.path.exists(STORE_CACHE):
+        logger.critical('====== store dir is not exist, create %s... ======' % STORE_CACHE)
+        os.makedirs(LOG_DIR)
 
     # menu
     MENU_ROOT_ID = _config_info['MENU']['MENU_ROOT_ID'] or MENU_ROOT_ID
