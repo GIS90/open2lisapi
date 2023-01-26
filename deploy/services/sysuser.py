@@ -135,6 +135,7 @@ class SysUserService(object):
         get login user by rtx id
         return dict object data
         rtx_id参数为rtx_id、phone、email
+        多信息登录
         """
         user_res = dict()
         if not rtx_id:
@@ -172,11 +173,11 @@ class SysUserService(object):
         # user model is not exist
         if not user_model:
             return Status(
-                302, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
+                302, 'failure', StatusMsgs.get(202) or u'用户未注册，请联系管理员注册', {}).json()
         # user model is deleted
         if user_model.get('is_del'):
             return Status(
-                302, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
+                302, 'failure', StatusMsgs.get(203) or u'用户已注销，不允许登录系统', {}).json()
 
         LOG.info('current login user rtx_id >>>>>>>>>> %s' % user_model.get('rtx_id') or O_NOBN)
         # delete password information
