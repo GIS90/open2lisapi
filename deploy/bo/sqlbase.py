@@ -36,6 +36,7 @@ from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.sqlbase import SqlbaseModel
+from deploy.models.enum import EnumModel
 
 from deploy.utils.utils import get_now
 
@@ -55,8 +56,29 @@ class SqlbaseBo(BOBase):
         return q
 
     def get_all(self, params: dict):
-        q = self.session.query(SqlbaseModel)
+        q = self.session.query(SqlbaseModel.id,
+                               SqlbaseModel.rtx_id,
+                               SqlbaseModel.title,
+                               SqlbaseModel.md5_id,
+                               SqlbaseModel.author,
+                               SqlbaseModel.recommend,
+                               SqlbaseModel.database,
+                               SqlbaseModel.summary,
+                               SqlbaseModel.label,
+                               SqlbaseModel.public,
+                               SqlbaseModel.public_time,
+                               SqlbaseModel.html,
+                               SqlbaseModel.text,
+                               SqlbaseModel.count,
+                               SqlbaseModel.create_time,
+                               SqlbaseModel.delete_rtx,
+                               SqlbaseModel.delete_time,
+                               SqlbaseModel.is_del,
+                               EnumModel.value.label('enum_value'))
+        q = q.filter(SqlbaseModel.database == EnumModel.key)
         q = q.filter(SqlbaseModel.is_del != 1)
+        if params.get('enum_name'):
+            q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
         if params.get('public'):
             q = q.filter(SqlbaseModel.public == True)
         if not params.get('public'):

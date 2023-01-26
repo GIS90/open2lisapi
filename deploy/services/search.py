@@ -111,7 +111,8 @@ class SearchService(object):
         'create_time',
         'delete_rtx',
         'delete_time',
-        'is_del'
+        'is_del',
+        'enum_value'
     ]
 
     req_sqlbase_add_attrs = [
@@ -240,6 +241,8 @@ class SearchService(object):
                 _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'is_del':
                 _res[attr] = True if model.is_del else False
+            elif attr == 'enum_value':
+                _res['database_value'] = getattr(model, 'enum_value', '')
         else:
             return _res
 
@@ -293,6 +296,8 @@ class SearchService(object):
         req_rtx_id = new_params.get('rtx_id')
         new_params.pop('rtx_id')
         # <get data>
+        # 追加数据库类型
+        new_params['enum_name'] = 'db-type'
         res, total = self.sqlbase_bo.get_all(new_params)
         if not res:
             return Status(
