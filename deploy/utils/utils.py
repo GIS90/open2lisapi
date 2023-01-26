@@ -44,6 +44,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask import session
 from deploy.utils.logger import logger as LOG
+from deploy.config import ADMIN, ADMIN_AUTH_LIST
 
 
 def get_cur_folder():
@@ -410,3 +411,21 @@ def host_os():
         'bit': host_bit[0] if len(host_bit) > 1 else host_bit
     }
     return os_code, _detail
+
+
+def auth_rtx_join(rtx_list: list) -> list:
+    """
+    管理员特殊数据权限
+    > 与config中的ADMIN_AUTH_LIST关联
+    > 追加ADMIN
+    > 追加传入的特殊用户列表
+    """
+    _new_list = list()
+    # 特殊权限
+    _new_list = ADMIN_AUTH_LIST.copy()  # 多层在用copy.deepcopy
+    # 管理员
+    _new_list.append(ADMIN)
+    # 传入的权限操作账户RTX列表
+    if rtx_list:
+        _new_list.extend(rtx_list)
+    return _new_list

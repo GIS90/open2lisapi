@@ -39,10 +39,10 @@ from deploy.bo.sqlbase import SqlbaseBo
 from deploy.bo.sysuser import SysUserBo
 from deploy.bo.enum import EnumBo
 
-from deploy.config import OFFICE_LIMIT, ADMIN, ADMIN_AUTH_LIST
+from deploy.config import OFFICE_LIMIT
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import d2s, get_now, md5, check_length, s2d
+from deploy.utils.utils import d2s, get_now, md5, check_length, s2d, auth_rtx_join
 
 
 class SearchService(object):
@@ -320,10 +320,9 @@ class SearchService(object):
             if not _d: continue
             _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
             if _res_dict:
-                new_auth_rtx = list()
-                new_auth_rtx = ADMIN_AUTH_LIST + [_res_dict.get('rtx_id'), ADMIN]
                 _res_dict['id'] = n
-                _res_dict['edit'] = 'true' if req_rtx_id in new_auth_rtx else 'false'
+                # 权限账户
+                _res_dict['edit'] = 'true' if req_rtx_id in auth_rtx_join([_res_dict.get('rtx_id')]) else 'false'
                 new_res.append(_res_dict)
                 n += 1
         """ all user k-v list"""
@@ -467,9 +466,8 @@ class SearchService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        # 特权账户
-        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN, model.rtx_id]
-        if rtx_id not in admin_auth_join:
+        # 权限账户
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
@@ -511,9 +509,8 @@ class SearchService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        # 特权账号
-        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN]
-        if new_params.get('rtx_id') in admin_auth_join:
+        # 权限账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
@@ -638,9 +635,8 @@ class SearchService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        # 特权账户
-        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN, model.rtx_id]
-        if rtx_id not in admin_auth_join:
+        # 权限账户
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
