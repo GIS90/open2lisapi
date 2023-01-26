@@ -296,7 +296,7 @@ class SearchService(object):
         req_rtx_id = new_params.get('rtx_id')
         new_params.pop('rtx_id')
         # <get data>
-        # 追加数据库类型
+        # 追加数据库类型，关联enum表
         new_params['enum_name'] = 'db-type'
         res, total = self.sqlbase_bo.get_all(new_params)
         if not res:
@@ -310,8 +310,10 @@ class SearchService(object):
             if not _d: continue
             _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
             if _res_dict:
+                new_auth_rtx = list()
+                new_auth_rtx = ADMIN_AUTH_LIST + [_res_dict.get('rtx_id'), ADMIN]
                 _res_dict['id'] = n
-                _res_dict['edit'] = 'true' if req_rtx_id in [_res_dict.get('rtx_id'), ADMIN] else 'false'
+                _res_dict['edit'] = 'true' if req_rtx_id in new_auth_rtx else 'false'
                 new_res.append(_res_dict)
                 n += 1
         """ all user k-v list"""
