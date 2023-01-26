@@ -633,7 +633,7 @@ class OfficeService(object):
             if not k: continue
             if k not in self.req_source_list_attrs and v:   # illegal
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
             if k == 'type' and int(v) not in [FileTypeEnum.EXCEL_MERGE.value, FileTypeEnum.EXCEL_SPLIT.value]:
                 return Status(
                     213, 'failure', u'请求参数type值不合法', {}).json()
@@ -645,8 +645,9 @@ class OfficeService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])         # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账户
+        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN]
+        if new_params.get('rtx_id') in admin_auth_join:
             new_params.pop('rtx_id')
         # <<<<<<<<<<<<<<< models >>>>>>>>>>>>>>>>
         new_params['enum_name'] = 'excel-type'
