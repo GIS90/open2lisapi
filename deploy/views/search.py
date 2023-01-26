@@ -93,7 +93,7 @@ def sqlbase_add():
 @watcher(watcher_args=request)
 def sqlbase_add_init():
     """
-    sql data enum list
+    sqlbase add data initialize enum list
     :return: json data
     """
     if request.method == 'GET':
@@ -114,7 +114,7 @@ def sqlbase_add_init():
 @watcher(watcher_args=request)
 def sqlbase_delete():
     """
-    delete one sqlbase data by md5
+    delete one sqlbase data by md5 from sqlbase table
     :return: json data
     """
     if request.method == 'GET':
@@ -135,7 +135,7 @@ def sqlbase_delete():
 @watcher(watcher_args=request)
 def sqlbase_deletes():
     """
-    delete many sqlbase data by md5 list
+    delete many sqlbase data by md5 list from sqlbase table
     :return: json data
     """
     if request.method == 'GET':
@@ -177,15 +177,16 @@ def sqlbase_detail():
 @watcher(watcher_args=request)
 def sqlbase_update():
     """
-    update sqlbase message information, contain:
+    update sqlbase message information by data md5, contain:
         - title 标题
         - html/text 内容
         - author 作者
         - public—time 发布时间
         - recommend 推荐度
+        - database 数据库
         - summary 简述
         - label 标签
-    by data md5
+
     :return: json data
     """
     if request.method == 'GET':

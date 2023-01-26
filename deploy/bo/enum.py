@@ -73,7 +73,7 @@ class EnumBo(BOBase):
         q = q.filter(EnumModel.name == name)
         q = q.filter(EnumModel.status != False)
         q = q.filter(EnumModel.is_del != True)
-        q = q.order_by(EnumModel.id.asc())
+        # q = q.order_by(EnumModel.id.asc())
         q = q.order_by(EnumModel.order_id.asc())
         q = q.all()
         return q

@@ -33,6 +33,7 @@ Life is short, I use python.
 # usage: /usr/bin/python search.py
 # ------------------------------------------------------------
 import json
+import datetime
 
 from deploy.bo.sqlbase import SqlbaseBo
 from deploy.bo.sysuser import SysUserBo
@@ -175,6 +176,11 @@ class SearchService(object):
         'md5'
     ]
 
+    req_sqlbase_no_update_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
     def __init__(self):
         """
         search service class initialize
@@ -187,7 +193,7 @@ class SearchService(object):
         if not t:
             return ""
 
-        if not isinstance(t, str):
+        if isinstance(t, datetime.datetime):
             return d2s(t)
         elif isinstance(t, str) and t == '0000-00-00 00:00:00':
             return ""
@@ -197,9 +203,13 @@ class SearchService(object):
     def _sqlbase_model_to_dict(self, model, _type='list') -> dict:
         """
         sqlbase model object transfer to dict type
+
+        list：数据列表
+        detail：数据详情
         """
         if not model:
             return {}
+
         _res = dict()
         for attr in self.sqlbase_list_attrs:
             if not attr: continue
@@ -223,7 +233,7 @@ class SearchService(object):
                 _res[attr] = getattr(model, 'public', '')
             elif attr == 'public_time':
                 _res[attr] = self._transfer_time(model.public_time)
-            elif attr == 'html' and _type == 'detail':
+            elif attr == 'html' and _type in ['detail']:
                 _res[attr] = getattr(model, 'html', '')
             elif attr == 'text':
                 text = getattr(model, 'text', '')
@@ -261,15 +271,15 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_sqlbase_list_attrs and v:  # is illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
             if k in self.req_sqlbase_list_search_list_types:    # 处理列表参数
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s为列表类型' % k, {}).json()
+                        213, 'failure', u'请求参数%s为列表类型' % k or StatusMsgs.get(213), {}).json()
             if k in self.req_sqlbase_list_search_time_types and v:      # 处理时间查询参数，str类型
                 if not isinstance(v, str):
                     return Status(
-                        213, 'failure', u'请求参数%s为字符串类型' % k, {}).json()
+                        213, 'failure', u'请求参数%s为字符串类型' % k or StatusMsgs.get(213), {}).json()
                 if v:
                     try:
                         s2d(v)
@@ -386,7 +396,7 @@ class SearchService(object):
 
     def sqlbase_add_init(self, params: dict) -> json:
         """
-        sql data enum list
+        sqlbase add data initialize enum list
         :return: json data
         """
         # ================== parameters check && format ==================
@@ -398,20 +408,20 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_add_init_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    214, 'failure', u'请求参数%s为必须信息' % k or StatusMsgs.get(214), {}).json()
             new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
-        # all users
+        # enum: all users
         user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         user_list = list()
         for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
-        # all database type
+        # enum: all database type
         database_res = self.enum_bo.get_model_by_name(name='db-type')
         database_list = list()
         for _d in database_res:
@@ -426,7 +436,7 @@ class SearchService(object):
 
     def sqlbase_delete(self, params: dict) -> json:
         """
-        delete one sqlbase data by params
+        delete one sqlbase data by md5 from sqlbase table
         params is dict
         """
         # ====================== parameters check ======================
@@ -439,10 +449,10 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k or StatusMsgs.get(214), {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -457,8 +467,10 @@ class SearchService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账户
+        admin_auth_join = list()
+        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN, model.rtx_id]
+        if rtx_id not in admin_auth_join:
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
@@ -476,7 +488,7 @@ class SearchService(object):
 
     def sqlbase_deletes(self, params: dict) -> json:
         """
-        delete many sqlbase data by params
+        delete many sqlbase data by md5 list from sqlbase table
         params is dict
         """
         # ====================== parameters check ======================
@@ -488,10 +500,10 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    214, 'failure', u'请求参数%s不允许为空' % k or StatusMsgs.get(214), {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
@@ -500,8 +512,10 @@ class SearchService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])     # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        admin_auth_join = list()
+        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN]
+        if new_params.get('rtx_id') in admin_auth_join:
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
@@ -529,7 +543,7 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
@@ -548,19 +562,15 @@ class SearchService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
-        # authority【管理员具有所有数据权限】
-        # rtx_id = new_params.get('rtx_id')
-        # if rtx_id not in [ADMIN, model.rtx_id]:
-        #     return Status(
-        #         309, 'failure', StatusMsgs.get(309), {}).json()
-        """  return data """
-        # all users
+
+        """ =============== return data =============== """
+        # enum: all users
         user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         user_list = list()
         for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
-        # all database type
+        # enum: all database type
         database_res = self.enum_bo.get_model_by_name(name='db-type')
         database_list = list()
         for _d in database_res:
@@ -583,15 +593,16 @@ class SearchService(object):
 
     def sqlbase_update(self, params: dict) -> json:
         """
-        update sqlbase message information, contain:
+        update sqlbase message information by data md5, contain:
             - title 标题
             - html/text 内容
             - author 作者
             - public—time 发布时间
             - recommend 推荐度
+            - database 数据库
             - summary 简述
             - label 标签
-        by data md5
+
         :return: json data
         """
         # ====================== parameters check and format ======================
@@ -604,7 +615,7 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_sqlbase_update_attrs and v:      # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
             # check: value is not null
             if not v and k not in self.req_sqlbase_edit_no_need_attrs:  # is not null
                 return Status(
@@ -629,14 +640,18 @@ class SearchService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账户
+        admin_auth_join = list()
+        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN, model.rtx_id]
+        if rtx_id not in admin_auth_join:
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
         # --------------------------------------- update model --------------------------------------
         for key, value in new_params.items():
             if not key: continue
+            # 不更新属性
+            if key in self.req_sqlbase_no_update_attrs: continue
             setattr(model, key, value)
         try:
             self.sqlbase_bo.merge_model(model)
