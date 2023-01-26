@@ -468,7 +468,6 @@ class SearchService(object):
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账户
-        admin_auth_join = list()
         admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN, model.rtx_id]
         if rtx_id not in admin_auth_join:
             return Status(
@@ -513,7 +512,6 @@ class SearchService(object):
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
-        admin_auth_join = list()
         admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN]
         if new_params.get('rtx_id') in admin_auth_join:
             new_params.pop('rtx_id')
@@ -641,7 +639,6 @@ class SearchService(object):
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账户
-        admin_auth_join = list()
         admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN, model.rtx_id]
         if rtx_id not in admin_auth_join:
             return Status(
