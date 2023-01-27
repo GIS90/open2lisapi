@@ -279,33 +279,33 @@ class InfoService(object):
         for attr in self.dict_list_attrs:
             if not attr: continue
             if attr == 'name':
-                _res[attr] = model.name if getattr(model, 'name') else ""
+                _res[attr] = getattr(model, 'name', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'key':
-                _res[attr] = model.key if getattr(model, 'key') else ""
+                _res[attr] = getattr(model, 'key', '')
             elif attr == 'value':
-                _res[attr] = model.value if getattr(model, 'value') else ""
+                _res[attr] = getattr(model, 'value', '')
             elif attr == 'description':
-                _res[attr] = model.description if getattr(model, 'description') else ""
+                _res[attr] = getattr(model, 'description', '')
             elif attr == 'status':
                 _res[attr] = True if getattr(model, 'status') else False
             elif attr == 'create_rtx':
-                _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
+                _res[attr] = getattr(model, 'create_rtx', '')
             elif attr == 'create_time':
                 _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'update_rtx':
-                _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
+                _res[attr] = getattr(model, 'update_rtx', '')
             elif attr == 'update_time':
                 _res[attr] = self._transfer_time(model.update_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
+                _res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'delete_time':
                 _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'is_del':
-                _res[attr] = True if getattr(model, 'is_del') else False
+                _res[attr] = model.is_del or False
             elif attr == 'order_id':
-                _res[attr] = model.order_id if getattr(model, 'order_id') else 1
+                _res[attr] = getattr(model, 'order_id', 1)
         else:
             return _res
 
@@ -320,39 +320,39 @@ class InfoService(object):
         for attr in self.api_list_attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id if getattr(model, 'name') else ""
+                _res[attr] = getattr(model, 'name', '')
             elif attr == 'blueprint':
-                _res[attr] = model.blueprint if getattr(model, 'blueprint') else ""
+                _res[attr] = getattr(model, 'blueprint', '')
             elif attr == 'apiname':
-                _res[attr] = model.apiname if getattr(model, 'apiname') else ""
+                _res[attr] = getattr(model, 'apiname', '')
             elif attr == 'endpoint':
-                _res[attr] = model.endpoint if getattr(model, 'endpoint') else ""
+                _res[attr] = getattr(model, 'endpoint', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'path':
-                _res[attr] = model.path if getattr(model, 'path') else ""
+                _res[attr] = getattr(model, 'path', '')
             elif attr == 'type':
-                _res[attr] = model.type if getattr(model, 'type') else ""
+                _res[attr] = getattr(model, 'type', '')
             elif attr == 'short':
-                _res[attr] = model.short if getattr(model, 'short') else ""
+                _res[attr] = getattr(model, 'short', '')
             elif attr == 'long':
-                _res[attr] = model.long if getattr(model, 'long') else ""
+                _res[attr] = getattr(model, 'long', '')
             elif attr == 'create_rtx':
-                _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
+                _res[attr] = getattr(model, 'create_rtx', '')
             elif attr == 'create_time':
                 _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'update_rtx':
-                _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
+                _res[attr] = getattr(model, 'update_rtx', '')
             elif attr == 'update_time':
                 _res[attr] = self._transfer_time(model.update_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
+                _res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'delete_time':
                 _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'is_del':
-                _res[attr] = True if getattr(model, 'is_del') else False
+                _res[attr] = model.is_del or False
             elif attr == 'order_id':
-                _res[attr] = model.order_id if getattr(model, 'order_id') else 1
+                _res[attr] = getattr(model, 'order_id', 1)
         else:
             return _res
 
@@ -531,6 +531,7 @@ class InfoService(object):
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -569,6 +570,7 @@ class InfoService(object):
         except:
             return Status(
                 322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -673,6 +675,7 @@ class InfoService(object):
         except:
             return Status(
                 322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+        
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()

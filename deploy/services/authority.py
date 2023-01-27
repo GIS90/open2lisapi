@@ -796,7 +796,7 @@ class AuthorityService(object):
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {}).json()
-        
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
