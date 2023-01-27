@@ -75,8 +75,8 @@ class ExcelResultBo(BOBase):
                                ExcelResultModel.delete_time,
                                ExcelResultModel.is_del,
                                EnumModel.name.label('enum_name'),
-                               EnumModel.key.label('key'),
-                               EnumModel.value.label('value'))
+                               EnumModel.key.label('enum_key'),
+                               EnumModel.value.label('enum_value'))
         q = q.filter(ExcelResultModel.ftype == EnumModel.key)
         if params.get('enum_name'):
             q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())

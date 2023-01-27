@@ -139,7 +139,7 @@ def excel_source_deletes():
 @watcher(watcher_args=request)
 def excel_merge():
     """
-    many excel file to merge one excel file,
+    operation method, many excel file to merge one excel file,
     many file list by file md5 list
     :return: json data
     """
@@ -270,8 +270,7 @@ def excel_init_split_params():
 @watcher(watcher_args=request)
 def excel_sheet_header():
     """
-    get sheet headers by sheet index
-    excel_source table
+    get sheet headers by sheet index from excel_source table
     :return: json data
     """
     if request.method == 'GET':
@@ -283,7 +282,7 @@ def excel_sheet_header():
         params = request.get_json() or {}
         return OfficeService().excel_sheet_header(params)
     except Exception as e:
-        LOG.error("office>get excel sheet headers is error: %s" % e)
+        LOG.error("office>excel sheet headers is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -305,7 +304,7 @@ def excel_split():
         params = request.get_json() or {}
         return OfficeService().excel_split(params)
     except Exception as e:
-        LOG.error("office>split is error: %s" % e)
+        LOG.error("office>excel split is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
@@ -335,7 +334,7 @@ def pdf2word_list():
 @watcher(watcher_args=request)
 def office_pdf_detail():
     """
-    get office pdf file detail information, by file md5
+    get office pdf file detail information by file md5
     :return: json data
     """
     if request.method == 'GET':

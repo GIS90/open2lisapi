@@ -190,6 +190,9 @@ class SearchService(object):
         self.enum_bo = EnumBo()
 
     def _transfer_time(self, t):
+        """
+        数据库datetime字段 TO 字符串格式时间字段
+        """
         if not t:
             return ""
 

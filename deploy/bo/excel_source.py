@@ -73,8 +73,8 @@ class ExcelSourceBo(BOBase):
                                ExcelSourceModel.delete_time,
                                ExcelSourceModel.is_del,
                                EnumModel.name.label('enum_name'),
-                               EnumModel.key.label('key'),
-                               EnumModel.value.label('value'))
+                               EnumModel.key.label('enum_key'),
+                               EnumModel.value.label('enum_value'))
         q = q.filter(ExcelSourceModel.ftype == EnumModel.key)
         q = q.filter(ExcelSourceModel.is_del != 1)
         if params.get('enum_name'):

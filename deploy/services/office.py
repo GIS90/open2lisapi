@@ -52,7 +52,7 @@ from deploy.bo.office_pdf import OfficePDFBo
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     OFFICE_LIMIT, OFFICE_STORE_BK, \
     ADMIN, ADMIN_AUTH_LIST, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
-from deploy.utils.utils import get_now, d2s, md5, check_length
+from deploy.utils.utils import get_now, d2s, md5, check_length, auth_rtx_join
 from deploy.utils.enums import *
 
 
@@ -172,11 +172,14 @@ class OfficeService(object):
         'url',
         'numopr',
         'nsheet',
-        'set_sheet',  # sheet_names Sheet名称列表（key value格式）
-                      # set_sheet_index 选择的Sheet索引，List类型
-                      # set_sheet_name 选择的Sheet名称，string类型（；分割）
+        'set_sheet',  # sheet_names: sheet列表名称集合，[{'key': k, 'value': v}]格式
+                      # set_sheet_index: 选择sheet列表index索引值集合，[]格式
+                      # set_sheet_name: 选择sheet列表名称，string类型（；分割）
         # 'sheet_columns',
-        'create_time'
+        'create_time',
+        # 'delete_rtx',
+        # 'delete_time',
+        'is_del'
     ]
 
     excel_result_show_attrs = [
@@ -194,7 +197,10 @@ class OfficeService(object):
         'col',
         'set_sheet',  # sheet_names Sheet名称列表（key value格式）
                       # set_sheet_name 全部的Sheet名称，string类型（；分割）
-        'create_time'
+        'create_time',
+        # 'delete_rtx',
+        # 'delete_time',
+        'is_del'
     ]
 
     req_pdf2word_list_attrs = [
@@ -421,6 +427,20 @@ class OfficeService(object):
         except:
             return False
 
+    def _transfer_time(self, t):
+        """
+        数据库datetime字段 TO 字符串格式时间字段
+        """
+        if not t:
+            return ""
+
+        if isinstance(t, datetime.datetime):
+            return d2s(t)
+        elif isinstance(t, str) and t == '0000-00-00 00:00:00':
+            return ""
+        else:
+            return t or ''
+
     def _office_pdf_model_to_dict(self, model, _type='info'):
         """
         office model to dict
@@ -435,17 +455,17 @@ class OfficeService(object):
         for attr in self.office_pdf_show_attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'name':
-                _res[attr] = model.name
+                _res[attr] = getattr(model, 'name', '')
             elif attr == 'store_name':
-                _res[attr] = model.store_name
+                _res[attr] = getattr(model, 'store_name', '')
             elif attr == 'transfer_name':
-                _res[attr] = model.transfer_name
+                _res[attr] = getattr(model, 'transfer_name', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'file_type':
                 _res[attr] = '.pdf'
             elif attr == 'transfer':
@@ -454,9 +474,9 @@ class OfficeService(object):
                 else:
                     _res[attr] = True if model.transfer else False
             elif attr == 'transfer_time':
-                _res[attr] = d2s(model.transfer_time) if model.transfer_time else ''
+                _res[attr] = self._transfer_time(model.transfer_time)
             elif attr == 'local_url':
-                _res[attr] = model.local_url
+                _res[attr] = getattr(model, 'local_url', '')
             elif attr == 'store_url':
                 _res[attr] = self.store_lib.open_download_url(store_name=model.store_url) \
                     if model.store_url else ''
@@ -469,17 +489,19 @@ class OfficeService(object):
                 else:
                     _res[attr] = True if model.mode else False
             elif attr == 'start':
-                _res[attr] = model.start or ''
+                _res[attr] = getattr(model, 'start', '')
             elif attr == 'end':
-                _res[attr] = model.end or ''
+                _res[attr] = getattr(model, 'end', '')
             elif attr == 'pages':
-                _res[attr] = model.pages or ''
+                _res[attr] = getattr(model, 'pages', '')
             elif attr == 'create_time':
-                _res[attr] = d2s(model.create_time) if model.create_time else ''
+                _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx
+                _res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'delete_time':
-                _res[attr] = d2s(model.delete_time) if model.delete_time else ''
+                _res[attr] = self._transfer_time(model.delete_time)
+            elif attr == 'is_del':
+                _res[attr] = True if model.is_del else False
         else:
             return _res
 
@@ -496,21 +518,21 @@ class OfficeService(object):
 
         for attr in self.excel_source_show_attrs:
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'name':
-                _res[attr] = model.name
+                _res[attr] = getattr(model, 'name', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'ftypek':
-                _res[attr] = model.ftype
+                _res[attr] = getattr(model, 'ftype', '')       # ExcelSourceModel.ftype
             elif attr == 'ftypev':
-                _res[attr] = model.value
+                _res[attr] = getattr(model, 'enum_value', '')   # EnumModel.value.label('enum_value')
             elif attr == 'numopr':
-                _res[attr] = model.numopr or 0
+                _res[attr] = getattr(model, 'numopr', 0)
             elif attr == 'url':
-                if model.store_url:
+                if getattr(model, 'store_url', ''):
                     # 直接拼接的下载url，无check ping
                     _res['url'] = self.store_lib.open_download_url(store_name=model.store_url)
                     # url and check ping
@@ -519,9 +541,16 @@ class OfficeService(object):
                 else:
                     _res['url'] = ''
             elif attr == 'nsheet':
-                _res['nsheet'] = model.nsheet if model.nsheet else 1    # 无值，默认为1个SHEET
+                _res['nsheet'] = getattr(model, 'nsheet', 1)    # 无值，默认为1个SHEET
             elif attr == 'set_sheet':
-                if model.sheet_names:
+                """
+                设置选择的sheet
+                > 获取所有的sheet列表名称集合
+                > 获取选择的sheet列表index索引值
+                > join拼接字符串
+                > 超过指定大小进行切割 + 具体查看请下载
+                """
+                if getattr(model, 'sheet_names', ''):
                     new_res = list()
                     set_sheet_name = list()
                     set_sheet_index = [str(i) for i in str(model.set_sheet).split(';')] if model.set_sheet else ['0']   # 默认index为0
@@ -532,18 +561,27 @@ class OfficeService(object):
                         if int(k) >= SHEET_NUM_LIMIT:   # 加了展示条数的限制，否则页面展示太多
                             new_res.append({'key': '...N', 'value': '（具体查看请下载）'})
                             break
+                    # sheet列表名称集合，[{'key': k, 'value': v}]格式
                     _res['sheet_names'] = new_res
                     set_sheet_name = ';'.join(set_sheet_name)
                     if len(set_sheet_name) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
                         set_sheet_name = '%s...具体查看请下载' % set_sheet_name[0:SHEET_NAME_LIMIT]
+                    # 选择sheet列表名称，string类型（；分割）
                     _res['set_sheet_name'] = set_sheet_name
+                    # 选择sheet列表index索引值集合，[]格式
                     _res['set_sheet_index'] = set_sheet_index
                 else:
-                    _res['sheet_names'] = []
-                    _res['set_sheet_index'] = []
-                    _res['set_sheet_name'] = ''
+                    _res['sheet_names'] = []    # sheet列表名称集合，[{'key': k, 'value': v}]格式
+                    _res['set_sheet_index'] = []    # 选择sheet列表index索引值集合，[]格式
+                    _res['set_sheet_name'] = ''     # 选择sheet列表名称，string类型（；分割）
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+                _res[attr] = self._transfer_time(model.create_time)
+            elif attr == 'delete_rtx':
+                _res[attr] = getattr(model, 'delete_rtx', '')
+            elif attr == 'delete_time':
+                _res[attr] = self._transfer_time(model.delete_time)
+            elif attr == 'is_del':
+                _res[attr] = True if model.is_del else False
         else:
             return _res
 
@@ -560,25 +598,25 @@ class OfficeService(object):
 
         for attr in self.excel_result_show_attrs:
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'name':
-                _res[attr] = model.name
+                _res[attr] = getattr(model, 'name', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'ftypek':
-                _res[attr] = model.ftype
+                _res[attr] = getattr(model, 'ftype', '')
             elif attr == 'ftypev':
-                _res[attr] = model.value
+                _res[attr] = getattr(model, 'enum_value', '')
             elif attr == 'compress':
                 _res[attr] = True if model.is_compress else False
             elif attr == 'row':
-                _res[attr] = model.row if model.row else ''
+                _res[attr] = getattr(model, 'row', '')
             elif attr == 'col':
-                _res[attr] = model.col if model.col else ''
+                _res[attr] = getattr(model, 'col', '')
             elif attr == 'url':
-                if model.store_url:
+                if getattr(model, 'store_url', ''):
                     # 直接拼接的下载url，无check
                     _res['url'] = self.store_lib.open_download_url(store_name=model.store_url)
                     # url and check
@@ -587,16 +625,16 @@ class OfficeService(object):
                 else:
                     _res['url'] = ''
             elif attr == 'nsheet':
-                _res['nsheet'] = model.nsheet if model.nsheet else 1
+                _res['nsheet'] = getattr(model, 'nsheet', 1)
             elif attr == 'nfile':
-                _res['nfile'] = model.nfile if model.nfile else 1
+                _res['nfile'] = getattr(model, 'nfile', 1)
             elif attr == 'set_sheet':
                 """
                 set_sheet_name：字符串，选择的sheet名称（拼接）
                 sheet_names: 列表类型，元素为{'key': k, 'value': v}格式
                 set_sheet_index：列表类型，选择的sheet列表，与sheet_names搭配显示select多选
                 """
-                if model.sheet_names:
+                if getattr(model, 'sheet_names', ''):
                     new_res = list()
                     set_sheet_name = list()
                     for k, v in json.loads(model.sheet_names).items():
@@ -605,16 +643,24 @@ class OfficeService(object):
                         if int(k) >= SHEET_NUM_LIMIT:
                             new_res.append({'key': '...N', 'value': '（具体查看请下载）'})
                             break
+                    # sheet列表名称集合，[{'key': k, 'value': v}]格式
                     _res['sheet_names'] = new_res
                     set_sheet_name = ';'.join(set_sheet_name)
                     if len(set_sheet_name) > SHEET_NAME_LIMIT:
                         set_sheet_name = '%s...（具体查看请下载）' % set_sheet_name[0:SHEET_NAME_LIMIT]
+                    # 选择sheet列表名称，string类型（；分割）
                     _res['set_sheet_name'] = set_sheet_name
                 else:
-                    _res['sheet_names'] = []
-                    _res['set_sheet_name'] = ''
+                    _res['sheet_names'] = []        # sheet列表名称集合，[{'key': k, 'value': v}]格式
+                    _res['set_sheet_name'] = ''     # 选择sheet列表名称，string类型（；分割）
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) if model.create_time else ''
+                _res[attr] = self._transfer_time(model.create_time)
+            elif attr == 'delete_rtx':
+                _res[attr] = getattr(model, 'delete_rtx', '')
+            elif attr == 'delete_time':
+                _res[attr] = self._transfer_time(model.delete_time)
+            elif attr == 'is_del':
+                _res[attr] = True if model.is_del else False
         else:
             return _res
 
@@ -645,9 +691,8 @@ class OfficeService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        # 特权账户
-        admin_auth_join = ADMIN_AUTH_LIST.copy() + [ADMIN]
-        if new_params.get('rtx_id') in admin_auth_join:
+        # 权限账户
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # <<<<<<<<<<<<<<< models >>>>>>>>>>>>>>>>
         new_params['enum_name'] = 'excel-type'
@@ -671,6 +716,7 @@ class OfficeService(object):
 
     def _update_file_name(self, model, new_name):
         """
+        修改实际文件名称，以及store对象上的文件名称
         build in method, not allow outer to use
         get source/result file name store_name local_url store_url
         return json data
@@ -678,17 +724,20 @@ class OfficeService(object):
         update real file name and store file name
         """
         _res = dict()
-        # check
+        # check parameter
         if not model or not new_name:
             return _res
+        # check model object attr
         if not model.name or not model.store_name \
                 or not model.local_url or not model.store_url:
             return _res
 
+        # 分割文件名称
         new_names = os.path.splitext(str(new_name))
         # check format
         if new_names[-1] not in self.EXCEL_FORMAT:
             new_name = '%s%s' % (new_names[0], self.DEFAULT_EXCEL_FORMAT)
+        # local file name modify
         local_urls = str(model.local_url).split('/')
         new_local_url = str(model.local_url).replace(local_urls[-1], new_name)
         # check rename file exist
@@ -725,10 +774,11 @@ class OfficeService(object):
         params is dict data
         return json data
         """
+        # ===================== parameters check and format =====================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-        # parameters check and format
+
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -768,29 +818,33 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])     # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
-
-        is_update = False
-        # file name to rename
-        if new_params.get('name') and \
-                str(new_params.get('name')) != str(model.name):
-            res = self._update_file_name(model, new_params.get('name'))
-            if res:
-                model.name = res.get('name')
-                model.store_name = res.get('store_name')
-                model.local_url = res.get('local_url')
-                model.store_url = res.get('store_url')
+        """   <<<<<<<<<< update >>>>>>>>>> """
+        try:
+            is_update = False
+            # file name to rename
+            if new_params.get('name') and \
+                    str(new_params.get('name')) != str(model.name):
+                res = self._update_file_name(model, new_params.get('name'))
+                if res:
+                    model.name = res.get('name')
+                    model.store_name = res.get('store_name')
+                    model.local_url = res.get('local_url')
+                    model.store_url = res.get('store_url')
+                    is_update = True
+            # file set_sheet to update
+            if new_params.get('set_sheet') and \
+                    str(new_params.get('set_sheet')) != str(model.set_sheet):
+                model.set_sheet = new_params.get('set_sheet')
                 is_update = True
-        # file set_sheet to update
-        if new_params.get('set_sheet') and \
-                str(new_params.get('set_sheet')) != str(model.set_sheet):
-            model.set_sheet = new_params.get('set_sheet')
-            is_update = True
-        if is_update:
-            self.excel_source_bo.merge_model(model)
+            if is_update:
+                self.excel_source_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -814,7 +868,7 @@ class OfficeService(object):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
-        # <<<<<<<<<<<<<<<    get model   >>>>>>>>>>>>>>>>
+        # <<<<<<<<<<<<<<<     get model    >>>>>>>>>>>>>>>>
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
@@ -826,15 +880,19 @@ class OfficeService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
-        # 软删除
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.excel_source_bo.merge_model(model)
+        try:
+            # 软删除
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.excel_source_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -844,7 +902,7 @@ class OfficeService(object):
         delete many excel source excel file by params
         params is dict
         """
-        # parameters check and format
+        # ----------- parameters check and format -----------
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -865,11 +923,15 @@ class OfficeService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
-        # 批量软删除
-        res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
+        try:
+            # 批量软删除
+            res = self.excel_source_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -878,7 +940,7 @@ class OfficeService(object):
 
     def excel_merge(self, params: dict) -> dict:
         """
-        many excel file to merge one excel file,
+        operation method, many excel file to merge one excel file,
         many file list by file md5 list
         params params: request params, rtx_id and excel md5 list
         
@@ -896,7 +958,7 @@ class OfficeService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
-            if not v and k != 'blank':
+            if not v and k not in ['blank']:
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             # check: length
@@ -927,7 +989,7 @@ class OfficeService(object):
         """
         all_merge_files = list()
         # data structure: {'file': f, 'sheets': set_sheet, 'nsheet': n}
-        is_openpyxl = True
+        # is_openpyxl = True
         for _r in res:
             if not _r or not _r.name or not _r.local_url: continue  # no exist -> continue
             # if os.path.splitext(str(_r.name))[-1] == '.xls':
@@ -947,11 +1009,13 @@ class OfficeService(object):
         """
         # merge_res = self.excel_lib.merge_openpyxl(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank')) \
         #     if is_openpyxl else self.excel_lib.merge_xlrw(new_name=new_params.get('name'), file_list=all_merge_files, blank=new_params.get('blank'))
+
         """
-        采取xlrd、openpyxl综合操作表格合并：
-            - 读取：xlrd
-            - 写入：openpyxl
-        xlrd可以读取.xls、.xlsx不同格式表格数据，新版本.xlsx格式版本excel存储
+        新方法：
+            采取xlrd、openpyxl综合操作表格合并：
+                - 读取：xlrd
+                - 写入：openpyxl
+            xlrd可以读取.xls、.xlsx不同格式表格数据，新版本.xlsx格式版本excel存储
         """
         merge_res = self.excel_lib.merge_new(new_name=new_params.get('name'),
                                              file_list=all_merge_files,
@@ -987,25 +1051,26 @@ class OfficeService(object):
         # add source file number operation 更新文件操作次数
         for _r in res:
             if not _r: continue
-            _r.numopr = _r.numopr + 1
-            self.excel_source_bo.merge_model(_r)
+            try:
+                _r.numopr = _r.numopr + 1
+                self.excel_source_bo.merge_model(_r)
+            except:
+                pass
 
         return Status(
-            100, 'success', StatusMsgs.get(100), merge_res.get('data')
-        ).json()
+            100, 'success', StatusMsgs.get(100), merge_res.get('data')).json()
 
     def excel_history_list(self, params: dict) -> dict:
         """
-        get result excel list by params
-        params is dict
-
-        return json data
+        get excel history excel list from db table excel_result
+        many file
+        :return: json data
         """
-        # ---------- no params -----------
+        # ---------- ========== no params ========== -----------
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-        # parameters check and format
+        # ************** parameters check and format **************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1023,18 +1088,14 @@ class OfficeService(object):
                 v = [str(i) for i in v] if v else []
             elif k == 'name' and v:     # filter: like search
                 v = '%' + str(v) + '%'
-            elif k == 'start_time' and v:   # filter: start_time
-                v = d2s(v) if isinstance(v, datetime.datetime) \
-                    else v
-            elif k == 'end_time' and v:   # filter: end_time
+            elif k in ['start_time', 'end_time'] and v:   # filter: start_time, end_time
                 v = d2s(v) if isinstance(v, datetime.datetime) \
                     else v
             else:
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
 
         """     ============ get models list ==========    """
@@ -1101,8 +1162,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         """ update model """
@@ -1116,21 +1177,24 @@ class OfficeService(object):
                 model.store_url = res.get('store_url')
                 is_update = True
         if is_update:
-            self.excel_result_bo.merge_model(model)
+            try:
+                self.excel_result_bo.merge_model(model)
+            except:
+                return Status(
+                    322, 'failure', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def excel_result_delete(self, params: dict) -> dict:
         """
-        delete one result excel file by params
+        delete one excel result excel file by md5
         params is dict
         """
         # no parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
         # parameters check && format
         new_params = dict()
         for k, v in params.items():
@@ -1154,15 +1218,20 @@ class OfficeService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
-        # 软删除
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.excel_result_bo.merge_model(model)
+        try:
+            # 软删除
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.excel_result_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1193,11 +1262,16 @@ class OfficeService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
-        # 批量软删除
-        res = self.excel_result_bo.batch_delete_by_md5(params=new_params)
+        try:
+            # 批量软删除
+            res = self.excel_result_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -1220,7 +1294,7 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-        # new parameters
+        # >>>>>>>>>>>> new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1243,8 +1317,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         """ ------ 格式化数据 ------ """
@@ -1285,7 +1359,7 @@ class OfficeService(object):
 
     def excel_sheet_header(self, params: dict) -> dict:
         """
-        get sheet headers by sheet index
+        get sheet headers by sheet index from excel_source table
         params is dict
         """
         # ------------ parameters check and format --------------
@@ -1316,8 +1390,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # format return data
@@ -1341,7 +1415,7 @@ class OfficeService(object):
         function: one file to split many file
         one excel file to split many file
         """
-        # no parameters
+        # ******************* no parameters *******************
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
@@ -1407,8 +1481,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # file not exist
@@ -1502,7 +1576,7 @@ class OfficeService(object):
         params is dict
         return json data
         """
-        # no parameters
+        # >>>>>>>>>> no parameters <<<<<<<<<<<
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -1524,8 +1598,8 @@ class OfficeService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # <<<<<<<<<<<<<< get all models >>>>>>>>>>>>>>>
         res, total = self.office_pdf_bo.get_all(new_params)
@@ -1548,7 +1622,7 @@ class OfficeService(object):
 
     def office_pdf_detail(self, params):
         """
-        get office pdf file detail information, by file md5
+        get office pdf file detail information by file md5
         :return: json data
         """
         # =================== parameters check and format ===================
@@ -1579,8 +1653,8 @@ class OfficeService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id != ADMIN not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return
@@ -1667,17 +1741,22 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
 
-        # update
-        model.start = new_params.get('start')
-        model.end = new_params.get('end')
-        model.pages = new_params.get('pages')
-        model.mode = new_params.get('mode')
-        self.excel_source_bo.merge_model(model)
+        try:
+            # update
+            model.start = new_params.get('start')
+            model.end = new_params.get('end')
+            model.pages = new_params.get('pages')
+            model.mode = new_params.get('mode')
+            self.excel_source_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1687,7 +1766,7 @@ class OfficeService(object):
         delete one office pdf file by md5
         :return: json data
         """
-        # ================ check parameters ++================
+        # ================ check parameters ================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -1714,15 +1793,20 @@ class OfficeService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
-        # 软删除
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.office_pdf_bo.merge_model(model)
+        try:
+            # 软删除
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.office_pdf_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1755,11 +1839,16 @@ class OfficeService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
-        # 批量软删除
-        res = self.office_pdf_bo.batch_delete_by_md5(params=new_params)
+        try:
+            # 批量软删除
+            res = self.office_pdf_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -1850,8 +1939,8 @@ class OfficeService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
@@ -1879,11 +1968,12 @@ class OfficeService(object):
         }
         """
         _d = {'pdf': model.local_url, 'word': new_params.get('name'), 'start': '', 'end': '', 'pages': []}
-        if model.mode:
+        if model.mode:      # 通用页码模式
             _d['start'] = model.start
             _d['end'] = model.end
-        else:
+        else:       # 指定页码模式
             _d['pages'] = model.pages.split(',') if model.pages else []
+
         _pdf_files[model.md5_id] = _d
         _to_res = self.file_lib.pdf2word(pdf_list=_pdf_files, is_multi_processing=False)
         _status_id = _to_res.get('status_id')
@@ -1908,14 +1998,18 @@ class OfficeService(object):
                 {}).json()
         """ ************************************* convert: 4.update transfer ***************************************** """
         # update data
-        model.start = new_params.get('start')
-        model.end = new_params.get('end')
-        model.pages = new_params.get('pages')
-        model.mode = new_params.get('mode')
-        model.transfer = True
-        model.transfer_name = transfer_store_name
-        model.transfer_time = get_now()
-        model.transfer_url = transfer_store_name
-        self.excel_source_bo.merge_model(model)
+        try:
+            model.start = new_params.get('start')
+            model.end = new_params.get('end')
+            model.pages = new_params.get('pages')
+            model.mode = new_params.get('mode')
+            model.transfer = True
+            model.transfer_name = transfer_store_name
+            model.transfer_time = get_now()
+            model.transfer_url = transfer_store_name
+            self.excel_source_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}).json()
