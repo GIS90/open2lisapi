@@ -619,7 +619,7 @@ class SearchService(object):
                 return Status(
                     214, 'failure', '请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
-            # check: length
+        # check: length
         for _key, _value in self.req_sqlbase_edit_ck_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):

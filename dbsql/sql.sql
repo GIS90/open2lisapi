@@ -463,7 +463,7 @@ CREATE TABLE `dtalk_message`  (
     `sheet_columns` text COMMENT 'Sheets列名的集合，以json方式存储',
     `headers` text COMMENT 'excel的header信息，以json方式存储',
     `set_sheet` varchar(35) COMMENT '当前设置的sheet选择索引，列表格式',
-    `cur_sheet` varchar(3) COMMENT '当前设置的sheet索引',
+    `cur_sheet` varchar(4) COMMENT '当前设置的sheet索引',
     `set_column` text COMMENT '当前设置的sheet选择索引，表头列表设置，json字符串',
     `set_title` text COMMENT '每个sheet页码的消息标题',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',

@@ -38,7 +38,7 @@ import time
 import random
 
 from deploy.delibs.excel_lib import ExcelLib
-from deploy.utils.utils import get_now, d2s, check_length, md5
+from deploy.utils.utils import get_now, d2s, check_length, md5, auth_rtx_join
 from deploy.bo.dtalk_message import DtalkMessageBo
 from deploy.bo.dtalk_robot import DtalkRobotBo
 from deploy.bo.qywx_message import QywxMessageBo
@@ -47,7 +47,7 @@ from deploy.bo.enum import EnumBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
-    STORE_BASE_URL, STORE_SPACE_NAME, ADMIN, ADMIN_AUTH_LIST, \
+    STORE_BASE_URL, STORE_SPACE_NAME, \
     DTALK_CONTROL, DTALK_INTERVAL, DTALK_ADD_IMAGE, AUTH_NUM
 from deploy.delibs.store_lib import StoreLib
 from deploy.delibs.dtalk_lib import DtalkLib
@@ -180,6 +180,13 @@ class NotifyService(object):
         'select'
     ]
 
+    dtalk_robot_add_ck_len_attrs = {
+        'rtx_id': 25,
+        'name': 30,
+        'key': 30,
+        'secret': 70
+    }
+
     req_dtalk_robot_update_attrs = [
         'rtx_id',
         'name',
@@ -285,7 +292,9 @@ class NotifyService(object):
         'delete_rtx',
         'delete_time',
         'is_del',
-        'enum_name',
+        # 'enum_name',
+        # 'enum_key',
+        'enum_value',
         'is_back',
         'msg_id'
     ]
@@ -525,19 +534,19 @@ class NotifyService(object):
         for attr in _attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'file_name':
-                _res[attr] = model.file_name
+                _res[attr] = getattr(model, 'file_name', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'robot':
-                _res[attr] = model.robot
+                _res[attr] = getattr(model, 'robot', '')
             elif attr == 'count':
-                _res[attr] = model.count or 0
+                _res[attr] = getattr(model, 'count', 0)
             elif attr == 'number':
-                _res[attr] = model.number or 0
+                _res[attr] = getattr(model, 'number', 0)
             elif attr == 'url':
                 if model.file_store_url:
                     # 直接拼接的下载url，无check ping
@@ -548,7 +557,7 @@ class NotifyService(object):
                 else:
                     _res['url'] = ''
             elif attr == 'nsheet':
-                _res['nsheet'] = model.nsheet if model.nsheet else 1  # 无值，默认为1个SHEET
+                _res['nsheet'] = getattr(model, 'nsheet', 1)  # 无值，默认为1个SHEET
             elif attr == 'set_sheet':
                 """
                 set_sheet_name：字符串，选择的sheet名称（拼接）
@@ -577,9 +586,9 @@ class NotifyService(object):
                     _res['set_sheet_index'] = []
                     _res['set_sheet_name'] = ''
             elif attr == 'cur_sheet':
-                _res[attr] = str(model.cur_sheet) if model.cur_sheet else "0"
+                _res[attr] = str(getattr(model, 'cur_sheet', 0))
             elif attr == 'set_column':
-                _res[attr] = model.set_column if model.set_column else ""
+                _res[attr] = getattr(model, 'set_column', "")
             elif attr == 'set_title':
                 _title = '暂无消息标题'
                 title_json = json.loads(model.set_title) if model.set_title else {}
@@ -618,7 +627,7 @@ class NotifyService(object):
             elif attr == 'delete_time':
                 _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx
+                _res[attr] = getattr(model, 'delete_rtx', "")
             elif attr == 'is_del':
                 _res[attr] = model.is_del or False
         else:
@@ -649,8 +658,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
 
         # <get data>
@@ -705,8 +714,8 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data> 软删除
@@ -748,8 +757,8 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+         # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
@@ -757,6 +766,7 @@ class NotifyService(object):
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -794,8 +804,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 权限账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return
@@ -815,7 +825,7 @@ class NotifyService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-        # new parameters
+        # >>>>>>>>>>> new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -855,7 +865,7 @@ class NotifyService(object):
                 v = str(v)
             new_params[k] = v
 
-        # ========= check data
+        # ========= check data ==========
         model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
@@ -867,8 +877,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
 
@@ -894,7 +904,12 @@ class NotifyService(object):
         if new_params.get('column'):
             set_column_json[cur_sheet] = new_params.get('column')
             model.set_column = json.dumps(set_column_json)
-        self.dtalk_bo.merge_model(model)
+        try:
+            self.dtalk_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -903,7 +918,7 @@ class NotifyService(object):
         """
         dtalk change sheet by sheet index
         params is dict
-        设置中切换sheet展示的内容切换
+        设置中切换sheet展示的内容切换（动态切换）
         """
         if not params:
             return Status(
@@ -914,14 +929,13 @@ class NotifyService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_change_sheet_attrs:
+            if k not in self.req_change_sheet_attrs:    # illegal parameter
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            v = str(v)
             if not v:       # check value is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
-            new_params[k] = v
+            new_params[k] = str(v)
 
         model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
@@ -934,8 +948,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
@@ -976,29 +990,27 @@ class NotifyService(object):
         for attr in self.dtalk_robot_attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'name':
-                _res[attr] = model.name
+                _res[attr] = getattr(model, 'name', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'key':
-                _res[attr] = model.key
+                _res[attr] = getattr(model, 'key', '')
             elif attr == 'secret':
-                _res[attr] = model.secret
+                _res[attr] = getattr(model, 'secret', '')
             elif attr == 'select':
                 _res[attr] = True if model.select else False
             elif attr == 'description':
-                _res[attr] = model.description
+                _res[attr] = getattr(model, 'description', '')
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) \
-                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
+                _res['create_time'] = self._transfer_time(model.create_time)
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.delete_time) \
-                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
+                _res['delete_time'] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx
+                _res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'is_del':
                 _res[attr] = model.is_del or False
         else:
@@ -1018,31 +1030,29 @@ class NotifyService(object):
         for attr in self.qywx_robot_attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'name':
-                _res[attr] = model.name
+                _res[attr] = getattr(model, 'name', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'key':
-                _res[attr] = model.key
+                _res[attr] = getattr(model, 'key', '')
             elif attr == 'secret':
-                _res[attr] = model.secret
+                _res[attr] = getattr(model, 'secret', '')
             elif attr == 'agent':
-                _res[attr] = model.agent
+                _res[attr] = getattr(model, 'agent', '')
             elif attr == 'select':
                 _res[attr] = True if model.select else False
             elif attr == 'description':
-                _res[attr] = model.description
+                _res[attr] = getattr(model, 'description', '')
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) \
-                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
+                _res['create_time'] = self._transfer_time(model.create_time)
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.delete_time) \
-                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
+                _res['delete_time'] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx
+                _res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'is_del':
                 _res[attr] = model.is_del or False
         else:
@@ -1072,8 +1082,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # <get data>
         res, total = self.dtalk_robot_bo.get_all(new_params)
@@ -1119,26 +1129,18 @@ class NotifyService(object):
             if not v and k not in ['select']:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # check: length
-            if k == 'rtx_id' and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'name' and not check_length(v, 30):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'key' and not check_length(v, 30):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'secret' and not check_length(v, 70):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'description' and not check_length(v, 120):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'select' and not isinstance(v, bool):
+            # type check
+            if k == 'select' and not isinstance(v, bool):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
-            new_params[k] = str(v) if k != 'select' else v
+            new_params[k] = str(v) if k not in ['select'] else v
+
+        # check: length
+        for _key, _value in self.dtalk_robot_add_ck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
         # check key and secret is or not repeat
         if new_params.get('key') and new_params.get('secret'):
@@ -1152,26 +1154,27 @@ class NotifyService(object):
         if new_params.get('select'):
             self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
         # --------------------------------------- add model --------------------------------------
-        new_model = self.dtalk_robot_bo.new_mode()
-        new_model.rtx_id = new_params.get('rtx_id')
-        new_model.name = new_params.get('name')
-        md5_id = md5(new_params.get('rtx_id')+new_params.get('key')+new_params.get('secret')+get_now())
-        new_model.md5_id = md5_id
-        new_model.key = new_params.get('key')
-        new_model.secret = new_params.get('secret')
-        new_model.select = new_params.get('select') or False
-        new_model.description = new_params.get('description')
-        new_model.create_time = get_now()
-        new_model.is_del = False
-        new_model.delete_time = ''
         # 添加try异常处理，防止数据库add失败
         try:
+            new_model = self.dtalk_robot_bo.new_mode()
+            new_model.rtx_id = new_params.get('rtx_id')
+            new_model.name = new_params.get('name')
+            md5_id = md5(new_params.get('rtx_id')+new_params.get('key')+new_params.get('secret')+get_now())
+            new_model.md5_id = md5_id
+            new_model.key = new_params.get('key')
+            new_model.secret = new_params.get('secret')
+            new_model.select = new_params.get('select') or False
+            new_model.description = new_params.get('description')
+            new_model.create_time = get_now()
+            new_model.is_del = False
+            new_model.delete_time = ''
             self.dtalk_robot_bo.add_model(new_model)
-            return Status(
-                100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}).json()
+                320, 'failure', StatusMsgs.get(320), {}).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
 
     def dtalk_robot_delete(self, params: dict):
         """
@@ -1206,15 +1209,20 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
-        # <update data>
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.dtalk_robot_bo.merge_model(model)
+        try:
+            # <update data>
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.dtalk_robot_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1245,11 +1253,16 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # << batch delete >>
-        res = self.dtalk_robot_bo.batch_delete_by_md5(params=new_params)
+        try:
+            res = self.dtalk_robot_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -1258,9 +1271,10 @@ class NotifyService(object):
 
     def dtalk_robot_detail(self, params: dict):
         """
-        get dtalk robot detail information by md5
+        get dtalk robot detail information by md5 from dtalk_robot table
         :return: json data
         """
+        # no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -1288,8 +1302,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return data
@@ -1323,28 +1337,20 @@ class NotifyService(object):
             if not v and k not in ['select']:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            # check: length
-            if k == 'rtx_id' and not check_length(v, 25):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'name' and not check_length(v, 30):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'key' and not check_length(v, 30):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'secret' and not check_length(v, 70):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'description' and not check_length(v, 120):
-                return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
-            elif k == 'select' and not isinstance(v, bool):
+            # check: type
+            if k == 'select' and not isinstance(v, bool):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
-            new_params[k] = str(v) if k != 'select' else v
+            new_params[k] = str(v) if k not in ['select'] else v
 
-        # ========= check data
+        # check: length
+        for _key, _value in self.dtalk_robot_add_ck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # ========= check data ???????????
         model = self.dtalk_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
@@ -1356,35 +1362,30 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
-        # check key and secret is or not repeat
-        """
-        if new_params.get('key') and new_params.get('secret'):
-            if self.dtalk_robot_bo.get_model_by_key_secret(
-                    key=new_params.get('key'),
-                    secret=new_params.get('secret'),
-                    rtx_id=new_params.get('rtx_id')):
-                return Status(
-                    213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
-        """
+
         # select default
         if new_params.get('select'):
             self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
         # --------------------------------------- update model --------------------------------------
-        model.name = new_params.get('name')
-        model.key = new_params.get('key')
-        model.secret = new_params.get('secret')
-        model.description = new_params.get('description')
-        model.select = new_params.get('select') or False
-        self.dtalk_robot_bo.merge_model(model)
+        try:
+            model.name = new_params.get('name')
+            model.key = new_params.get('key')
+            model.secret = new_params.get('secret')
+            model.description = new_params.get('description')
+            model.select = new_params.get('select') or False
+            self.dtalk_robot_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dtalk_robot_select(self, params: dict):
+    def dtalk_robot_select(self, params: dict) -> json:
         """
         set dtalk robot default select status by md5
         :return: json data
@@ -1405,6 +1406,7 @@ class NotifyService(object):
             if not v and k != 'select':
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            # check: type
             if k == 'select' and not isinstance(v, bool):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
@@ -1422,8 +1424,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # status
@@ -1434,8 +1436,8 @@ class NotifyService(object):
         # select set
         """
         设置选择分2种：
-            1.数据为选择状态，直接全都设置非选择
-            2.数据为非选择状态，先全部设置非选择状态，再把选择的数据设置为选择
+            >>>>> 1.数据为选择状态，直接全都设置非选择
+            >>>>> 2.数据为非选择状态，先全部设置非选择状态，再把选择的数据设置为选择
         """
         self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
         # --------------------------------------- update model --------------------------------------
@@ -1446,16 +1448,17 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def dtalk_send_init(self, params: dict):
+    def dtalk_send_init(self, params: dict) -> json:
         """
         dtalk send message initialize data
         :return: json data
         """
+        # <<<<<<<<<<<<<<<<<<<<< parameters check >>>>>>>>>>>>>>>>>>>>
+        # > no
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
-        # parameters check
+        # > check
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1468,6 +1471,7 @@ class NotifyService(object):
             new_params[k] = str(v)
         # ------------------------ dtalk data ------------------------
         dtalk_model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
+        # no dtalk model
         if not dtalk_model:
             set_sheet_index = []
             sheet_names = []
@@ -1480,6 +1484,7 @@ class NotifyService(object):
                     sheet_names.append({'key': k, 'value': v})
         # ========================= dtalk robot data =========================
         robot_model = self.dtalk_robot_bo.get_model_by_rtx(new_params.get('rtx_id'))
+        # no dtalk robot model
         if not robot_model:
             select_robot_index = ''
             robot_enums = []
@@ -1490,6 +1495,7 @@ class NotifyService(object):
                 if r.select:
                     select_robot_index = r.key
                 robot_enums.append({'key': r.key, 'value': r.name})
+        """     return json data    """
         _result = {
             'sheet_index': set_sheet_index,
             'sheet_names': sheet_names,
@@ -1600,7 +1606,7 @@ class NotifyService(object):
             | 3.run the main.py script file to send messages       |
             +------------------------------------------------------+
         """
-        # no parameters
+        # <<< no parameters >>>
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -1611,15 +1617,15 @@ class NotifyService(object):
             if k not in self.req_dtalk_send_attrs:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if not v:
+            if not v:       # check value is not allow null
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            if k == 'sheet' and not isinstance(v, list):
+            if k == 'sheet' and not isinstance(v, list):        # check sheet type
                 return Status(
                     210, 'failure', u'请求参数%s为类型为List' % k, {}).json()
             new_params[k] = str(v) if k != 'sheet' else v
 
-        """ dtalk check """
+        """ dtalk check: get dtalk model from dtalk_message table """
         dtalk_model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not dtalk_model:
@@ -1631,12 +1637,12 @@ class NotifyService(object):
                 302, 'failure', 'dtalk数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, dtalk_model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([dtalk_model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
-        """ dtalk robot check """
-        robot_model = self.dtalk_robot_bo.get_model_by_key_rtx(new_params.get('robot'), new_params.get('rtx_id'))
+        """ dtalk robot check: get dtalk robot model from dtalk_robot table """
+        robot_model = self.dtalk_robot_bo.get_model_by_key_rtx(key=new_params.get('robot'), rtx=new_params.get('rtx_id'))
         if not robot_model:
             return Status(
                 302, 'failure', 'robot数据不存在' or StatusMsgs.get(302), {}).json()
@@ -1649,14 +1655,14 @@ class NotifyService(object):
             return Status(
                 214, 'failure', "缺少key或者secret，请完善配置信息", {}).json()
 
-        # check template file and refer parameters
+        # <<<<<< check template file and refer parameters >>>>>
         dtalk_file = dtalk_model.file_local_url
         if not dtalk_file or not os.path.exists(dtalk_file) \
                 or not os.path.isfile(dtalk_file):
             return Status(
                 302, 'failure', '文件不存在，请删除重新上传' or StatusMsgs.get(226), {}).json()
         # -------------------------------- check end --------------------------------
-        ####### dtalk api test to ping
+        ####### dtalk api test to ping #######
         dtalk_api = DtalkLib(app_key=robot_model.key, app_secret=robot_model.secret)
         if not dtalk_api.is_avail():
             return Status(
@@ -1696,7 +1702,7 @@ class NotifyService(object):
             f_l = list()
             for d in excel_data:
                 if not d: continue
-                if d.get('id') in DTALK_CONTROL: continue   #### 添加发送控制，配置文件
+                if d.get('id') in DTALK_CONTROL: continue   #### 添加发送控制，配置文件 ####
                 dtalk_user_id = d.get('id')
                 res = dtalk_api.robot2send(
                     self.__format_message_json(content=d.get('data'), title=set_titles_json.get(str(sheet_index))),
@@ -1756,7 +1762,7 @@ class NotifyService(object):
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            new_params[k] = str(v) if k != 'select' else v
+            new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<<<<<< get data >>>>>>>>>>>>>>>>>>>>>
         model = self.dtalk_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
@@ -1770,19 +1776,22 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # not key or not secret
         if not model.key or not model.secret:
             return Status(
                 214, 'failure', "缺少KEY或SECRET，请完善配置信息", {}).json()
+        # <<<<<<<<<<<<<<<<<<<<< ping >>>>>>>>>>>>>>>>>>>>>
         # ping test
+        # 初始化DtalkLib类
         dtalk_api = DtalkLib(app_key=model.key, app_secret=model.secret)
         if not dtalk_api.is_avail():
             return Status(
                 499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
+        # 关闭DtalkLib
         dtalk_api.close()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
@@ -1812,8 +1821,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # <get data>
         res, total = self.qywx_robot_bo.get_all(new_params)
@@ -1845,6 +1854,7 @@ class NotifyService(object):
         select: 是否默认
         :return: json data
         """
+        # >>>>>>>>> no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -1864,7 +1874,7 @@ class NotifyService(object):
             if k == 'select' and not isinstance(v, bool):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
-            new_params[k] = str(v) if k != 'select' else v
+            new_params[k] = str(v) if k not in ['select'] else v
         # check: length
         for _key, _value in self.qywx_robot_attrs_length_check.items():
             if not _key: continue
@@ -1873,7 +1883,7 @@ class NotifyService(object):
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
         # check key and secret is or not repeat
-        if new_params.get('key') and new_params.get('secret') and new_params.get('agent') :
+        if new_params.get('key') and new_params.get('secret') and new_params.get('agent'):
             if self.qywx_robot_bo.get_model_by_key_secret_agent(
                     key=new_params.get('key'),
                     secret=new_params.get('secret'),
@@ -1942,15 +1952,20 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
         # <update data>
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.qywx_robot_bo.merge_model(model)
+        try:
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.qywx_robot_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1981,11 +1996,16 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # << batch delete >>
-        res = self.qywx_robot_bo.batch_delete_by_md5(params=new_params)
+        try:
+            res = self.qywx_robot_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -1997,6 +2017,7 @@ class NotifyService(object):
         get qywx robot latest detail information by md5
         :return: json data
         """
+        # no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -2026,8 +2047,8 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # return data
@@ -2086,21 +2107,26 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # select default
         if new_params.get('select'):
             self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
         # --------------------------------------- update model --------------------------------------
-        model.name = new_params.get('name')
-        model.key = new_params.get('key')
-        model.secret = new_params.get('secret')
-        model.agent = new_params.get('agent')
-        model.description = new_params.get('description')
-        model.select = new_params.get('select') or False
-        self.qywx_robot_bo.merge_model(model)
+        try:
+            model.name = new_params.get('name')
+            model.key = new_params.get('key')
+            model.secret = new_params.get('secret')
+            model.agent = new_params.get('agent')
+            model.description = new_params.get('description')
+            model.select = new_params.get('select') or False
+            self.qywx_robot_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -2123,13 +2149,14 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
-            if not v and k != 'select':
+            if not v and k not in ['select']:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             if k == 'select' and not isinstance(v, bool):
                 return Status(
                     213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
-            new_params[k] = str(v) if k != 'select' else v
+            new_params[k] = str(v) if k not in ['select']\
+                else v
 
         # ========= check data
         model = self.qywx_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
@@ -2143,8 +2170,8 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 310, 'failure', StatusMsgs.get(310), {}).json()
         # status
@@ -2188,7 +2215,7 @@ class NotifyService(object):
             if not v:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
-            new_params[k] = str(v) if k != 'select' else v
+            new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<<<<<< get data >>>>>>>>>>>>>>>>>>>>>
         model = self.qywx_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
@@ -2202,22 +2229,20 @@ class NotifyService(object):
                 304, 'failure', StatusMsgs.get(304), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         # not key or not secret
-        if not model.key or not model.secret:
+        if not model.key \
+                or not model.secret \
+                or not model.agent:
             return Status(
                 214, 'failure', "缺少KEY或SECRET，请完善配置信息", {}).json()
 
-        # ping test
-        robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('md5'))
-        if not robot_model:
-            return Status(
-                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
         # --------------------------------------- get token from 企业微信  --------------------------------------
-        qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
+        # ping test
+        qywx_lib = QYWXLib(corp_id=model.key, secret=model.secret, agent_id=model.agent)
         if not qywx_lib.check_token():
             return Status(
                 499, 'failure', 'PING失败，请检查配置' or StatusMsgs.get(499), {}).json()
@@ -2242,44 +2267,41 @@ class NotifyService(object):
         for attr in self.qywx_list_attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'title':
-                _res[attr] = model.title
+                _res[attr] = getattr(model, 'title', '')
             elif attr == 'content':
-                _res[attr] = model.content
+                content = getattr(model, 'content', '')
                 if _type == 'list':
-                    _res[attr] = model.content or '' \
-                        if len(model.content) < AUTH_NUM \
-                        else '%s...查看详情' % str(model.content)[:AUTH_NUM - 1]
+                    _res[attr] = content \
+                        if content and len(content) < AUTH_NUM \
+                        else '%s...查看详情' % str(content)[:AUTH_NUM - 1]
                 else:
-                    _res[attr] = model.content or ''
+                    _res[attr] = content
             elif attr == 'user':
-                _res[attr] = model.user
+                _res[attr] = getattr(model, 'user', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'msg_id':
-                _res[attr] = model.msg_id
+                _res[attr] = getattr(model, 'msg_id', '')
             elif attr == 'robot':
-                _res[attr] = model.robot
+                _res[attr] = getattr(model, 'robot', '')
             elif attr == 'type':
-                _res[attr] = model.type
+                _res[attr] = getattr(model, 'type', '')
             elif attr == 'count':
-                _res[attr] = model.count
-            elif attr == 'enum_name':
-                _res['type_name'] = model.enum_name
+                _res[attr] = getattr(model, 'count', 0)
+            elif attr == 'enum_value':
+                _res['type_name'] = getattr(model, 'enum_value', '')
             elif attr == 'last_send_time':
-                _res['last_send_time'] = d2s(model.last_send_time) \
-                    if model.last_send_time and model.last_send_time != '0000-00-00 00:00:00' else ''
+                _res['last_send_time'] = self._transfer_time(model.last_send_time)
             elif attr == 'create_time':
-                _res['create_time'] = d2s(model.create_time) \
-                    if model.create_time and model.create_time != '0000-00-00 00:00:00' else ''
+                _res['create_time'] = self._transfer_time(model.create_time)
             elif attr == 'delete_time':
-                _res['delete_time'] = d2s(model.delete_time) \
-                    if model.delete_time and model.delete_time != '0000-00-00 00:00:00' else ''
+                _res['delete_time'] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx
+                _res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'is_del':
                 _res[attr] = model.is_del or False
             elif attr == 'is_back':
@@ -2289,7 +2311,7 @@ class NotifyService(object):
 
     def qywx_list(self, params: dict):
         """
-        get qywx message list by params, params is dict
+        get qywx message list from db table qywx_message by parameters
         return json data
         """
         # ====================== parameters check ======================
@@ -2311,8 +2333,8 @@ class NotifyService(object):
                 v = str(v) if v else ''
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
 
         # <get data>
@@ -2368,15 +2390,20 @@ class NotifyService(object):
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 311, 'failure', StatusMsgs.get(311), {}).json()
-        # <update data> 软删除
-        model.is_del = True
-        model.delete_rtx = rtx_id
-        model.delete_time = get_now()
-        self.qywx_bo.merge_model(model)
+        try:
+            # <update data> 软删除
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.qywx_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -2407,11 +2434,16 @@ class NotifyService(object):
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])  # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # << batch delete >>
-        res = self.qywx_bo.batch_delete_by_md5(params=new_params)
+        try:
+            res = self.qywx_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -2449,12 +2481,12 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         """  return data """
-        # enum
+        # enum: qywx-type
         enums = self.enum_bo.get_model_by_name('qywx-type')
         type_res = list()
         for e in enums:
@@ -2515,23 +2547,23 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
         # --------------------------------------- update model --------------------------------------
-        model.title = new_params.get('title')
-        model.content = new_params.get('content')
-        model.type = new_params.get('type')
-        model.user = new_params.get('user')
         try:
+            model.title = new_params.get('title')
+            model.content = new_params.get('content')
+            model.type = new_params.get('type')
+            model.user = new_params.get('user')
             self.qywx_bo.merge_model(model)
             return Status(
                 100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}).json()
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+                322, 'failure', StatusMsgs.get(322), {'md5': model.md5_id}).json()
 
     def qywx_add(self, params: dict) -> json:
         """
@@ -2561,6 +2593,7 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
+        # 默认的robot，存储robot md5-id
         default_robot_model = self.qywx_robot_bo.get_default_by_rtx(new_params.get('rtx_id'))
         # --------------------------------------- add model --------------------------------------
         new_model = self.qywx_bo.new_mode()
@@ -2569,10 +2602,10 @@ class NotifyService(object):
         new_model.content = new_params.get('content')
         new_model.user = new_params.get('user')
         new_model.type = new_params.get('type')
-        new_model.count = 0
+        new_model.count = 0     # 默认发送次数为0
         md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
         new_model.md5_id = md5_id
-        new_model.robot = getattr(default_robot_model, 'md5_id', '')
+        new_model.robot = getattr(default_robot_model, 'md5_id', '')    # 获取默认的robot
         new_model.create_time = get_now()
         new_model.is_del = False
         new_model.is_back = False
@@ -2585,7 +2618,7 @@ class NotifyService(object):
                 100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}).json()
+                320, 'failure', StatusMsgs.get(320), {'md5': md5_id}).json()
 
     def qywx_add_init(self):
         """
@@ -2633,18 +2666,18 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
         """  return data """
-        # enum
+        # return data: enum list
         enums = self.enum_bo.get_model_by_name('qywx-type')
         type_res = list()
         for e in enums:
             if not e: continue
             type_res.append({'label': str(e.value), 'value': str(e.key)})
-        # robot
+        # return data: robot list
         robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
         robot_res = list()
         for r in robots:
@@ -2654,10 +2687,10 @@ class NotifyService(object):
             'title': getattr(model, 'title', ''),
             'content': getattr(model, 'content', ''),
             'user': getattr(model, 'user', ''),
-            'type': getattr(model, 'type', ''),
-            'type_lists': type_res,
-            'robot': getattr(model, 'robot', ''),
-            'robot_lists': robot_res
+            'type': getattr(model, 'type', ''),     # 选择的类型
+            'type_lists': type_res,                 # 类型枚举
+            'robot': getattr(model, 'robot', ''),   # 设置的机器人
+            'robot_lists': robot_res                # 机器人枚举
         }
         return Status(
             100, 'success', StatusMsgs.get(100), _res).json()
@@ -2695,7 +2728,7 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
-        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        # <<<<<<<<<<<<<<<<< qyex_meesgae model >>>>>>>>>>>>>>>>>>>>
         model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
@@ -2707,26 +2740,39 @@ class NotifyService(object):
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
-
+        # <<<<<<<<<<<<<<<<< qyex_meesgae robot model >>>>>>>>>>>>>>>>>>>>
         robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('robot'))
         if not robot_model:
             return Status(
                 302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if robot_model.is_del:
+            return Status(
+                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+        # not key or not secret or not agent
+        if not robot_model.key \
+                or not robot_model.secret \
+                or not robot_model.agent:
+            return Status(
+                214, 'failure', "请完善机器人配置信息", {}).json()
         # --------------------------------------- send --------------------------------------
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
                 480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
         try:
+            # user用户列表
             to_user = new_params.get('user').split(';')
+            # 消息类型
             send_type = str(new_params.get('type'))
             if send_type not in qywx_lib.types:
                 return Status(
                     213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+            # 消息内容
             new_content = dict()
             if send_type in ['text', 'markdown']:    # text, markdown消息
                 new_content['data'] = new_params.get('content')
@@ -2734,6 +2780,7 @@ class NotifyService(object):
             else:
                 return Status(
                     213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+
             _q_res_json = json.loads(_q_res)
             if _q_res_json.get('status_id') != 100:
                 return Status(
@@ -2796,6 +2843,7 @@ class NotifyService(object):
             robot_res.append({'label': str(r.name), 'value': str(r.md5_id)})
             if r.select:
                 select_robot = str(r.md5_id)
+        # 临时消息发送获取当前用户默认选择robot
         _res = {
             'type_lists': type_res,
             'robot': select_robot,
@@ -2837,22 +2885,35 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
-        # <<<<<<<<<<<<<<<<< 临时发送不记录 >>>>>>>>>>>>>>>>>>>>
+        # <<<<<<<<<<<<<<<<< qyex_meesgae robot model >>>>>>>>>>>>>>>>>>>>
         robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('robot'))
         if not robot_model:
             return Status(
                 302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if robot_model.is_del:
+            return Status(
+                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+        # not key or not secret or not agent
+        if not robot_model.key \
+                or not robot_model.secret \
+                or not robot_model.agent:
+            return Status(
+                214, 'failure', "请完善机器人配置信息", {}).json()
         # --------------------------------------- send --------------------------------------
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
                 480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
         try:
+            # user用户列表
             to_user = new_params.get('user').split(';')
+            # 消息类型
             send_type = str(new_params.get('type'))
             if send_type not in qywx_lib.types:
                 return Status(
                     213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+            # 消息内容
             new_content = dict()
             if send_type in ['text', 'markdown']:  # text, markdown消息
                 new_content['data'] = new_params.get('content')
@@ -2860,6 +2921,7 @@ class NotifyService(object):
             else:
                 return Status(
                     213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+            # <<<<<<<<<<<<<<<<< 临时发送不记录 >>>>>>>>>>>>>>>>>>>>
             _q_res_json = json.loads(_q_res)
             if _q_res_json.get('status_id') != 100:
                 return Status(
@@ -2912,15 +2974,26 @@ class NotifyService(object):
                 308, 'failure', '消息未设置消息机器人，不允许撤销', {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.rtx_id])  # 特权账号 + 数据账号
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
+        # <<<<<<<<<<<<<<<<< qyex_meesgae robot model >>>>>>>>>>>>>>>>>>>>
         robot_model = self.qywx_robot_bo.get_model_by_md5(model.robot)
         if not robot_model:
             return Status(
                 302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if robot_model.is_del:
+            return Status(
+                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+        # not key or not secret or not agent
+        if not robot_model.key \
+                or not robot_model.secret \
+                or not robot_model.agent:
+            return Status(
+                214, 'failure', "请完善机器人配置信息", {}).json()
         # --------------------------------------- 撤销消息 --------------------------------------
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
@@ -2936,7 +3009,6 @@ class NotifyService(object):
             return Status(
                 499, 'failure', '企业微信撤销消息故障：%s' % e, {}).json()
         # --------------------------------------- update model --------------------------------------
-
         try:
             model.is_back = True
             self.qywx_bo.merge_model(model)

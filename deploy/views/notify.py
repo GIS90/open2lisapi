@@ -274,7 +274,7 @@ def dtalk_robot_deletes():
 @watcher(watcher_args=request)
 def dtalk_robot_detail():
     """
-    get dtalk robot detail information by md5
+    get dtalk robot detail information by md5 from dtalk_robot table
     :return: json data
     """
     if request.method == 'GET':

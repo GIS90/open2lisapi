@@ -71,7 +71,9 @@ class QywxMessageBo(BOBase):
                                QywxMessageModel.is_del,
                                QywxMessageModel.is_back,
                                QywxMessageModel.msg_id,
-                               EnumModel.value.label('enum_name'))
+                               EnumModel.name.label('enum_name'),
+                               EnumModel.key.label('enum_key'),
+                               EnumModel.value.label('enum_value'))
         q = q.filter(QywxMessageModel.type == EnumModel.key)
         q = q.filter(QywxMessageModel.is_del != 1)
         if params.get('enum_name'):
