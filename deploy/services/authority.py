@@ -312,30 +312,31 @@ class AuthorityService(object):
         for attr in self.role_list_attrs:
             if not attr:continue
             if attr == 'engname':
-                res[attr] = model.engname
+                res[attr] = getattr(model, 'engname', '')
             elif attr == 'chnname':
-                res[attr] = model.chnname
+                res[attr] = getattr(model, 'chnname', '')
             elif attr == 'md5_id':
-                res[attr] = model.md5_id
+                res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'authority':
-                res[attr] = model.authority
+                res[attr] = getattr(model, 'authority', '')
             elif attr == 'introduction':
+                introduction = getattr(model, 'introduction', '')
                 if not is_detail:
-                    res[attr] = model.introduction or '' \
-                        if len(model.introduction) < AUTH_NUM \
-                        else '%s...查看详情' % str(model.introduction)[:AUTH_NUM-1]
+                    res[attr] = introduction \
+                        if introduction and len(introduction) < AUTH_NUM \
+                        else '%s...查看详情' % str(introduction)[:AUTH_NUM-1]
                 else:
-                    res[attr] = model.introduction or ''
+                    res[attr] = introduction
             elif attr == 'create_time':
                 res[attr] = self._transfer_time(model.create_time)
             elif attr == 'create_rtx':
-                res[attr] = model.create_rtx
+                res[attr] = getattr(model, 'create_rtx', '')
             elif attr == 'delete_time':
                 res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
-                res[attr] = model.delete_rtx
+                res[attr] = getattr(model, 'delete_rtx', '')
             elif attr == 'is_del':
-                res[attr] = model.is_del
+                res[attr] = model.is_del or False
         else:
             return res
 
@@ -354,42 +355,43 @@ class AuthorityService(object):
         for attr in self.user_list_attrs:
             if not attr: continue
             if attr == 'id':
-                _res[attr] = model.id
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'md5_id':
-                _res[attr] = model.md5_id
+                _res[attr] = getattr(model, 'md5_id', '')
             elif attr == 'fullname':
-                _res['name'] = model.fullname
+                _res['name'] = getattr(model, 'fullname', '')
             elif attr == 'password' and is_pass:
-                _res[attr] = model.password
+                _res[attr] = getattr(model, 'password', '')
             elif attr == 'email':
-                _res[attr] = model.email or ""
+                _res[attr] = getattr(model, 'email', '')
             elif attr == 'phone':
-                _res[attr] = model.phone or ""
+                _res[attr] = getattr(model, 'phone', '')
             elif attr == 'avatar':
-                _res[attr] = model.avatar or USER_DEFAULT_AVATAR
+                _res[attr] = getattr(model, 'avatar', USER_DEFAULT_AVATAR)
             elif attr == 'introduction':
+                introduction = getattr(model, 'introduction', '')
                 if not is_detail:
-                    _res[attr] = '%s...查看详情' % str(model.introduction)[0: AUTH_NUM-1] \
-                        if model.introduction and len(model.introduction) > AUTH_NUM \
-                        else model.introduction or ""
+                    _res[attr] = '%s...查看详情' % str(introduction)[0: AUTH_NUM-1] \
+                        if introduction and len(introduction) > AUTH_NUM \
+                        else introduction
                 else:
-                    _res[attr] = model.introduction or ""
+                    _res[attr] = introduction
             elif attr == 'department':
-                _res[attr] = model.department or ""
+                _res[attr] = getattr(model, 'department', '')
             elif attr == 'role':  # 多角色，存储role的engname，也就是role的rtx_id
                 _res[attr] = str(model.role).split(';') if model.role else []
             elif attr == 'create_time':
                 _res[attr] = self._transfer_time(model.create_time)
             elif attr == 'create_rtx':
-                _res[attr] = model.create_rtx or ''
+                _res[attr] = getattr(model, 'create_rtx', '')
             elif attr == 'is_del':
-                _res[attr] = True if model.is_del else False
+                _res[attr] = model.is_del or False
             elif attr == 'delete_time':
                 _res[attr] = self._transfer_time(model.delete_time)
             elif attr == 'delete_rtx':
-                _res[attr] = model.delete_rtx or ""
+                _res[attr] = getattr(model, 'delete_rtx', '')
         else:
             return _res
 
@@ -564,6 +566,7 @@ class AuthorityService(object):
 
         new role model data
         """
+        # >>>>>>>>> no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
@@ -734,6 +737,7 @@ class AuthorityService(object):
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {}).json()
+
         return Status(100, 'success', StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
             else Status(303, 'failure',
@@ -792,6 +796,7 @@ class AuthorityService(object):
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {}).json()
+        
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
