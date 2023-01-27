@@ -707,7 +707,7 @@ class InfoService(object):
             return Status(
                 100, 'success', StatusMsgs.get(100), []).json()
         names = list()
-        # not exist
+        # 格式化
         for _m in models:
             if not _m: continue
             names.append({'label': _m[0], 'value': _m[0]})
@@ -1322,11 +1322,10 @@ class InfoService(object):
             return Status(
                 100, 'success', StatusMsgs.get(100), []).json()
         _res = list()
-        # not exist
+        # 格式化
         for _m in models:
             if not _m: continue
             _res.append({'key': _m.key, 'value': _m.value})
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), _res
-        ).json()
+            100, 'success', StatusMsgs.get(100), _res).json()
