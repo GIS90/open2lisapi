@@ -196,6 +196,31 @@ crontab简单功能：
 
 官网开发手册Python API：https://developer.qiniu.com/kodo/1242/python
 
+### 模板代码
+
+> 顺序ID特殊判断处理
+
+```
+order_id = str(new_params.get('order_id'))
+if not order_id:
+    new_params['order_id'] = 1
+if order_id and not order_id.isdigit():
+    return Status(
+        213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+        # parameters check length
+        
+```
+
+> 参数长度检查
+
+```
+for _key, _value in self.req_api_add_ck_len_attrs.items():
+    if not _key: continue
+    if not check_length(new_params.get(_key), _value):
+        return Status(
+            213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+```
+
 ### 其他
 
   - install_env.py项目一键式环境部署，前提服务器上有python3、pip，直接执行这个脚本即可
