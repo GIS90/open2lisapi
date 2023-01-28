@@ -81,6 +81,18 @@ class RequestService(object):
             'type'
         ]
 
+    @staticmethod
+    def _transfer_time(t):
+        if not t:
+            return ""
+
+        if not isinstance(t, str):
+            return d2s(t)
+        elif isinstance(t, str) and t == '0000-00-00 00:00:00':
+            return ""
+        else:
+            return t or ''
+
     def _model_to_dict(self, model, _type='timeline'):
         """
         request model to dict data
@@ -92,45 +104,45 @@ class RequestService(object):
         if _type == 'timeline':
             for attr in self.timeline_attrs:
                 if attr == 'id':
-                    _res[attr] = model.id or ""
+                    _res[attr] = getattr(model, 'id', '')
                 elif attr == 'rtx_id':
-                    _res[attr] = model.rtx_id or ""
+                    _res[attr] = getattr(model, 'rtx_id', '')
                 elif attr == 'url':
-                    _res['url'] = model.url or ""
+                    _res['url'] = getattr(model, 'url', '')
                 elif attr == 'create_time':
-                    _res['timestamp'] = d2s(model.create_time) if model.create_time else ''
+                    _res['timestamp'] = self._transfer_time(model.create_time)
                 elif attr == 'type':
-                    _res['type'] = model.type or "success"
+                    _res['type'] = getattr(model, 'type', 'success')
                 elif attr == 'short':
-                    _res['title'] = model.short or ""
+                    _res['title'] = getattr(model, 'short', '')
                 elif attr == 'long':
-                    _res['content'] = model.long or ""
+                    _res['content'] = getattr(model, 'long', '')
             else:
                 return _res
 
         for attr in self.all_attrs:
             if attr == 'id':
-                _res[attr] = model.id or ""
+                _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
-                _res[attr] = model.rtx_id or ""
+                _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'ip':
-                _res[attr] = model.ip or ""
+                _res[attr] = getattr(model, 'ip', '')
             elif attr == 'blueprint':
-                _res[attr] = model.blueprint or ""
+                _res[attr] = getattr(model, 'blueprint', '')
             elif attr == 'endpoint':
-                _res[attr] = model.endpoint or ""
+                _res[attr] = getattr(model, 'endpoint', '')
             elif attr == 'method':
-                _res[attr] = model.method or ""
+                _res[attr] = getattr(model, 'method', '')
             elif attr == 'path':
-                _res[attr] = model.path or ""
+                _res[attr] = getattr(model, 'path', '')
             elif attr == 'full_path':
-                _res[attr] = model.full_path or ""
+                _res[attr] = getattr(model, 'full_path', '')
             elif attr == 'host_url':
-                _res[attr] = model.host_url or ""
+                _res[attr] = getattr(model, 'host_url', '')
             elif attr == 'url':
-                _res[attr] = model.url or ""
+                _res[attr] = getattr(model, 'url', '')
             elif attr == 'create_time':
-                _res[attr] = d2s(model.create_time) if model.create_time else ''
+                _res[attr] = self._transfer_time(model.create_time)
         else:
             return _res
 
