@@ -61,6 +61,15 @@ class OfficeService(object):
     office service
     """
 
+    # 用户
+    req_user_necessary_attrs = ['rtx_id']
+
+    # 数据md5
+    req_md5_necessary_attrs = ['rtx_id', 'md5']
+
+    # list api
+    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
+
     # define many request api parameters
     req_source_list_attrs = [
         'rtx_id',
@@ -118,6 +127,12 @@ class OfficeService(object):
         'name',
         'list',
         'blank'
+    ]
+
+    req_merge_need_attrs = [
+        'rtx_id',
+        'name',
+        'list'
     ]
 
     req_init_split_attrs = [
@@ -682,7 +697,7 @@ class OfficeService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_source_list_attrs:
+        for _attr in self.req_list_necessary_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -992,7 +1007,7 @@ class OfficeService(object):
                 212, 'failure', u'缺少请求参数', {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_merge_attrs:
+        for _attr in self.req_merge_need_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -1120,7 +1135,7 @@ class OfficeService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_result_list_attrs:
+        for _attr in self.req_list_necessary_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -1806,7 +1821,7 @@ class OfficeService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_pdf_update_attrs:
+        for _attr in self.req_md5_necessary_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()

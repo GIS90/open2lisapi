@@ -586,7 +586,7 @@ class SearchService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_md5_necessary_attrs:
+        for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
