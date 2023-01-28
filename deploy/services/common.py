@@ -52,6 +52,23 @@ class CommonService(object):
     common service
     """
 
+    # 用户
+    req_user_necessary_attrs = ['rtx_id']
+
+    # 数据md5
+    req_md5_necessary_attrs = ['rtx_id', 'md5']
+
+    # list api
+    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
+
+    # define many request api parameters
+    # 分页数据通用请求参数
+    req_page_comm_attrs = [
+        'rtx_id',
+        'limit',
+        'offset'
+    ]
+
     req_upload_attrs = [
         'rtx_id',
         'file_type'
@@ -94,18 +111,24 @@ class CommonService(object):
         if not params:
             return Status(
                 212, 'failure', u'缺少请求参数' or StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_upload_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         for k, v in params.items():
             if not k: continue
             # illegal parameters check
             if k not in self.req_upload_attrs and v:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # necessary value check
             if not v and k in self.req_upload_attrs:
                 return Status(
-                    212, 'failure', u'缺少%s请求参数' % k, {}
-                ).json()
+                    212, 'failure', u'缺少%s请求参数' % k, {}).json()
 
         # ======================= local store =======================
         f_name = upload_file.filename   # file object
