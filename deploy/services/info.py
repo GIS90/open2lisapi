@@ -53,7 +53,18 @@ class InfoService(object):
 
     PAGE_LIMIT = 15
 
-    req_dict_list_attrs = [
+    # 用户
+    req_user_necessary_attrs = ['rtx_id']
+
+    # 数据md5
+    req_md5_necessary_attrs = ['rtx_id', 'md5']
+
+    # list api
+    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
+
+    # define many request api parameters
+    # 分页数据通用请求参数
+    req_page_comm_attrs = [
         'rtx_id',
         'limit',
         'offset'
@@ -366,11 +377,19 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_page_comm_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_dict_list_attrs and v:
+            if k not in self.req_page_comm_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'limit':
@@ -414,7 +433,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_dict_status_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # ================= parameters check and format =================
         new_params = dict()
         for k, v in params.items():
@@ -464,6 +490,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -508,6 +542,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new format parameter
         new_params = dict()
         for k, v in params.items():
@@ -547,6 +589,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_dict_disables_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new format parameter
         new_params = dict()
         for k, v in params.items():
@@ -586,6 +636,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -626,6 +684,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_dict_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -689,6 +755,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_dict_names_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -736,6 +810,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_dict_add_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -903,6 +985,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_page_comm_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         """
         # new parameters
         new_params = dict()
@@ -974,11 +1064,19 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_page_comm_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_dict_list_attrs and v:
+            if k not in self.req_page_comm_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'limit':
@@ -1018,6 +1116,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -1062,6 +1168,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new format parameter
         new_params = dict()
         for k, v in params.items():
@@ -1100,6 +1214,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -1161,6 +1283,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_api_add_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -1237,6 +1367,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_api_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -1304,6 +1442,14 @@ class InfoService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_api_types_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
