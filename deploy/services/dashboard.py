@@ -53,6 +53,24 @@ class DashboardService(object):
     """
     dashboard service
     """
+
+    # 用户
+    req_user_necessary_attrs = ['rtx_id']
+
+    # 数据md5
+    req_md5_necessary_attrs = ['rtx_id', 'md5']
+
+    # list api
+    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
+
+    # define many request api parameters
+    # 分页数据通用请求参数
+    req_page_comm_attrs = [
+        'rtx_id',
+        'limit',
+        'offset'
+    ]
+
     req_pan_attrs = [
         'rtx_id'
     ]
@@ -102,6 +120,14 @@ class DashboardService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_pan_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -173,6 +199,14 @@ class DashboardService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_pan_chart_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -379,6 +413,14 @@ class DashboardService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_index_chart_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -432,6 +474,14 @@ class DashboardService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_shortcut_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -553,6 +603,14 @@ class DashboardService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_shortcut_edit_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -658,6 +716,14 @@ class DashboardService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_shortcut_save_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
