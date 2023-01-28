@@ -201,6 +201,14 @@ crontab简单功能：
 > 必要参数校验
 
 ```
+# 用户
+req_user_necessary_attrs = ['rtx_id']
+
+# 数据md5
+req_md5_necessary_attrs = ['rtx_id', 'md5']
+
+# list api
+req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
 # **************************************************************************
 """inspect api request necessary parameters"""
 for _attr in self.req_source_list_attrs:
