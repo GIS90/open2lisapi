@@ -52,6 +52,15 @@ class SearchService(object):
 
     SHOW_TEXT_MAX = 55
 
+    # 用户
+    req_user_necessary_attrs = ['rtx_id']
+
+    # 数据md5
+    req_md5_necessary_attrs = ['rtx_id', 'md5']
+
+    # list api
+    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
+
     req_sqlbase_list_attrs = [
         'rtx_id',   # 查询用户rtx
         'limit',    # 条数
@@ -269,6 +278,14 @@ class SearchService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_list_necessary_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -359,6 +376,14 @@ class SearchService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_necessary_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -405,6 +430,14 @@ class SearchService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_necessary_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -445,7 +478,14 @@ class SearchService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -495,6 +535,14 @@ class SearchService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -536,6 +584,14 @@ class SearchService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_md5_necessary_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -607,6 +663,14 @@ class SearchService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_md5_necessary_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
