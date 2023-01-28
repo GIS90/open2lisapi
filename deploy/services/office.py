@@ -1441,8 +1441,8 @@ class OfficeService(object):
             if excel_num else EXCEL_NUM
         bool_type = bool_type \
             if bool_type else BOOL
-        new_params = dict()
         # ====================== parameters common check ======================
+        new_params = dict()
         for k, v in params.items():
             if not k: continue
             if k not in self.req_split_attrs:       # illegal key
@@ -1469,6 +1469,7 @@ class OfficeService(object):
         if not new_params.get('sheet'):
             new_params['sheet'] = '0'
         # ---------------------- check params ok...... -----------------------
+
         # <<<<<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>>>
         model = self.excel_source_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
@@ -1493,7 +1494,13 @@ class OfficeService(object):
         """ =================== split ===================="""
         # 无新文件名称，以原始文件为名称
         if not new_params.get('name'):
-            new_params['name'] = model.name
+            name = model.name
+            # default is 1 多表一Sheet(压缩) 2 一表多Sheet(不压缩)
+            store = str(new_params.get('store'))
+            if store == '1':
+                if os.path.splitext(name)[-1] in self.EXCEL_FORMAT:
+                    name = os.path.splitext(name)[0]
+            new_params['name'] = name
         # 无sheet，默认index为0
         sheet = new_params.get('sheet') or '0'
         headers = model.headers

@@ -524,13 +524,13 @@ class ExcelLib(object):
         rule = [str(x) for x in rule]
         title = str(kwargs.get('title')) \
             if kwargs.get('title') else '1'  # default is 1 有标题
-        if str(rc) not in EXCEL_NUM:
+        if rc not in EXCEL_NUM:
             return self.format_res(
                 213, '请求参数split不合法', {})
-        if str(store) not in EXCEL_SPLIT_STORE:
+        if store not in EXCEL_SPLIT_STORE:
             return self.format_res(
                 213, '请求参数store不合法', {})
-        if str(title) not in BOOL:
+        if title not in BOOL:
             return self.format_res(
                 213, '请求参数header不合法', {})
         # ================ name check ================
