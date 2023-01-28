@@ -180,9 +180,18 @@ class RequestService(object):
         return json data
         采用分页方式
         """
+        # >>>>>>>>>>>>>>>>> no parameters <<<<<<<<<<<<<<<<<<
         if not params:
             return Status(
                 212, 'failure', u'缺少请求参数', {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # check parameters
         new_params = dict()
         for k, v in params.items():

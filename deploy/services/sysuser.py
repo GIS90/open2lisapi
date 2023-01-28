@@ -198,8 +198,7 @@ class SysUserService(object):
         # not rtx_id parameter, return
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}
-            ).json()
+                212, 'failure', u'缺少rtx_id请求参数', {}).json()
         # -------------------- check user data --------------------
         rtx_id = rtx_id.strip()  # 去空格
         # get user by rtx
