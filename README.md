@@ -198,6 +198,19 @@ crontab简单功能：
 
 ### 模板代码
 
+> 必要参数校验
+
+```
+# **************************************************************************
+"""inspect api request necessary parameters"""
+for _attr in self.req_source_list_attrs:
+    if _attr not in params.keys():
+        return Status(
+            212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+"""end"""
+# **************************************************************************
+```
+
 > 顺序ID特殊判断处理
 
 ```
