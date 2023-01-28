@@ -429,3 +429,16 @@ def auth_rtx_join(rtx_list: list) -> list:
     if rtx_list:
         _new_list.extend(rtx_list)
     return _new_list
+
+
+def api_inspect_rtx() -> dict:
+    """
+    检查请求的API是否包含RTX-ID参数，不包含则中止请求
+    POST请求：
+        get_json()
+    GET请求：
+        args
+    其他：
+        no check
+    """
+    pass
