@@ -61,6 +61,14 @@ class SearchService(object):
     # list api
     req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
 
+    # define many request api parameters
+    # 分页数据通用请求参数
+    req_page_comm_attrs = [
+        'rtx_id',
+        'limit',
+        'offset'
+    ]
+
     req_sqlbase_list_attrs = [
         'rtx_id',   # 查询用户rtx
         'limit',    # 条数

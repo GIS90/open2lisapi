@@ -58,10 +58,32 @@ class AuthorityService(object):
 
     DEFAULT_COMPONENT = 'layout'
 
+    # 用户
+    req_user_necessary_attrs = ['rtx_id']
+
+    # 数据md5
+    req_md5_necessary_attrs = ['rtx_id', 'md5']
+
+    # list api
+    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
+
+    # define many request api parameters
+    # 分页数据通用请求参数
+    req_page_comm_attrs = [
+        'rtx_id',
+        'limit',
+        'offset'
+    ]
+
     req_role_list_attrs = [
         'rtx_id',
         'limit',
         'offset'
+    ]
+
+    req_role_detail_attrs = [
+        'rtx_id',
+        'md5'
     ]
 
     req_role_add_attrs = [
@@ -176,6 +198,10 @@ class AuthorityService(object):
         'introduction'
     ]
 
+    req_user_detail_attrs = [
+        'rtx_id',
+    ]
+
     menu_list_attrs = [
         'id',
         'name',
@@ -274,6 +300,15 @@ class AuthorityService(object):
         'rtx_id',
         'md5',
         'status'
+    ]
+
+    req_role_auth_tree_attrs = [
+        'rtx_id',
+        'md5'
+    ]
+
+    req_user_reset_pw_attrs = [
+        'rtx_id'
     ]
 
     def __init__(self):
@@ -480,11 +515,19 @@ class AuthorityService(object):
 
         default get role is no delete
         """
+        # >>>>>>>>>>>>>>>>>>> no parameters <<<<<<<<<<<<<<<<<<<<<
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # ------------------ parameters check -------------------
         new_params = dict()
         for k, v in params.items():
@@ -535,7 +578,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         role_md5 = params.get('md5')
         if not role_md5:
             return Status(
@@ -570,7 +620,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_add_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -628,10 +685,18 @@ class AuthorityService(object):
         by role md5
         :return: json data
         """
+        # >>>>>>>>>>>>> no parameters <<<<<<<<<<<<<
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check, engname is not allow update
         new_params = dict()
         for k, v in params.items():
@@ -691,10 +756,18 @@ class AuthorityService(object):
         post request and json parameters
         :return: json data
         """
+        # ================= no parameters ====================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -751,10 +824,18 @@ class AuthorityService(object):
         post request and json parameters
         :return: json data
         """
+        # ************* no parameters ***************
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -811,6 +892,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_auth_tree_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         if not params.get('md5'):
             return Status(
                 214, 'failure', '缺少md5请求参数', {}).json()
@@ -878,10 +967,18 @@ class AuthorityService(object):
         authority is list type, data is keys
         :return: json data
         """
+        # >>>>>>>>>>>>>> no parameters <<<<<<<<<<<<<<<
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_role_auth_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -952,6 +1049,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -999,6 +1104,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_add_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         """ make new parameters """
         new_params = dict()
         for k, v in params.items():
@@ -1089,6 +1202,15 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # parameters format
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1143,7 +1265,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_status_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -1200,6 +1329,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # check rtx_id is or not exist
         rtx_id = params.get('rtx_id')
         if not rtx_id:
@@ -1240,6 +1377,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1312,7 +1457,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_reset_pw_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         rtx_id = params.get('rtx_id')
         # check rtx_id is or not exist
         model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
@@ -1438,10 +1590,18 @@ class AuthorityService(object):
         get menu detail information from db table menu, menu is dict object
         :return: json data
         """
+        # >>>>>>>>>> no parameters <<<<<<<<<<<
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_menu_info_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # ------------ parameters check ---------------
         new_params = dict()
         for k, v in params.items():
@@ -1505,6 +1665,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_menu_add_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1613,6 +1781,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_menu_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1699,7 +1875,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_menu_status_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check
         new_params = dict()
         for k, v in params.items():
@@ -1752,6 +1935,14 @@ class AuthorityService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_user_kv_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
