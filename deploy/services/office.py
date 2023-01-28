@@ -251,6 +251,12 @@ class OfficeService(object):
         'md5'
     ]
 
+    req_pdf_convert_need_attrs = [
+        'rtx_id',
+        'name',
+        'md5'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -670,9 +676,18 @@ class OfficeService(object):
         params is dict
         return json data
         """
+        # > no parameters
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_source_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # ================= parameters check and format =================
         new_params = dict()
         for k, v in params.items():
@@ -774,11 +789,19 @@ class OfficeService(object):
         params is dict data
         return json data
         """
-        # ===================== parameters check and format =====================
+        # ===================== no parameters =====================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_source_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # ===================== parameters check and format =====================
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -858,6 +881,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -906,6 +937,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -947,9 +986,18 @@ class OfficeService(object):
         return json result
         """
         """ =========================== merge: 1.parameters check and format=========================== """
+        # >>>>>>>> no parameters
         if not params:
             return Status(
                 212, 'failure', u'缺少请求参数', {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_merge_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters format
         new_params = dict()
         for k, v in params.items():
@@ -1070,6 +1118,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_result_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # ************** parameters check and format **************
         new_params = dict()
         for k, v in params.items():
@@ -1128,6 +1184,14 @@ class OfficeService(object):
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}
             ).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_result_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check and format
         new_params = dict()
         for k, v in params.items():
@@ -1195,6 +1259,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # parameters check && format
         new_params = dict()
         for k, v in params.items():
@@ -1241,10 +1313,19 @@ class OfficeService(object):
         delete many excel result excel file by params
         params is dict
         """
-        # ================= parameters check and format ====================
+        # ================= no parameters ====================
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # ================= parameters check and format ====================
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1294,6 +1375,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_init_split_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # >>>>>>>>>>>> new parameters
         new_params = dict()
         for k, v in params.items():
@@ -1366,6 +1455,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_sheet_header_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -1418,8 +1515,15 @@ class OfficeService(object):
         # ******************* no parameters *******************
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_split_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         """ 参数check """
         # ====================== init enums info ======================
         names = ['excel-split-store', 'excel-num', 'bool-type']
@@ -1587,6 +1691,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_pdf2word_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # ================= parameters check and format =================
         new_params = dict()
         for k, v in params.items():
@@ -1636,6 +1748,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -1680,11 +1800,19 @@ class OfficeService(object):
         by file md5
         :return: json data
         """
-        # --------------- parameters check and format ---------------
+        # --------------- no parameters ---------------
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
-
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_pdf_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # --------------- parameters check and format ---------------
         new_params = dict()
         for k, v in params.items():
             if not k: continue
@@ -1777,6 +1905,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters format
         new_params = dict()
         for k, v in params.items():
@@ -1827,6 +1963,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         # new parameters format
         new_params = dict()
         for k, v in params.items():
@@ -1882,6 +2026,14 @@ class OfficeService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_pdf_convert_need_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
         """ ************************************* check parameters ***************************************** """
         new_params = dict()
         for k, v in params.items():
