@@ -58,9 +58,6 @@ class SearchService(object):
     # 数据md5
     req_md5_necessary_attrs = ['rtx_id', 'md5']
 
-    # list api
-    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
-
     # define many request api parameters
     # 分页数据通用请求参数
     req_page_comm_attrs = [
@@ -288,7 +285,7 @@ class SearchService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_list_necessary_attrs:
+        for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -386,7 +383,7 @@ class SearchService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_user_necessary_attrs:
+        for _attr in self.req_sqlbase_add_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -440,7 +437,7 @@ class SearchService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_user_necessary_attrs:
+        for _attr in self.req_add_init_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()

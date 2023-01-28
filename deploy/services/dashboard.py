@@ -60,9 +60,6 @@ class DashboardService(object):
     # 数据md5
     req_md5_necessary_attrs = ['rtx_id', 'md5']
 
-    # list api
-    req_list_necessary_attrs = ['rtx_id', 'limit', 'offset']
-
     # define many request api parameters
     # 分页数据通用请求参数
     req_page_comm_attrs = [
