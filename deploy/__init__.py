@@ -197,15 +197,15 @@ class WebFlaskServer(WebBaseClass):
             self.app.register_blueprint(obj)
 
     def _autoinit_register_blueprint(self):
+        self.register_blueprint('dashboard', dashboard)
         self.register_blueprint('manage', manage)
         self.register_blueprint('user', user)
-        self.register_blueprint('office', office)
-        self.register_blueprint('auth', auth)
-        self.register_blueprint('notify', notify)
         self.register_blueprint('common', common)
-        self.register_blueprint('dashboard', dashboard)
-        self.register_blueprint('info', info)
         self.register_blueprint('search', search)
+        self.register_blueprint('office', office)
+        self.register_blueprint('notify', notify)
+        self.register_blueprint('info', info)
+        self.register_blueprint('auth', auth)
 
     def init_run(self):
         LOG.debug('Server is initializing......')
