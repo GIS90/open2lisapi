@@ -3,7 +3,7 @@
 """
 ------------------------------------------------
 
-describe: 
+describe:
 
 base_info:
     __author__ = "PyGo"
@@ -426,6 +426,41 @@ class SearchService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
+    def _group_database_types(self) -> dict:
+        """
+        format database types by groups
+            - 关系型数据库
+            - 非关系型数据库
+        """
+        database_res = self.enum_bo.get_model_by_name(name='db-type')
+        # return result
+        _res = list()
+        # 关系型数据库
+        _rel_db_list = list()
+        # 非关系型数据库
+        _no_rel_db_list = list()
+        # 其他数据库
+        _other_db_list = list()
+        for _d in database_res:
+            if not _d: continue
+            if not getattr(_d, 'description', ''): continue
+            if str(_d.description).find('非关系型数据库') > -1:
+                _rel_db_list.append({'key': _d.key, 'value': _d.value})
+            elif str(_d.description).find('关系型数据库') > -1:
+                _no_rel_db_list.append({'key': _d.key, 'value': _d.value})
+            else:
+                _other_db_list.append({'key': _d.key, 'value': _d.value})
+        if _rel_db_list:
+            _res.append({'label': '关系型数据库', 'options': _rel_db_list})
+        if _no_rel_db_list:
+            _res.append({'label': '非关系型数据库', 'options': _no_rel_db_list})
+        # 其他默认值
+        # if not _other_db_list:
+            # _other_db_list = [{'key': 'no', 'value': '暂无分类'}]
+        if _other_db_list:
+            _res.append({'label': '其他型', 'options': _other_db_list})
+        return _res
+
     def sqlbase_add_init(self, params: dict) -> json:
         """
         sqlbase add data initialize enum list
@@ -462,11 +497,15 @@ class SearchService(object):
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
         # enum: all database type
+        """
+        # 非分组型数据库类型枚举
         database_res = self.enum_bo.get_model_by_name(name='db-type')
         database_list = list()
         for _d in database_res:
             if not _d: continue
             database_list.append({'key': _d.key, 'value': _d.value})
+        """
+        database_list = self._group_database_types()
         _res = {
             'user': user_list,
             'database': database_list
@@ -630,11 +669,15 @@ class SearchService(object):
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
         # enum: all database type
+        """
+        # 非分组型数据库类型枚举
         database_res = self.enum_bo.get_model_by_name(name='db-type')
         database_list = list()
         for _d in database_res:
             if not _d: continue
             database_list.append({'key': _d.key, 'value': _d.value})
+        """
+        database_list = self._group_database_types()
         _res = {
             'user': user_list,
             'database': database_list,
