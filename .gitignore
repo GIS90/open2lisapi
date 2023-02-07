@@ -134,4 +134,5 @@ dmypy.json
 
 log/*
 deploy/static/transfers/*
+.qiniu*
 
