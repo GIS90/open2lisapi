@@ -42,7 +42,7 @@ USER:
 
 # 云对象存储
 STORE:
-  # 缓存路径【绝对路径】：
+  # 缓存路径【绝对路径】
   # WIN：E:\_CACHE     MacOS：/Users/gaomingliang/Downloads/_CACHE
   CACHE: E:\_CACHE
   BASE_URL: http://store.pygo2.top
