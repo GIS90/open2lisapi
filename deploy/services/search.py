@@ -426,7 +426,7 @@ class SearchService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {}).json()
 
-    def _group_database_types(self) -> dict:
+    def _group_database_types(self) -> list:
         """
         format database types by groups
             - 关系型数据库
@@ -444,6 +444,7 @@ class SearchService(object):
         for _d in database_res:
             if not _d: continue
             if not getattr(_d, 'description', ''): continue
+            # 把非关系排在前面，否则都为关系型
             if str(_d.description).find('非关系型数据库') > -1:
                 _rel_db_list.append({'key': _d.key, 'value': _d.value})
             elif str(_d.description).find('关系型数据库') > -1:
