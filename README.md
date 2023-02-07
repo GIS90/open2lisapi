@@ -83,7 +83,7 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
   - Python3、mysql、supervisor等基础环境安装。
   - 安装好数据库之后，执行dbsql>sql.sql文件，里面配置数据库名称、用户名、密码等（根据需求改成项目需要的）
   - git clone https://github.com/GIS90/open2lisapi.git
-  - 安装项目运行的环境：python install_env.py，建立项目独立的运行环境，安装了virtualenv、python、gunicorn、packages等操作，了解具体详情请参考install_env.py代码
+  - 安装项目运行的环境：python install_env.py，建立项目独立的运行环境，安装了virtualenv、python、gunicorn、packages等操作，了解具体详情请参考install_env.py代码（如果执行遇到问题，直接用本机python环境部署requirements.txt包，详情见手工部署）
   - 更新web配置文件：etc/prod/config.yaml（线上）、etc/dev/config.yaml（测试），根据不同需求进行配置更改
   - cd 项目根目录：source .venv/bin/activate：激活项目环境
   - 启动项目：
@@ -93,7 +93,7 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
     如果是测试或者开发，建议使用手动启动项目，关于dev/prod中的config.yaml配置信息详情请参考配置解析说明部分
   - 选做：安装supervisor && 项目加入supervisor进行管理，项目包含了supervisord配置文件&&项目supervisorctl配置文件
   
-### 手动安装包
+### 手动部署
 
   - pip install -r requirements.txt
 
@@ -137,6 +137,15 @@ sql：dbsql>sql.sql，直接执行即可，包含创建数据库、用户、表�
 ```
 mysqldump
 ```
+
+### 工具类方法
+
+  - install_env.py项目一键式环境部署，前提服务器上有python3、pip，直接执行这个脚本即可
+  - deploy>utils>utils.py 为工具方法，任何python项目都适合使用
+  - deploy>utils>base_class.py 单例
+  - deploy>utils>command.py 命令行执行命令
+  - deploy>utils>logger.py 日志
+  - deploy>utils>watcher.py 监控打点
 
 > ## 开发特定点
 
@@ -196,7 +205,12 @@ crontab简单功能：
 
 官网开发手册Python API：https://developer.qiniu.com/kodo/1242/python
 
-### 模板代码
+### 其他
+
+  - ~~bash_start.bash、bash_end.bash为手动方式进行项目启动与项目结束（已废弃）~~
+
+
+## 模板代码
 
 > 必要参数校验
 
@@ -241,12 +255,6 @@ for _key, _value in self.req_api_add_ck_len_attrs.items():
         return Status(
             213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 ```
-
-### 其他
-
-  - install_env.py项目一键式环境部署，前提服务器上有python3、pip，直接执行这个脚本即可
-  - ~~bash_start.bash、bash_end.bash为手动方式进行项目启动与项目结束（已废弃）~~
-  - deploy>utils>utils.py 为工具方法，任何python项目都适合使用
 
 
 > ## 联系方式
