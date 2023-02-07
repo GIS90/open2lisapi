@@ -204,7 +204,7 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
         STORE_CACHE = os.path.join(os.path.dirname(_get_cur_folder()), _CACHE)
     if not os.path.exists(STORE_CACHE):
         logger.critical('====== store dir is not exist, create %s... ======' % STORE_CACHE)
-        os.makedirs(LOG_DIR)
+        os.makedirs(STORE_CACHE)
 
     # menu
     MENU_ROOT_ID = _config_info['MENU']['MENU_ROOT_ID'] or MENU_ROOT_ID
