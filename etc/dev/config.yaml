@@ -44,7 +44,7 @@ USER:
 STORE:
   # 缓存路径【绝对路径】
   # WIN：E:\_CACHE     MacOS：/Users/gaomingliang/Downloads/_CACHE
-  CACHE: E:\_CACHE
+  CACHE: /Users/gaomingliang/Downloads/_CACHE
   BASE_URL: http://store.pygo2.top
   ACCESS: mRF0cKGUJcfv7ry_Wyvc24cDNWEQz9DAKo_UOn0G
   SECRET: xabmlB9zZ_MRwtgofQJzUxINnmcO_VUfkXYILx_Q
