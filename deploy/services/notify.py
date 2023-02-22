@@ -1838,7 +1838,7 @@ class NotifyService(object):
                 s_l.append(dtalk_user_id) if res.get('status_id') == 100 \
                     else f_l.append(dtalk_user_id)
                 if DTALK_INTERVAL > 0:
-                    time.sleep(random.uniform(0.1, DTALK_INTERVAL))
+                    time.sleep(random.uniform(0.01, DTALK_INTERVAL))
                 n += 1
             _d['message'] = "成功：%s，失败：%s" % (len(s_l), len(f_l))
             _d['ok'] = True
