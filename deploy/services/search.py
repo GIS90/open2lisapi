@@ -356,12 +356,15 @@ class SearchService(object):
         for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
-        # all database type
+        """
+        # 非分组型数据库类型枚举
         database_res = self.enum_bo.get_model_by_name(name='db-type')
         database_list = list()
         for _d in database_res:
             if not _d: continue
             database_list.append({'key': _d.key, 'value': _d.value})
+        """
+        database_list = self._group_database_types()
         return Status(
             100, 'success', StatusMsgs.get(100),
             {
