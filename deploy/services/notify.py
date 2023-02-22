@@ -1597,7 +1597,13 @@ class NotifyService(object):
                 for k, v in json_sheet_names.items():
                     sheet_names.append({'key': k, 'value': v})
         # ========================= dtalk robot data =========================
-        robot_model = self.dtalk_robot_bo.get_model_by_rtx(new_params.get('rtx_id'))
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        # 特权账号 + 数据账号
+        if rtx_id in auth_rtx_join([]):
+            robot_model = self.dtalk_robot_bo.get_model_by_rtx('')
+        else:
+            robot_model = self.dtalk_robot_bo.get_model_by_rtx(rtx_id)
         # no dtalk robot model
         if not robot_model:
             select_robot_index = ''

@@ -109,7 +109,8 @@ class DtalkRobotBo(BOBase):
 
     def get_model_by_rtx(self, rtx):
         q = self.session.query(DtalkRobotModel)
-        q = q.filter(DtalkRobotModel.rtx_id == str(rtx))
+        if rtx:
+            q = q.filter(DtalkRobotModel.rtx_id == str(rtx))
         q = q.filter(DtalkRobotModel.is_del != 1)
         return q.all()
 
