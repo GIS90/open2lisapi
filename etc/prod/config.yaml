@@ -42,6 +42,8 @@ USER:
 
 # 云对象存储
 STORE:
+  # 缓存路径【绝对路径】
+  # WIN：E:\_CACHE     Linux：/home/mingliang.gao/cache
   CACHE: /home/mingliang.gao/cache
   ACCESS: mRF0cKGUJcfv7ry_Wyvc24cDNWEQz9DAKo_UOn0G
   SECRET: xabmlB9zZ_MRwtgofQJzUxINnmcO_VUfkXYILx_Q
