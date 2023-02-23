@@ -110,7 +110,8 @@ class QywxRobotBo(BOBase):
 
     def get_model_by_rtx(self, rtx):
         q = self.session.query(QywxRobotModel)
-        q = q.filter(QywxRobotModel.rtx_id == str(rtx))
+        if rtx:
+            q = q.filter(QywxRobotModel.rtx_id == str(rtx))
         q = q.filter(QywxRobotModel.is_del != 1)
         return q.all()
 

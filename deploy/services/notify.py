@@ -2928,7 +2928,12 @@ class NotifyService(object):
             if not e: continue
             type_res.append({'label': str(e.value), 'value': str(e.key)})
         # return data: robot list
-        robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
+        # authority【管理员具有所有数据权限】所有robots
+        # 特权账号 + 数据账号
+        if rtx_id in auth_rtx_join([]):
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        else:
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
         robot_res = list()
         for r in robots:
             if not r: continue
