@@ -108,20 +108,20 @@ class QYWXLib(object):
 
     types = [
         'text',         # 文本
-        # 'image',        # 图片消息
-        # 'voice',        # 语音消息
-        # 'video',        # 视频消息
-        # 'file',         # 文件消息
-        # 'textcard',     # 文本卡片消息
-        # 'news',         # 图文消息
-        # 'mpnews',       # 多图文消息（mpnews类型的图文消息，跟普通的图文消息一致，唯一的差异是图文内容存储在企业微信。多次发送mpnews，会被认为是不同的图文，阅读、点赞的统计会被分开计算。）
+        'image',        # 图片消息
+        'voice',        # 语音消息
+        'video',        # 视频消息
+        'file',         # 文件消息
+        'textcard',     # 文本卡片消息
+        'news',         # 图文消息
+        'mpnews',       # 多图文消息（mpnews类型的图文消息，跟普通的图文消息一致，唯一的差异是图文内容存储在企业微信。多次发送mpnews，会被认为是不同的图文，阅读、点赞的统计会被分开计算。）
         'markdown',     # markdown消息
-        # 'miniprogram_notice',     # 小程序通知消息
-        # 'template_card@text_notice',              # 模板卡片消息 > 文本通知型
-        # 'template_card@news_notice',              # 模板卡片消息 > 图文展示型
-        # 'template_card@button_interaction',       # 模板卡片消息 > 按钮交互型
-        # 'template_card@vote_interaction',         # 模板卡片消息 > 投票选择型
-        # 'template_card@multiple_interaction',     # 模板卡片消息 > 多项选择型
+        'miniprogram_notice',     # 小程序通知消息
+        'template_card@text_notice',              # 模板卡片消息 > 文本通知型
+        'template_card@news_notice',              # 模板卡片消息 > 图文展示型
+        'template_card@button_interaction',       # 模板卡片消息 > 按钮交互型
+        'template_card@vote_interaction',         # 模板卡片消息 > 投票选择型
+        'template_card@multiple_interaction',     # 模板卡片消息 > 多项选择型
     ]
 
     safe_kwagrs_types = [

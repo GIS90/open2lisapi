@@ -313,13 +313,14 @@ class NotifyService(object):
         'title',
         'content',
         'user',
-        'type'
+        'type',
+        'robot'
     ]
 
     req_qywx_add_length_check = {
         'title': 55,
         'content': 1000,
-        'user': 1000
+        'user': 10000   # 最大用户1000个，字符ID名称限制字符10000个
     }
 
     req_qywx_update_attrs = [
@@ -328,6 +329,7 @@ class NotifyService(object):
         'content',
         'user',
         'type',
+        'robot',
         'md5'
     ]
 
@@ -339,6 +341,11 @@ class NotifyService(object):
         'type',
         'robot',
         'md5'
+    ]
+
+    req_qywx_send_temp_send_attrs = [
+        'md5',
+        'temp'
     ]
 
     req_send_temp_attrs = [
@@ -2710,6 +2717,8 @@ class NotifyService(object):
         if model and model.is_del:
             return Status(
                 302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+
+        """ ************ return data ************ """
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
@@ -2723,12 +2732,26 @@ class NotifyService(object):
         for e in enums:
             if not e: continue
             type_res.append({'label': str(e.value), 'value': str(e.key)})
+
+        # >>>>>> robot列表
+        # 特权账号 + 数据账号
+        if rtx_id in auth_rtx_join([]):
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        else:
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
+        robot_res = list()
+        for r in robots:
+            if not r: continue
+            robot_res.append({'label': str(r.name), 'value': str(r.md5_id), 'rtx': str(r.rtx_id)})
+
         _res = {
             'title': getattr(model, 'title', ''),
             'content': getattr(model, 'content', ''),
             'user': getattr(model, 'user', ''),
             'type': getattr(model, 'type', ''),
-            'type_lists': type_res
+            'type_lists': type_res,
+            'robot': getattr(model, 'robot', ''),
+            'robot_lists': robot_res
         }
         return Status(
             100, 'success', StatusMsgs.get(100), _res).json()
@@ -2740,6 +2763,7 @@ class NotifyService(object):
             - content 消息内容
             - type 消息类型
             - user 用户列表
+            - robot 机器人
         by data md5
         :return: json data
         """
@@ -2797,6 +2821,7 @@ class NotifyService(object):
             model.content = new_params.get('content')
             model.type = new_params.get('type')
             model.user = new_params.get('user')
+            model.robot = new_params.get('robot')
             self.qywx_bo.merge_model(model)
             return Status(
                 100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}).json()
@@ -2840,8 +2865,13 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
-        # 默认的robot，存储robot md5-id
-        default_robot_model = self.qywx_robot_bo.get_default_by_rtx(new_params.get('rtx_id'))
+        # 判断robot是否存在
+        robot = new_params.get('robot')
+        robot_model = self.qywx_robot_bo.get_model_by_md5(md5=robot)
+        if not robot_model:
+            return Status(
+                213, 'failure', u'机器人不存在，请重新选择', {}).json()
+
         # --------------------------------------- add model --------------------------------------
         new_model = self.qywx_bo.new_mode()
         new_model.rtx_id = new_params.get('rtx_id')
@@ -2852,7 +2882,13 @@ class NotifyService(object):
         new_model.count = 0     # 默认发送次数为0
         md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
         new_model.md5_id = md5_id
-        new_model.robot = getattr(default_robot_model, 'md5_id', '')    # 获取默认的robot
+        """
+        # 默认的robot，存储robot md5-id
+        # default_robot_model = self.qywx_robot_bo.get_default_by_rtx(new_params.get('rtx_id'))
+        # new_model.robot = getattr(default_robot_model, 'md5_id', '')    # 获取默认的robot
+        """
+        # 修改为form表单主动传入
+        new_model.robot = robot
         new_model.create_time = get_now()
         new_model.is_del = False
         new_model.is_back = False
@@ -2867,19 +2903,50 @@ class NotifyService(object):
             return Status(
                 320, 'failure', StatusMsgs.get(320), {'md5': md5_id}).json()
 
-    def qywx_add_init(self):
+    def qywx_add_init(self, params: dict) -> json:
         """
         新增企业微信消息记录初始化dialog枚举数据
         :return: many json data
+
+        > 企业消息类型
+        > 机器人列表
         """
-        # no parameters
+        # parameters
+        rtx_id = params.get('rtx_id')
+        if not rtx_id:
+            return Status(
+                212, 'failure', u'缺少请求参数rtx' or StatusMsgs.get(212), {}).json()
+
+        """   return data   """
+        # >>>>>> 企业微信类型
         enums = self.enum_bo.get_model_by_name('qywx-type')
         type_res = list()
         for e in enums:
             if not e: continue
             type_res.append({'label': str(e.value), 'value': str(e.key)})
+        # >>>>>> robot列表
+        # 特权账号 + 数据账号
+        if rtx_id in auth_rtx_join([]):
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        else:
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
+        robot_res = list()
+        # 当前用户选择的默认选择人
+        select_robot = ''
+        for r in robots:
+            if not r: continue
+            robot_res.append({'label': str(r.name), 'value': str(r.md5_id), 'rtx': str(r.rtx_id)})
+            # 默认设置 && 并且是与当前rtx一致
+            if r.select and rtx_id == r.rtx_id:
+                select_robot = str(r.md5_id)
+        # 临时消息发送获取当前用户默认选择robot
+        _res = {
+            'type_lists': type_res,
+            'robot': select_robot,
+            'robot_lists': robot_res
+        }
         return Status(
-            100, 'success', StatusMsgs.get(100), {'type': type_res}
+            100, 'success', StatusMsgs.get(100), _res
         ).json()
 
     def qywx_send_init(self, params: dict):
@@ -2942,7 +3009,8 @@ class NotifyService(object):
         robot_res = list()
         for r in robots:
             if not r: continue
-            robot_res.append({'label': str(r.name), 'value': str(r.md5_id)})
+            robot_res.append({'label': str(r.name), 'value': str(r.md5_id), 'rtx': str(r.rtx_id)})
+
         _res = {
             'title': getattr(model, 'title', ''),
             'content': getattr(model, 'content', ''),
@@ -2965,9 +3033,25 @@ class NotifyService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+
+        # **********************************************************************
+        # temp参数默认值，如果无temp参数默认为False，否则传入为True
+        temp = params.get('temp') or False
+        if not isinstance(temp, bool):
+            return Status(
+                213, 'failure', u'temp参数支持BOOLEAN类型', {}).json()
+        if 'temp' in params.keys():
+            params.pop('temp')
+        # temp为True，无需md5参数；为False，必须md5参数
+        # **********************************************************************
+
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_qywx_send_attrs:
+        _necessary_attrs = self.req_qywx_send_attrs
+        # 如果是临时通知，检查attrs去掉md5参数
+        if temp:
+            _necessary_attrs.remove('md5')
+        for _attr in _necessary_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -2981,7 +3065,7 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # check: value is not null
-            if not v:
+            if not v and k not in self.req_qywx_send_temp_send_attrs:
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             if k == 'user':     # user参数特殊性检查，不允许中文；分号
@@ -2996,24 +3080,32 @@ class NotifyService(object):
                 return Status(
                     213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
 
-        # <<<<<<<<<<<<<<<<< qyex_meesgae model >>>>>>>>>>>>>>>>>>>>
-        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
-        # not exist
-        if not model:
-            return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
-        # deleted
-        if model and model.is_del:
-            return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        # 特权账号 + 数据账号
-        if rtx_id not in auth_rtx_join([model.rtx_id]):
-            return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+
+        # <<<<<<<<<<<<<<<<< qyex_meesgae model >>>>>>>>>>>>>>>>>>>>
+        if not temp:
+            if not new_params.get('md5'):
+                return Status(
+                    213, 'failure', u'缺少md5参数', {}).json()
+            # model校验是否可用数据
+            model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
+            # not exist
+            if not model:
+                return Status(
+                    302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+            # deleted
+            if model and model.is_del:
+                return Status(
+                    302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+            # 特权账号 + 数据账号
+            if rtx_id not in auth_rtx_join([model.rtx_id]):
+                return Status(
+                    309, 'failure', StatusMsgs.get(309), {}).json()
         # <<<<<<<<<<<<<<<<< qyex_meesgae robot model >>>>>>>>>>>>>>>>>>>>
-        robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('robot'))
+        # robot【传入参数】
+        robot = new_params.get('robot')
+        robot_model = self.qywx_robot_bo.get_model_by_md5(robot)
         if not robot_model:
             return Status(
                 302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
@@ -3033,14 +3125,14 @@ class NotifyService(object):
             return Status(
                 480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
         try:
-            # user用户列表
+            # user用户列表【传入参数】
             to_user = new_params.get('user').split(';')
-            # 消息类型
+            # 消息类型【传入参数】
             send_type = str(new_params.get('type'))
             if send_type not in qywx_lib.types:
                 return Status(
                     213, 'failure', '企业微信暂不支持此类型消息', {}).json()
-            # 消息内容
+            # 消息内容【传入参数】
             new_content = dict()
             if send_type in ['text', 'markdown']:    # text, markdown消息
                 new_content['data'] = new_params.get('content')
@@ -3056,18 +3148,46 @@ class NotifyService(object):
         except Exception as e:
             return Status(
                 499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()
-        # --------------------------------------- update model --------------------------------------
         try:
-            model.title = new_params.get('title')
-            model.content = new_params.get('content')
-            model.type = new_params.get('type')
-            model.user = new_params.get('user')
-            model.robot = new_params.get('robot')
-            model.count = model.count + 1
-            model.last_send_time = get_now()
-            if _q_res_json and _q_res_json.get('data') and _q_res_json.get('data').get('msgid'):
-                model.msg_id = _q_res_json.get('data').get('msgid')
-            self.qywx_bo.merge_model(model)
+            # --------------------------------------- update model --------------------------------------
+            # 非临时通知update
+            if not temp:
+                model.title = new_params.get('title')
+                model.content = new_params.get('content')
+                model.type = new_params.get('type')
+                model.user = new_params.get('user')
+                model.robot = new_params.get('robot')
+                model.count = model.count + 1
+                model.last_send_time = get_now()
+                if _q_res_json and _q_res_json.get('data') and _q_res_json.get('data').get('msgid'):
+                    model.msg_id = _q_res_json.get('data').get('msgid')
+                self.qywx_bo.merge_model(model)
+            else:
+                # --------------------------------------- add model --------------------------------------
+                new_model = self.qywx_bo.new_mode()     # 创建一个新的qyex_message模型
+                new_model.rtx_id = new_params.get('rtx_id')
+                new_model.delete_rtx = new_params.get('rtx_id') # rtx_id = delete_rtx
+                new_model.title = new_params.get('title')
+                new_model.content = new_params.get('content')
+                new_model.user = new_params.get('user')
+                new_model.type = new_params.get('type')
+                new_model.count = 0  # 默认发送次数为0
+                md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
+                new_model.md5_id = md5_id
+                """
+                # 默认的robot，存储robot md5-id
+                # default_robot_model = self.qywx_robot_bo.get_default_by_rtx(new_params.get('rtx_id'))
+                # new_model.robot = getattr(default_robot_model, 'md5_id', '')    # 获取默认的robot
+                """
+                # 修改为form表单主动传入
+                new_model.robot = new_params.get('robot')
+                now_time = get_now()    # create_time = delete_time = last_send_time
+                new_model.create_time = now_time
+                new_model.delete_time = now_time
+                new_model.last_send_time = now_time
+                new_model.is_del = True     # 临时通知默认不显示
+                new_model.is_back = False
+                self.qywx_bo.add_model(new_model)
         except:
             return Status(
                 450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
@@ -3104,25 +3224,34 @@ class NotifyService(object):
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<<<<<<< return data >>>>>>>>>>>>>>>>>>>>
-        # send type
+        # qywx type
         enums = self.enum_bo.get_model_by_name('qywx-type')
         type_res = list()
         for e in enums:
             if not e: continue
             type_res.append({'label': str(e.value), 'value': str(e.key)})
-        # robot type
-        robots = self.qywx_robot_bo.get_model_by_rtx(rtx=new_params.get('rtx_id'))
+
+        # >>>>>> robot列表
+        # 特权账号 + 数据账号
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id in auth_rtx_join([]):
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        else:
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
         robot_res = list()
+        # 当前用户选择的默认选择人
         select_robot = ''
         for r in robots:
             if not r: continue
-            robot_res.append({'label': str(r.name), 'value': str(r.md5_id)})
-            if r.select:
+            robot_res.append({'label': str(r.name), 'value': str(r.md5_id), 'rtx': str(r.rtx_id)})
+            # 默认设置 && 并且是与当前rtx一致
+            if r.select and rtx_id == r.rtx_id:
                 select_robot = str(r.md5_id)
+
         # 临时消息发送获取当前用户默认选择robot
         _res = {
             'type_lists': type_res,
-            'robot': select_robot,
+            'robot': select_robot,    # 禁用默认选择机器人
             'robot_lists': robot_res
         }
         return Status(
@@ -3133,6 +3262,8 @@ class NotifyService(object):
         qywx send message to user list
         发送企业微信消息【临时】
         :return: json data
+
+        【废弃，与qywx_send结合】
         """
         # ====================== parameters check and format ======================
         if not params:

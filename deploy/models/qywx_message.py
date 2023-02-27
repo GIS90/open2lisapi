@@ -55,7 +55,7 @@ class QywxMessageModel(base.ModelBase):
     title = Column(String(55))
     content = Column(Text)
     user = Column(Text)
-    type = Column(String(5))
+    type = Column(String(55))
     md5_id = Column(String(55))
     msg_id = Column(String(64))
     robot = Column(String(55))

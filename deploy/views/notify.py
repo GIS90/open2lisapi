@@ -667,6 +667,7 @@ def qywx_update():
         - content 消息内容
         - type 消息类型
         - user 用户列表
+        - robot 机器人
     by data md5
     :return: json data
     """
@@ -718,7 +719,7 @@ def qywx_add_init():
     try:
         # no parameters
         params = request.args
-        return NotifyService().qywx_add_init()
+        return NotifyService().qywx_add_init(params)
     except Exception as e:
         LOG.error("notify>qywx add init is error: %s" % e)
         return Status(501, 'failure',
@@ -794,6 +795,8 @@ def qywx_send_temp():
     qywx send message to user list
     发送企业微信消息【临时】
     :return: json data
+
+    【废弃，与qywx_send结合】
     """
     if request.method == 'GET':
         return Status(
