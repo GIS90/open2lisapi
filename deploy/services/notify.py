@@ -359,6 +359,11 @@ class NotifyService(object):
         'md5'
     ]
 
+    req_qywx_temp_upload_attrs = [
+        'rtx_id',
+        'robot'
+    ]
+
     EXCEL_FORMAT = ['.xls', '.xlsx']
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
@@ -3304,3 +3309,55 @@ class NotifyService(object):
                 450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
         return Status(
             100, 'success', '成功', {}).json()
+
+    def qywx_temp_upload(self, params, image_file) -> dict:
+        """
+        企业微信上传临时素材
+          > 素材上传得到media_id，该media_id仅三天内有效
+          > media_id在同一企业内应用之间可以共享
+
+        大小限制：
+          > 图片（image）：10MB，支持JPG,PNG格式
+          > 语音（voice） ：2MB，播放长度不超过60s，仅支持AMR格式
+          > 视频（video） ：10MB，支持MP4格式
+          > 普通文件（file）：20MB
+
+        :return: json data
+
+        相关URL：
+          > 上传临时素材：https://developer.work.weixin.qq.com/document/path/90253
+          > 上传图片：https://developer.work.weixin.qq.com/document/path/90256
+        """
+        # ====================== parameters check and format ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_qywx_temp_upload_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_qywx_temp_upload_attrs and v:  # 不合法参数
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = str(v)
+        """
+        TODO
+        暂时直接通过企业微信API上传临时文件，不本地存储
+        """
+        # --------------------------------------- 撤销消息 --------------------------------------
+        # qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
+        # if not qywx_lib.check_token():
+        #     return Status(
+        #         480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()

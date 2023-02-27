@@ -826,3 +826,29 @@ def qywx_sendback():
         LOG.error("notify>qywx sendback is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@notify.route('/qywx_temp_upload/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def qywx_temp_upload():
+    """
+    企业微信 upload temp file, contain: image图片、voice音频、video视频、file文件
+    :return: json data，contain: media_id
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.form
+        # 文件
+        files = request.files
+        if not files or (files and not files.get('files')):
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}).json()
+
+        return NotifyService().qywx_temp_upload(params, request.files.get('files'))
+    except Exception as e:
+        LOG.error("notify>qywx temp upload is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()

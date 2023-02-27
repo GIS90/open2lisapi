@@ -103,6 +103,7 @@ QYWX:
   ACCESS_TOKEN: /cgi-bin/gettoken
   SEND_MESSAGE: /cgi-bin/message/send
   SEND_BACK: /cgi-bin/message/recall
+  TEMP_UPLOAD: /cgi-bin/media/upload
 
 
 # 其他配置

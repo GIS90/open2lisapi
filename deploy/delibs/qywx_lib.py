@@ -33,6 +33,8 @@ reference urls:
   - ACCESS TOKEN：https://developer.work.weixin.qq.com/document/path/91039
   - 发送应用消息：https://developer.work.weixin.qq.com/document/path/90236
   - 全局错误码：https://developer.work.weixin.qq.com/document/path/90313#10649
+  - 上传临时素材：https://developer.work.weixin.qq.com/document/path/90253
+  - 上传图片：https://developer.work.weixin.qq.com/document/path/90256
   --------------------------------------------------------------------------------------
     企业微信API response：
     {
@@ -96,7 +98,7 @@ from deploy.delibs.http_lib import HttpLibApi
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import QYWX_BASE_URL, QYWX_SEND_MESSAGE, \
-    QYWX_ACCESS_TOKEN, QYWX_SEND_BACK
+    QYWX_ACCESS_TOKEN, QYWX_SEND_BACK, QYWX_TEMP_UPLOAD
 
 
 class QYWXLib(object):
@@ -146,6 +148,13 @@ class QYWXLib(object):
     content_types = [
         'text',  # 文本
         'markdown'  # markdown消息
+    ]
+
+    temp_upload_types = [
+        'image',     # 图片
+        'voice',     # 语音
+        'video',     # 视频
+        'file',      # 普通文件
     ]
 
     def __init__(self, corp_id, secret, agent_id):
@@ -343,7 +352,10 @@ class QYWXLib(object):
         if stype in self.enable_id_trans_kwagrs_types:
             data['enable_id_trans'] = enable_id_trans
 
-        """ main """
+        """ 
+        --------------------- request 企业微信 server --------------------- 
+        send main 
+        """
         try:
             url = "%s?access_token=%s" % (QYWX_SEND_MESSAGE, self.token)
             status, response = self.http.post_json(url=url, data=data)
@@ -388,10 +400,75 @@ class QYWXLib(object):
         data = {
             "msgid": message_id
         }
-        """ main """
+
         try:
             url = "%s?access_token=%s" % (QYWX_SEND_BACK, self.token)
             status, response = self.http.post_json(url=url, data=data)
+            if not status:
+                return Status(
+                    501, 'failure', response.get('errmsg'), response).json()
+            if response.get("errcode") == 0 and response.get("errmsg") == "ok":
+                return Status(
+                    100, 'success', '成功', response).json()
+            else:
+                return Status(
+                    501, 'failure', response.get('errmsg'), response).json()
+        except:
+            return Status(501, 'failure', StatusMsgs.get(501), {}).json()
+
+    def temp_upload(self, upload_type: str, upload_file) -> json:
+        """
+        :param upload_type: upload type, contain:
+            > 图片（image）
+            > 语音（voice）
+            > 视频（video）
+            > 普通文件（file）
+        :param upload_file: upload file
+
+        企业微信上传临时素材
+          > 素材上传得到media_id，该media_id仅三天内有效
+          > media_id在同一企业内应用之间可以共享
+
+        大小限制：
+          > 图片（image）：10MB，支持JPG,PNG格式
+          > 语音（voice） ：2MB，播放长度不超过60s，仅支持AMR格式
+          > 视频（video） ：10MB，支持MP4格式
+          > 普通文件（file）：20MB
+
+        请求方式：POST（HTTPS）
+        请求地址：https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=ACCESS_TOKEN&type=TYPE
+
+        参数	        必须	    说明
+        access_token	是	        调用接口凭证
+        type	        是	        媒体文件类型，分别有图片（image）、语音（voice）、视频（video），普通文件（file）
+
+        相关URL：
+          > 上传临时素材：https://developer.work.weixin.qq.com/document/path/90253
+          > 上传图片：https://developer.work.weixin.qq.com/document/path/90256
+
+        :return: json data
+        """
+        """ --------------------- parameters check --------------------- """
+        if not self.token:
+            return Status(
+                212, 'failure', '请检查access token是否获取成功', {}).json()
+        if not upload_type:
+            return Status(
+                212, 'failure', '缺少upload_type参数', {}).json()
+        if not isinstance(upload_type, str):
+            return Status(
+                213, 'failure', 'upload_type参数支持str类型', {}).json()
+        if upload_type not in self.temp_upload_types:
+            return Status(
+                213, 'failure', 'upload_type参数不支持请求类型', {}).json()
+        if not upload_file:
+            return Status(
+                216, 'failure', '缺少上传文件', {}).json()
+
+        """ --------------------- request 企业微信 server --------------------- """
+        try:
+            url = "%s?access_token=%s&type=%s" % (QYWX_TEMP_UPLOAD, self.token, upload_type)
+            status, response = self.http.post_json(url=url)
             if not status:
                 return Status(
                     501, 'failure', response.get('errmsg'), response).json()
