@@ -213,27 +213,16 @@ class FileLib(object):
         # all pages by default
         # cv.convert(docx_filename=word_file, start=start, end=end, pages=pages)
 
-        print('*' * 100)
-        print(word_file)
-        print(start)
-        print(end)
-        print(pages)
-
         if pages:
-            print('==========>pages')
             cv.convert(docx_filename=word_file, pages=pages)
         elif start and not end:
-            print('==========>start and not end')
             cv.convert(docx_filename=word_file, start=start)
         elif not start and end:
-            print('==========>not start and end')
             cv.convert(docx_filename=word_file, end=end)
         elif start and end:
-            print('==========>start and end')
             cv.convert(docx_filename=word_file, start=start, end=end)
         else:
-            print('==========>其他')
-            cv.convert(docx_filename=word_file)
+            cv.convert(docx_filename=word_file, start=0, end=None, pages=[])
 
         cv.close()
         # ---------------------------convert end--------------------------------------------------
