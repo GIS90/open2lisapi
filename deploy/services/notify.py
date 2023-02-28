@@ -1617,20 +1617,18 @@ class NotifyService(object):
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id in auth_rtx_join([]):
-            robot_model = self.dtalk_robot_bo.get_model_by_rtx('')
+            robot_models = self.dtalk_robot_bo.get_model_by_rtx('')
         else:
-            robot_model = self.dtalk_robot_bo.get_model_by_rtx(rtx_id)
-        # no dtalk robot model
-        if not robot_model:
-            select_robot_index = ''
-            robot_enums = []
-        else:
-            select_robot_index = ''
-            robot_enums = []
-            for r in robot_model:
-                if r.select:
+            robot_models = self.dtalk_robot_bo.get_model_by_rtx(rtx_id)
+        # dtalk robot model
+        select_robot_index = ''
+        robot_enums = []
+        if robot_models:
+            for r in robot_models:
+                if r.select and r.rtx_id == rtx_id:
                     select_robot_index = r.key
                 robot_enums.append({'key': r.key, 'value': r.name})
+
         """     return json data    """
         _result = {
             'sheet_index': set_sheet_index,
