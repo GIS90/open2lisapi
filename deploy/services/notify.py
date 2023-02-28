@@ -1157,6 +1157,7 @@ class NotifyService(object):
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
+        rtx_id = new_params.get('rtx_id')
         if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # <get data>
@@ -1172,6 +1173,9 @@ class NotifyService(object):
             _res_dict = self._dtalk_robot_model_to_dict(_d)
             if _res_dict:
                 _res_dict['id'] = n
+                # 特殊权限与普通账号都显示个人设置的默认选择
+                _res_dict['select'] = True if _res_dict['select'] and _res_dict['rtx_id'] == rtx_id \
+                    else False
                 new_res.append(_res_dict)
                 n += 1
         return Status(
@@ -1978,6 +1982,7 @@ class NotifyService(object):
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
+        rtx_id = new_params.get('rtx_id')
         if new_params.get('rtx_id') in auth_rtx_join([]):
             new_params.pop('rtx_id')
         # <get data>
@@ -1993,6 +1998,9 @@ class NotifyService(object):
             _res_dict = self._qywx_robot_model_to_dict(_d)
             if _res_dict:
                 _res_dict['id'] = n
+                # 特殊权限与普通账号都显示个人设置的默认选择
+                _res_dict['select'] = True if _res_dict['select'] and _res_dict['rtx_id'] == rtx_id \
+                    else False
                 new_res.append(_res_dict)
                 n += 1
         return Status(
