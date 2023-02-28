@@ -510,8 +510,10 @@ class OfficeService(object):
                 else:
                     _res[attr] = True if model.mode else False
             elif attr == 'start':
+                # 字符类型
                 _res[attr] = getattr(model, 'start', '')
             elif attr == 'end':
+                # 字符类型
                 _res[attr] = getattr(model, 'end', '')
             elif attr == 'pages':
                 _res[attr] = getattr(model, 'pages', '')
@@ -1843,16 +1845,19 @@ class OfficeService(object):
                 if v:
                     try:
                         v_int = int(v)
+                        if k == 'start' and v_int < 0:
+                            return Status(
+                                213, 'failure', u'请求参数%s最小值为0' % k, {}).json()
+                        if k == 'end' and v_int < 1:
+                            return Status(
+                                213, 'failure', u'请求参数%s最小值为1' % k, {}).json()
                     except:
                         return Status(
                             213, 'failure', u'请求参数%s类型必须是整数' % k, {}).json()
-                    if v_int > 10000:
+                    if len(str(v)) > 6:
                         return Status(
-                            213, 'failure', u'请求参数%s最大限制10000' % k, {}).json()
-                    if v_int < 1:
-                        return Status(
-                            213, 'failure', u'请求参数%s最小值为1' % k, {}).json()
-                    new_params[k] = v_int
+                            213, 'failure', u'请求参数%s最大限制999999' % k, {}).json()
+                    new_params[k] = str(v)
                 else:
                     new_params[k] = ''
             elif k == 'pages':      # check special parameter
@@ -1875,7 +1880,7 @@ class OfficeService(object):
             else:
                 new_params[k] = str(v)
         if new_params.get('start') and new_params.get('end'):
-            if new_params.get('start') > new_params.get('end'):
+            if int(new_params.get('start')) >= int(new_params.get('end')):
                 return Status(
                     213, 'failure', u'起始页码不得大于结束页码', {}).json()
         # ================= check ok......... =================
@@ -2066,39 +2071,47 @@ class OfficeService(object):
                 if v:
                     try:
                         v_int = int(v)
+                        if k == 'start' and v_int < 0:
+                            return Status(
+                                213, 'failure', u'请求参数%s最小值为0' % k, {}).json()
+                        if k == 'end' and v_int < 1:
+                            return Status(
+                                213, 'failure', u'请求参数%s最小值为1' % k, {}).json()
                     except:
                         return Status(
                             213, 'failure', u'请求参数%s类型必须是整数' % k, {}).json()
-                    if v_int > 10000:
+                    if len(str(v)) > 6:
                         return Status(
-                            213, 'failure', u'请求参数%s最大限制10000' % k, {}).json()
-                    if v_int < 1:
-                        return Status(
-                            213, 'failure', u'请求参数%s最小值为1' % k, {}).json()
-                    new_params[k] = v_int
+                            213, 'failure', u'请求参数%s最大限制999999' % k, {}).json()
+                    new_params[k] = str(v)
                 else:
                     new_params[k] = ''
             elif k == 'pages':  # check special parameter
+                v_s_int = list()
                 if v:
                     v_s = str(v).strip().split(',')  # 去空格在分割
                     if len(v_s) <= 0:  # 无可用分页数据，直接continue
                         new_params[k] = ''
+                        new_params['transfer_pages'] = v_s_int
                         continue
                     for _v in v_s:
                         if not _v: continue
                         if not str(_v).isdigit():
                             return Status(
                                 213, 'failure', u'请检查指定分页数据，用英文,分割', {}).json()
+                        v_s_int.append(int(_v))
                     if not check_length(v, 120):
                         return Status(
                             213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
                     new_params[k] = str(v)
+                    new_params['transfer_pages'] = v_s_int
                 else:
                     new_params[k] = ''
+                    new_params['transfer_pages'] = v_s_int
             else:
                 new_params[k] = str(v)
         if new_params.get('start') and new_params.get('end'):
-            if new_params.get('start') > new_params.get('end'):
+            if int(new_params.get('start')) >= int(new_params.get('end')):
                 return Status(
                     213, 'failure', u'起始页码不得大于结束页码', {}).json()
         """ ************************************* convert: 1.check data ***************************************** """
@@ -2141,12 +2154,19 @@ class OfficeService(object):
             ...
         }
         """
-        _d = {'pdf': model.local_url, 'word': new_params.get('name'), 'start': '', 'end': '', 'pages': []}
+        # 转换数据模型
+        _d = {
+            'pdf': model.local_url,
+            'word': new_params.get('name'),
+            'start': '',
+            'end': '',
+            'pages': []
+        }
         if model.mode:      # 通用页码模式
-            _d['start'] = model.start
-            _d['end'] = model.end
+            _d['start'] = int(new_params.get('start')) if new_params.get('start') else 0
+            _d['end'] = int(new_params.get('end')) if new_params.get('end') else ''
         else:       # 指定页码模式
-            _d['pages'] = model.pages.split(',') if model.pages else []
+            _d['pages'] = new_params.get('transfer_pages') if new_params.get('transfer_pages') else []
 
         _pdf_files[model.md5_id] = _d
         _to_res = self.file_lib.pdf2word(pdf_list=_pdf_files, is_multi_processing=False)

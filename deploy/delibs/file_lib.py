@@ -17,6 +17,9 @@ base_info:
 
 Enjoy the good life everyday！！!
 Life is short, I use python.
+
+
+pdf2docx：https://dothinking.github.io/pdf2docx/quickstart.convert.html
 --------------------------------------------------------------
 """
 
@@ -208,7 +211,30 @@ class FileLib(object):
         # convert pdf to docx
         cv = Converter(pdf_file)
         # all pages by default
-        cv.convert(docx_filename=word_file, start=start, end=end, pages=pages)
+        # cv.convert(docx_filename=word_file, start=start, end=end, pages=pages)
+
+        print('*' * 100)
+        print(word_file)
+        print(start)
+        print(end)
+        print(pages)
+
+        if pages:
+            print('==========>pages')
+            cv.convert(docx_filename=word_file, pages=pages)
+        elif start and not end:
+            print('==========>start and not end')
+            cv.convert(docx_filename=word_file, start=start)
+        elif not start and end:
+            print('==========>not start and end')
+            cv.convert(docx_filename=word_file, end=end)
+        elif start and end:
+            print('==========>start and end')
+            cv.convert(docx_filename=word_file, start=start, end=end)
+        else:
+            print('==========>其他')
+            cv.convert(docx_filename=word_file)
+
         cv.close()
         # ---------------------------convert end--------------------------------------------------
         return self.format_res(100, 'success', {'md5': cmd5, 'word': word_file, 'name': word_name})
