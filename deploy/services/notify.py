@@ -368,7 +368,8 @@ class NotifyService(object):
 
     req_qywx_temp_upload_attrs = [
         'rtx_id',
-        'robot'
+        'robot',
+        'type'
     ]
 
     EXCEL_FORMAT = ['.xls', '.xlsx']
@@ -3130,14 +3131,18 @@ class NotifyService(object):
         if not qywx_lib.check_token():
             return Status(
                 480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+        # <<<<<<<<<<<<<<<<< 消息内容 >>>>>>>>>>>>>>>>>>
+        # user用户列表【传入参数】
+        to_user = new_params.get('user').split(';')
+        # 消息类型【传入参数】
+        send_type = str(new_params.get('type'))
+        if send_type not in qywx_lib.types:
+            return Status(
+                213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+        # if send_type in qywx_lib.temp_upload_types:
+        #     # TODO 需要处理附件media_id与robot的权限
+        #     pass
         try:
-            # user用户列表【传入参数】
-            to_user = new_params.get('user').split(';')
-            # 消息类型【传入参数】
-            send_type = str(new_params.get('type'))
-            if send_type not in qywx_lib.types:
-                return Status(
-                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
             # 消息内容【传入参数】
             new_content = dict()
             if send_type in ['text', 'markdown']:    # text, markdown消息
@@ -3447,7 +3452,7 @@ class NotifyService(object):
         return Status(
             100, 'success', '成功', {}).json()
 
-    def qywx_temp_upload(self, params, image_file) -> dict:
+    def qywx_temp_upload(self, params, upload_file) -> dict:
         """
         企业微信上传临时素材
           > 素材上传得到media_id，该media_id仅三天内有效
@@ -3469,6 +3474,9 @@ class NotifyService(object):
         if not params:
             return Status(
                 212, 'failure', StatusMsgs.get(212), {}).json()
+        if not upload_file:
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_temp_upload_attrs:
@@ -3489,12 +3497,52 @@ class NotifyService(object):
                 return Status(
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
+
         """
         TODO
         暂时直接通过企业微信API上传临时文件，不本地存储
         """
-        # --------------------------------------- 撤销消息 --------------------------------------
-        # qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
-        # if not qywx_lib.check_token():
-        #     return Status(
-        #         480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+        # <<<<<<<<<<<<<<<<< robot model >>>>>>>>>>>>>>>>>>>>
+        robot = new_params.get('robot')
+        robot_model = self.qywx_robot_bo.get_model_by_md5(robot)
+        if not robot_model:
+            return Status(
+                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+        # deleted
+        if robot_model.is_del:
+            return Status(
+                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+        # not key or not secret or not agent
+        if not robot_model.key \
+                or not robot_model.secret \
+                or not robot_model.agent:
+            return Status(
+                214, 'failure', "请完善机器人配置信息", {}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([getattr(robot_model, 'rtx_id')]):
+            return Status(
+                309, 'failure', StatusMsgs.get(309), {}).json()
+
+        # ================================= store to tencent =================================
+        qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
+        if not qywx_lib.check_token():
+            return Status(
+                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+        # upload type judge
+        upload_type = new_params.get('type')
+        if upload_type not in qywx_lib.temp_upload_types:
+            return Status(
+                213, 'failure', u'type消息类型不支持', {}).json()
+
+        temp_upload_res = qywx_lib.temp_upload(upload_type=upload_type, upload_file=upload_file)
+        temp_upload_res_json = json.loads(temp_upload_res)
+        # bad request
+        if temp_upload_res_json.get('status_id') != 100:
+            return temp_upload_res
+
+        return Status(
+            100, 'success', '成功', {'media_id': temp_upload_res_json.get('data').get('media_id')}
+        ).json()
+

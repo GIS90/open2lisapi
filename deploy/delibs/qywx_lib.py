@@ -416,14 +416,15 @@ class QYWXLib(object):
         except:
             return Status(501, 'failure', StatusMsgs.get(501), {}).json()
 
-    def temp_upload(self, upload_type: str, upload_file) -> json:
+    def temp_upload(self, upload_type: str, upload_name: str, upload_file) -> json:
         """
         :param upload_type: upload type, contain:
             > 图片（image）
             > 语音（voice）
             > 视频（video）
             > 普通文件（file）
-        :param upload_file: upload file
+        :param upload_name: upload file name
+        :param upload_file: upload file object
 
         企业微信上传临时素材
           > 素材上传得到media_id，该media_id仅三天内有效
@@ -467,8 +468,14 @@ class QYWXLib(object):
 
         """ --------------------- request 企业微信 server --------------------- """
         try:
+            if not upload_name:
+                upload_name = upload_file.filename
             url = "%s?access_token=%s&type=%s" % (QYWX_TEMP_UPLOAD, self.token, upload_type)
-            status, response = self.http.post_json(url=url)
+            data = {
+                'filename': upload_name,
+                'Content-Type': 'multipart/form-data'
+            }
+            status, response = self.http.post_form(url=url, data=data)
             if not status:
                 return Status(
                     501, 'failure', response.get('errmsg'), response).json()
