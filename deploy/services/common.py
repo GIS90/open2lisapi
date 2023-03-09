@@ -130,8 +130,10 @@ class CommonService(object):
                 return Status(
                     212, 'failure', u'缺少%s请求参数' % k, {}).json()
 
+        f_name = getattr(upload_file, 'filename')   # file public object
+                                                    # use getattr method to get file name
+
         # ======================= local store =======================
-        f_name = upload_file.filename   # file object
         # file format filter
         if is_check_fmt and not self.file_lib.allow_format_fmt(f_name):
             return Status(

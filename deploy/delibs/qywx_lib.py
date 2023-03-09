@@ -93,12 +93,14 @@ Life is short, I use python.
 # ------------------------------------------------------------
 import requests
 import json
+import os
 
 from deploy.delibs.http_lib import HttpLibApi
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import QYWX_BASE_URL, QYWX_SEND_MESSAGE, \
     QYWX_ACCESS_TOKEN, QYWX_SEND_BACK, QYWX_TEMP_UPLOAD
+from deploy.utils.utils import get_file_size
 
 
 class QYWXLib(object):
@@ -156,6 +158,33 @@ class QYWXLib(object):
         'video',     # 视频
         'file',      # 普通文件
     ]
+
+    temp_upload_types_verify = {
+        'image': {
+            'suffix': ['.jpg', '.png'],
+            'size': 10 * 1024 * 1024
+        },
+        'voice': {
+            'suffix': ['.amr'],
+            'size': 2 * 1024 * 1024
+        },
+        'video': {
+            'suffix': [
+                '.wmv', '.asf', '.asx',    # 微软视频
+                '.rm', '.rmvb',   # Real Player
+                '.mp4',      # MPEG视频
+                '.3gp',      # 手机视频
+                '.m4v', '.mov',   # Apple视频
+                '.mpg', '.mpeg', '.mpe',   # MPEG视频
+                '.avi', '.dat', '.mkv', '.flv', '.vob'  # 其他常见视频
+            ],
+            'size': 10 * 1024 * 1024
+        },
+        'file': {
+            'suffix': [],
+            'size': 20 * 1024 * 1024
+        }
+    }
 
     def __init__(self, corp_id, secret, agent_id):
         """
@@ -416,7 +445,33 @@ class QYWXLib(object):
         except:
             return Status(501, 'failure', StatusMsgs.get(501), {}).json()
 
-    def temp_upload(self, upload_type: str, upload_name: str, upload_file) -> json:
+    def _verify_temp_upload_file(self, upload_type: str, upload_name: str, upload_file: str) -> json:
+        """
+        :param upload_type: upload type, contain:
+        :param upload_name: upload file name
+        :param upload_file: local exist upload file path
+
+        检查规则：
+          - 图片（image）：10MB，支持JPG,PNG格式
+          - 语音（voice） ：2MB，播放长度不超过60s，仅支持AMR格式
+          - 视频（video） ：10MB，支持MP4格式
+          - 普通文件（file）：20MB
+        """
+        rule = self.temp_upload_types_verify.get(upload_type)
+        if not rule:
+            return False, '无此类型文件校验'
+
+        if not upload_name:
+            upload_name = os.path.split(upload_file)[-1]
+        upload_name_suffix = os.path.splitext(upload_name)[-1]
+
+        if rule.get('suffix') and upload_name_suffix not in rule.get('suffix'):
+            return False, '文件格式不支持'
+        if get_file_size(path=upload_file, unit='B') > rule.get('size'):
+            return False, '文件超出限制'
+        return True, ''
+
+    def temp_upload(self, upload_type: str, upload_name: str, upload_file: str) -> json:
         """
         :param upload_type: upload type, contain:
             > 图片（image）
@@ -424,7 +479,7 @@ class QYWXLib(object):
             > 视频（video）
             > 普通文件（file）
         :param upload_name: upload file name
-        :param upload_file: upload file object
+        :param upload_file: local exist upload file path
 
         企业微信上传临时素材
           > 素材上传得到media_id，该media_id仅三天内有效
@@ -462,20 +517,34 @@ class QYWXLib(object):
         if upload_type not in self.temp_upload_types:
             return Status(
                 213, 'failure', 'upload_type参数不支持请求类型', {}).json()
-        if not upload_file:
+        if not upload_file \
+                or not os.path.exists(upload_file) \
+                or not os.path.isfile(upload_file):
             return Status(
                 216, 'failure', '缺少上传文件', {}).json()
+        # 无传入文件名称，自动获取上传文件的文件名称
+        if not upload_name:
+            upload_name = os.path.split(upload_file)[-1]
+
+        """ --------------------- upload file suffix check --------------------- """
+        # 上传文件类型检查
+        verify_status, verify_message = self._verify_temp_upload_file(upload_type, upload_name, upload_file)
+        if not verify_status:
+            return Status(
+                217, 'failure', verify_message, {}).json()
 
         """ --------------------- request 企业微信 server --------------------- """
         try:
-            if not upload_name:
-                upload_name = upload_file.filename
-            url = "%s?access_token=%s&type=%s" % (QYWX_TEMP_UPLOAD, self.token, upload_type)
-            data = {
+            # read file stream
+            with open(upload_file, 'rb') as f:
+                file_content = f.read()
+            files_body = {'media': (upload_name, file_content, 'text/plain')}
+            url = "{}?access_token={}&type={}".format(QYWX_TEMP_UPLOAD, self.token, upload_type)
+            headers = {
                 'filename': upload_name,
-                'Content-Type': 'multipart/form-data'
+                'Content-type': 'multipart/form-data;'
             }
-            status, response = self.http.post_form(url=url, data=data)
+            status, response = self.http.post_form(url=url, headers=headers, files=files_body)
             if not status:
                 return Status(
                     501, 'failure', response.get('errmsg'), response).json()

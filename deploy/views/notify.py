@@ -837,20 +837,25 @@ def qywx_temp_upload():
     """
     企业微信 upload temp file, contain: image图片、voice音频、video视频、file文件
     :return: json data，contain: media_id
+    多文件上传，只需要获取第一个
     """
     if request.method == 'GET':
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        params = request.form
-        # 文件
-        files = request.files
-        if not files or (files and not files.get('files')):
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
+    # 参数
+    params = request.form
+    # 文件
+    files = request.files
+    if not files:
+        return Status(
+            216, 'failure', StatusMsgs.get(216), {}).json()
+    for f in files:
+        if not f: continue
+        upload_file = files.get(f)
 
-        return NotifyService().qywx_temp_upload(params, request.files.get('files'))
+    return NotifyService().qywx_temp_upload(params, upload_file)
+    try:
+        pass
     except Exception as e:
         LOG.error("notify>qywx temp upload is error: %s" % e)
         return Status(501, 'failure',

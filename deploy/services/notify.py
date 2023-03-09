@@ -52,6 +52,7 @@ from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
 from deploy.delibs.store_lib import StoreLib
 from deploy.delibs.dtalk_lib import DtalkLib
 from deploy.delibs.qywx_lib import QYWXLib
+from deploy.delibs.file_lib import FileLib
 
 
 class NotifyService(object):
@@ -381,8 +382,11 @@ class NotifyService(object):
         notify service class initialize
         """
         super(NotifyService, self).__init__()
+        # Lib
         self.excel_lib = ExcelLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
+        self.file_lib = FileLib()
+        # Bo
         self.dtalk_bo = DtalkMessageBo()
         self.dtalk_robot_bo = DtalkRobotBo()
         self.qywx_bo = QywxMessageBo()
@@ -3035,6 +3039,8 @@ class NotifyService(object):
         qywx send message to user list
         发送企业微信消息
         :return: json data
+
+        包含：正常发送功能、临时发送功能
         """
         # ====================== parameters check and format ======================
         if not params:
@@ -3498,10 +3504,6 @@ class NotifyService(object):
                     214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
             new_params[k] = str(v)
 
-        """
-        TODO
-        暂时直接通过企业微信API上传临时文件，不本地存储
-        """
         # <<<<<<<<<<<<<<<<< robot model >>>>>>>>>>>>>>>>>>>>
         robot = new_params.get('robot')
         robot_model = self.qywx_robot_bo.get_model_by_md5(robot)
@@ -3525,6 +3527,24 @@ class NotifyService(object):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
 
+        upload_name = getattr(upload_file, 'filename')  # file public object
+
+        # ======================= local store =======================
+        # no file format filter
+        # file local store
+        is_ok, store_msg = self.file_lib.store_file(
+            upload_file, compress=False, is_md5_store_name=False)
+        if not is_ok:
+            return Status(
+                220, 'failure', StatusMsgs.get(220), {}).json()
+        # get local file real store name
+        if store_msg.get('store_name'):
+            upload_name = store_msg.get('store_name')
+        # local file is or not real exist
+        local_file = store_msg.get('path')
+        if not os.path.exists(local_file) or not os.path.isfile(local_file):
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}).json()
         # ================================= store to tencent =================================
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
@@ -3536,8 +3556,12 @@ class NotifyService(object):
             return Status(
                 213, 'failure', u'type消息类型不支持', {}).json()
 
-        temp_upload_res = qywx_lib.temp_upload(upload_type=upload_type, upload_file=upload_file)
+        temp_upload_res = qywx_lib.temp_upload(upload_type=upload_type,
+                                               upload_name=upload_name,
+                                               upload_file=local_file)
         temp_upload_res_json = json.loads(temp_upload_res)
+        print(temp_upload_res_json)
+        print(temp_upload_res_json.get('data').get('media_id'))
         # bad request
         if temp_upload_res_json.get('status_id') != 100:
             return temp_upload_res

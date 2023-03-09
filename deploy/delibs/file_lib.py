@@ -127,7 +127,8 @@ class FileLib(object):
 
         """ 加入try，防止存储失败 """
         try:
-            file_name = file.filename
+            file_name = getattr(file, 'filename')   # use getattr method to get file name
+                                                    # from file object
             if is_md5_store_name:       # store name by md5
                 _, store_name_md5 = filename2md5(file_name=file_name, _type='file')
                 file_name = store_name_md5

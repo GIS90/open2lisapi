@@ -46,14 +46,15 @@ class HttpLibApi(object):
 
     def _wrap_headers(self, headers, ctype='form'):
         _headers = {}
+        # http lib headers
         if self.headers:
             _headers.update(self.headers)
+        # request headers
         _headers.update(headers or {})
-        content_type = 'application/x-www-form-urlencoded' if ctype == 'form' \
-            else 'application/json;charset=utf-8'
-        _headers.update({
-            'Content-type': content_type
-        })
+        # end check headers >>>>> Content-type
+        if not _headers.get('Content-type'):
+            _headers.update(self.content_type_form) if ctype == 'form' \
+                else _headers.update(self.content_type_json)
         return _headers
 
     def _get(self, url, params=None, headers=None, ctype='form', resptype='json', **kwargs):

@@ -394,21 +394,21 @@ def host_os():
 
     :return: int, detail information
     """
-    host_os = platform.system()
-    host_bit = platform.architecture()
-    if host_os == 'Windows':
+    _host_os = platform.system()
+    _host_bit = platform.architecture()
+    if _host_os == 'Windows':
         os_code = 1
-    elif host_os == 'Linux':
+    elif _host_os == 'Linux':
         os_code = 2
-    elif host_os == 'Darwin':
+    elif _host_os == 'Darwin':
         os_code = 3
     else:
         os_code = 4
 
     _detail = {
-        'os': host_os,
+        'os': _host_os,
         'os_code': os_code,
-        'bit': host_bit[0] if len(host_bit) > 1 else host_bit
+        'bit': _host_bit[0] if len(_host_bit) > 1 else _host_bit
     }
     return os_code, _detail
 
@@ -442,3 +442,35 @@ def api_inspect_rtx() -> dict:
         no check
     """
     pass
+
+
+def get_file_size(path, unit: str = 'KB'):
+    """
+    获取传入的文件大小，以默认KB大小返回
+    """
+    # not found file
+    if not path \
+            or not os.path.isfile(path) \
+            or not os.path.exists(path):
+        return 0
+
+    # get the real file size
+    size = os.path.getsize(path)
+    if size == 0:
+        return 0
+
+    # return file size, default is KB
+    __unit = str(unit).upper() if unit else 'KB'
+    b = 1024
+    if __unit == 'B':
+        return size
+    elif __unit == 'KB':
+        return size / b
+    elif __unit == 'MB':
+        return size / b**2
+    elif __unit == 'GB':
+        return size / b**3
+    elif __unit == 'TB':
+        return size / b**4
+    else:
+        return size
