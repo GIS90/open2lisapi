@@ -582,14 +582,13 @@ def qywx_list():
     get qywx message list from db table qywx_message by parameters
     :return: many json data
     """
-    if request.method == 'GET':
-        return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    # 参数
-    params = request.get_json() or {}
-    return NotifyService().qywx_list(params)
     try:
-        pass
+        if request.method == 'GET':
+            return Status(
+                211, 'failure', StatusMsgs.get(211), {}).json()
+        # 参数
+        params = request.get_json() or {}
+        return NotifyService().qywx_list(params)
     except Exception as e:
         LOG.error("notify>qywx list is error: %s" % e)
         return Status(501, 'failure',
