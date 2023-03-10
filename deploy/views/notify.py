@@ -842,20 +842,19 @@ def qywx_temp_upload():
     if request.method == 'GET':
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
-    # 参数
-    params = request.form
-    # 文件
-    files = request.files
-    if not files:
-        return Status(
-            216, 'failure', StatusMsgs.get(216), {}).json()
-    for f in files:
-        if not f: continue
-        upload_file = files.get(f)
-
-    return NotifyService().qywx_temp_upload(params, upload_file)
     try:
-        pass
+        # 参数
+        params = request.form
+        # 文件
+        files = request.files
+        if not files:
+            return Status(
+                216, 'failure', StatusMsgs.get(216), {}).json()
+        for f in files:
+            if not f: continue
+            upload_file = files.get(f)
+
+        return NotifyService().qywx_temp_upload(params, upload_file)
     except Exception as e:
         LOG.error("notify>qywx temp upload is error: %s" % e)
         return Status(501, 'failure',

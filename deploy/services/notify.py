@@ -3538,8 +3538,8 @@ class NotifyService(object):
             return Status(
                 220, 'failure', StatusMsgs.get(220), {}).json()
         # get local file real store name
-        if store_msg.get('store_name'):
-            upload_name = store_msg.get('store_name')
+        if not upload_name:
+            upload_name = os.path.split(store_msg.get('store_name'))[-1]
         # local file is or not real exist
         local_file = store_msg.get('path')
         if not os.path.exists(local_file) or not os.path.isfile(local_file):
@@ -3560,13 +3560,15 @@ class NotifyService(object):
                                                upload_name=upload_name,
                                                upload_file=local_file)
         temp_upload_res_json = json.loads(temp_upload_res)
-        print(temp_upload_res_json)
-        print(temp_upload_res_json.get('data').get('media_id'))
         # bad request
         if temp_upload_res_json.get('status_id') != 100:
             return temp_upload_res
-
+        # return data
+        data = {'name': upload_name}
+        if temp_upload_res_json.get('data'):
+            for k in ['type', 'media_id', 'created_at']:
+                if temp_upload_res_json.get('data').get(k):
+                    data[k] = temp_upload_res_json.get('data').get(k)
         return Status(
-            100, 'success', '成功', {'media_id': temp_upload_res_json.get('data').get('media_id')}
-        ).json()
+            100, 'success', '成功', data).json()
 
