@@ -99,7 +99,7 @@ from deploy.delibs.http_lib import HttpLibApi
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import QYWX_BASE_URL, QYWX_SEND_MESSAGE, \
-    QYWX_ACCESS_TOKEN, QYWX_SEND_BACK, QYWX_TEMP_UPLOAD
+    QYWX_ACCESS_TOKEN, QYWX_SEND_BACK, QYWX_TEMP_UPLOAD, QYWX_TEMP_GET
 from deploy.utils.utils import get_file_size
 
 
@@ -161,7 +161,7 @@ class QYWXLib(object):
 
     temp_upload_types_verify = {
         'image': {
-            'suffix': ['.jpg', '.png'],
+            'suffix': ['.jpg', '.jpeg', '.png'],
             'size': 10 * 1024 * 1024
         },
         'voice': {
@@ -549,6 +549,8 @@ class QYWXLib(object):
                 return Status(
                     501, 'failure', response.get('errmsg'), response).json()
             if response.get("errcode") == 0 and response.get("errmsg") == "ok":
+                # 附件get地址
+                response['url'] = "{}{}?access_token={}&media_id={}".format(QYWX_BASE_URL, QYWX_TEMP_GET, self.token, response.get('media_id'))
                 return Status(
                     100, 'success', '成功', response).json()
             else:

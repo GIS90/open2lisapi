@@ -137,6 +137,7 @@ QYWX_ACCESS_TOKEN = '/cgi-bin/gettoken'
 QYWX_SEND_MESSAGE = '/cgi-bin/message/send'
 QYWX_SEND_BACK = '/cgi-bin/message/recall'
 QYWX_TEMP_UPLOAD = '/cgi-bin/media/upload'
+QYWX_TEMP_GET = '/cgi-bin/media/get'
 
 # others
 NOBN = 'NoNameBody'
@@ -248,4 +249,5 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     QYWX_SEND_MESSAGE = _config_info['QYWX']['SEND_MESSAGE'] or QYWX_SEND_MESSAGE
     QYWX_SEND_BACK = _config_info['QYWX']['SEND_BACK'] or QYWX_SEND_BACK
     QYWX_TEMP_UPLOAD = _config_info['QYWX']['TEMP_UPLOAD'] or QYWX_TEMP_UPLOAD
+    QYWX_TEMP_GET = _config_info['QYWX']['TEMP_GET'] or QYWX_TEMP_GET
 

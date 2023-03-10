@@ -104,6 +104,7 @@ QYWX:
   SEND_MESSAGE: /cgi-bin/message/send
   SEND_BACK: /cgi-bin/message/recall
   TEMP_UPLOAD: /cgi-bin/media/upload
+  TEMP_GET: /cgi-bin/media/get
 
 
 # 其他配置

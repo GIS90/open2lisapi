@@ -2524,7 +2524,9 @@ class NotifyService(object):
             elif attr == 'title':
                 _res[attr] = getattr(model, 'title', '')
             elif attr == 'content':
-                _res[attr] = self.__format_qywx_content(f_type=_type, q_type=q_type, q_content= getattr(model, 'content', ''))
+                _res[attr] = self.__format_qywx_content(
+                    f_type=_type, q_type=q_type,
+                    q_content=getattr(model, 'content', ''))
             elif attr == 'user':
                 _res[attr] = getattr(model, 'user', '')
             elif attr == 'md5_id':
@@ -2781,13 +2783,14 @@ class NotifyService(object):
             if not r: continue
             robot_res.append({'label': str(r.name), 'value': str(r.md5_id), 'rtx': str(r.rtx_id)})
 
+        model_dict = self._qywx_model_to_dict(model, _type='detail')
         _res = {
-            'title': getattr(model, 'title', ''),
-            'content': getattr(model, 'content', ''),
-            'user': getattr(model, 'user', ''),
-            'type': getattr(model, 'type', ''),
+            'title': model_dict.get('title'),
+            'content': model_dict.get('content'),
+            'user': model_dict.get('user'),
+            'type': model_dict.get('type'),
             'type_lists': type_res,
-            'robot': getattr(model, 'robot', ''),
+            'robot': model_dict.get('robot'),
             'robot_lists': robot_res
         }
         return Status(
@@ -3592,7 +3595,7 @@ class NotifyService(object):
         # return data
         data = {'name': upload_name}
         if temp_upload_res_json.get('data'):
-            for k in ['type', 'media_id', 'created_at']:
+            for k in ['type', 'media_id', 'created_at', 'url']:
                 if temp_upload_res_json.get('data').get(k):
                     data[k] = temp_upload_res_json.get('data').get(k)
         return Status(
