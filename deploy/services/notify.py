@@ -377,6 +377,13 @@ class NotifyService(object):
 
     DEFAULT_EXCEL_FORMAT = '.xlsx'
 
+    temp_upload_types = [
+        'image',  # 图片
+        'voice',  # 语音
+        'video',  # 视频
+        'file',  # 普通文件
+    ]
+
     def __init__(self):
         """
         notify service class initialize
@@ -2469,6 +2476,30 @@ class NotifyService(object):
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
+    def __format_qywx_content(self, f_type, q_type, q_content):
+        """
+        format qywx message  content
+        f_type: format type
+        q_type: qywx message type
+        q_content: qywx message content
+        """
+        if f_type == 'list':
+            if q_type in self.temp_upload_types:
+                try:
+                    json_content = json.loads(q_content)
+                    _file_name = json_content.get('name')
+                    return _file_name \
+                        if _file_name and len(_file_name) < AUTH_NUM \
+                        else '%s...查看详情' % str(_file_name)[:AUTH_NUM - 1]
+                except:
+                    pass
+
+            return q_content \
+                if q_content and len(q_content) < AUTH_NUM \
+                else '%s...查看详情' % str(q_content)[:AUTH_NUM - 1]
+        else:
+            return q_content
+
     def _qywx_model_to_dict(self, model, _type='list'):
         """
         qywx message model to dict
@@ -2485,6 +2516,7 @@ class NotifyService(object):
 
         for attr in self.qywx_list_attrs:
             if not attr: continue
+            q_type = getattr(model, 'type', '')
             if attr == 'id':
                 _res[attr] = getattr(model, 'id', '')
             elif attr == 'rtx_id':
@@ -2492,13 +2524,7 @@ class NotifyService(object):
             elif attr == 'title':
                 _res[attr] = getattr(model, 'title', '')
             elif attr == 'content':
-                content = getattr(model, 'content', '')
-                if _type == 'list':
-                    _res[attr] = content \
-                        if content and len(content) < AUTH_NUM \
-                        else '%s...查看详情' % str(content)[:AUTH_NUM - 1]
-                else:
-                    _res[attr] = content
+                _res[attr] = self.__format_qywx_content(f_type=_type, q_type=q_type, q_content= getattr(model, 'content', ''))
             elif attr == 'user':
                 _res[attr] = getattr(model, 'user', '')
             elif attr == 'md5_id':
@@ -2508,7 +2534,7 @@ class NotifyService(object):
             elif attr == 'robot':
                 _res[attr] = getattr(model, 'robot', '')
             elif attr == 'type':
-                _res[attr] = getattr(model, 'type', '')
+                _res[attr] = q_type
             elif attr == 'count':
                 _res[attr] = getattr(model, 'count', 0)
             elif attr == 'enum_value':
