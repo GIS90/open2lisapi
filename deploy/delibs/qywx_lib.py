@@ -259,6 +259,9 @@ class QYWXLib(object):
         if ftype in self.content_types:
             new_content['content'] = content.get('data')
             return new_content
+        elif ftype in self.temp_upload_types:
+            new_content['media_id'] = content.get('data')
+            return new_content
         else:
             return new_content
 

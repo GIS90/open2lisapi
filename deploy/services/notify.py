@@ -3126,6 +3126,7 @@ class NotifyService(object):
         rtx_id = new_params.get('rtx_id')
 
         # <<<<<<<<<<<<<<<<< qyex_meesgae model >>>>>>>>>>>>>>>>>>>>
+        # 非临时消息
         if not temp:
             if not new_params.get('md5'):
                 return Status(
@@ -3174,6 +3175,7 @@ class NotifyService(object):
         if send_type not in qywx_lib.types:
             return Status(
                 213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+
         # if send_type in qywx_lib.temp_upload_types:
         #     # TODO 需要处理附件media_id与robot的权限
         #     pass
@@ -3182,6 +3184,10 @@ class NotifyService(object):
             new_content = dict()
             if send_type in ['text', 'markdown']:    # text, markdown消息
                 new_content['data'] = new_params.get('content')
+                _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
+            elif send_type in qywx_lib.temp_upload_types:  # 'image voice video file
+                json_content = json.loads(new_params.get('content'))
+                new_content['data'] = json_content.get('media_id')
                 _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
             else:
                 return Status(
@@ -3205,14 +3211,16 @@ class NotifyService(object):
                 model.robot = new_params.get('robot')
                 model.count = model.count + 1
                 model.last_send_time = get_now()
-                if _q_res_json and _q_res_json.get('data') and _q_res_json.get('data').get('msgid'):
+                if _q_res_json \
+                        and _q_res_json.get('data') \
+                        and _q_res_json.get('data').get('msgid'):
                     model.msg_id = _q_res_json.get('data').get('msgid')
                 self.qywx_bo.merge_model(model)
             else:
                 # --------------------------------------- add model --------------------------------------
                 new_model = self.qywx_bo.new_mode()     # 创建一个新的qyex_message模型
                 new_model.rtx_id = new_params.get('rtx_id')
-                new_model.delete_rtx = new_params.get('rtx_id') # rtx_id = delete_rtx
+                new_model.delete_rtx = new_params.get('rtx_id')     # rtx_id = delete_rtx
                 new_model.title = new_params.get('title')
                 new_model.content = new_params.get('content')
                 new_model.user = new_params.get('user')
