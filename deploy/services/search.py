@@ -352,7 +352,7 @@ class SearchService(object):
         database_list = self._group_database_types()
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101),
+                101, 'failure', StatusMsgs.get(101), 
                 {'list': [], 'total': 0, 'user': user_list, 'database': database_list}).json()
         # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
         """ sqlbase list """
@@ -367,7 +367,7 @@ class SearchService(object):
                 _res_dict['edit'] = 'true' if req_rtx_id in auth_rtx_join([_res_dict.get('rtx_id')]) else 'false'
                 new_res.append(_res_dict)
                 n += 1
-
+                
         return Status(
             100, 'success', StatusMsgs.get(100),
             {
