@@ -1162,7 +1162,7 @@ class OfficeService(object):
                         213, 'failure', u'请求参数%s必须为list类型' % k, {}).json()
                 v = [str(i) for i in v] if v else []
             elif k == 'name' and v:     # filter: like search
-                v = '%' + str(v) + '%'
+                v = ('%' + str(v) + '%').encode('utf-8')
             elif k in ['create_time_start', 'create_time_end'] and v:   # filter: start_time, end_time
                 v = d2s(v) if isinstance(v, datetime.datetime) \
                     else v
