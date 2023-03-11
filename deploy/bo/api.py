@@ -38,7 +38,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python template.py
 # ------------------------------------------------------------
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.api import ApiModel
@@ -63,6 +63,28 @@ class ApiBo(BOBase):
     def get_all(self, params: dict):
         q = self.session.query(ApiModel)
         q = q.filter(ApiModel.is_del != 1)
+        """多参数高级筛选"""
+        if params.get('create_rtx'):  # 创建用户RTX
+            q = q.filter(ApiModel.create_rtx.in_(params.get('create_rtx')))
+        if params.get('type'):  # API类型
+            q = q.filter(ApiModel.type.in_(params.get('type')))
+        if params.get('blueprint'):  # blueprint
+            q = q.filter(ApiModel.blueprint.like(params.get('blueprint')))
+        if params.get('apiname'):  # apiname
+            q = q.filter(ApiModel.apiname.like(params.get('apiname')))
+        if params.get('content'):  # 模糊查询内容
+            q = q.filter(or_(
+                ApiModel.blueprint.like(params.get('content')),
+                ApiModel.apiname.like(params.get('content')),
+                ApiModel.endpoint.like(params.get('content')),
+                ApiModel.path.like(params.get('content')),
+                ApiModel.short.like(params.get('content')),
+                ApiModel.long.like(params.get('content'))
+            ))
+        if params.get('create_time_start'):  # 起始创建时间
+            q = q.filter(ApiModel.create_time >= params.get('create_time_start'))
+        if params.get('create_time_end'):  # 结束创建时间
+            q = q.filter(ApiModel.create_time <= params.get('create_time_end'))
         q = q.order_by(ApiModel.order_id.asc(), ApiModel.create_time.desc())
         if not q:
             return [], 0

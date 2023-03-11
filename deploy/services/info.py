@@ -43,7 +43,7 @@ from deploy.bo.department import DepartmentBo
 from deploy.bo.api import ApiBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import d2s, get_now, check_length, md5
+from deploy.utils.utils import d2s, get_now, check_length, md5, s2d
 
 
 class InfoService(object):
@@ -68,6 +68,35 @@ class InfoService(object):
         'rtx_id',
         'limit',
         'offset'
+    ]
+
+    req_api_list_attrs = [
+        'rtx_id',  # 查询用户rtx
+        'limit',  # 条数
+        'offset',  # 偏移多少条
+        'create_time_start',  # 起始创建时间
+        'create_time_end',  # 结束创建时间
+        'create_rtx',  # 创建用户RTX
+        'type',  # API类型
+        'blueprint',
+        'apiname',
+        'content'  # 模糊搜索内容
+    ]
+
+    req_api_list_search_list_types = [
+        'create_rtx',
+        'type'
+    ]
+
+    req_api_list_search_time_types = [
+        'create_time_start',  # 起始创建时间
+        'create_time_end'  # 结束创建时间
+    ]
+
+    req_api_list_search_like_types = [
+        'blueprint',
+        'apiname',
+        'content'
     ]
 
     dict_list_attrs = [
@@ -234,10 +263,10 @@ class InfoService(object):
 
     req_api_add_ck_len_attrs = {
         'rtx_id': 25,
-        'blueprint': 15,
+        'blueprint': 25,
         'apiname': 35,
-        'type': 15,
-        'short': 35,
+        'type': 55,
+        'short': 55,
         'long': 120
     }
 
@@ -1066,7 +1095,7 @@ class InfoService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_page_comm_attrs:
+        for _attr in self.req_api_list_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -1076,23 +1105,56 @@ class InfoService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_page_comm_attrs and v:
+            if k not in self.req_api_list_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            if k == 'limit':
+            if k in self.req_api_list_search_list_types:    # 处理列表参数
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s为列表类型' % k or StatusMsgs.get(213), {}).json()
+            if k in self.req_api_list_search_time_types and v:      # 处理时间查询参数，str类型
+                if not isinstance(v, str):
+                    return Status(
+                        213, 'failure', u'请求参数%s为字符串类型' % k or StatusMsgs.get(213), {}).json()
+                if v:
+                    try:
+                        s2d(v)
+                    except:
+                        return Status(
+                            213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
+
+            if k in self.req_api_list_search_like_types and v:      # like 查询参数
+                v = '%' + str(v) + '%'
+            elif k == 'limit':
                 v = int(v) if v else self.PAGE_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
+            elif k in self.req_api_list_search_list_types and v:    # list 查询参数
+                v = v
             else:
                 v = str(v) if v else ''
             new_params[k] = v
 
         # **************** <get data> *****************
         res, total = self.api_bo.get_all(new_params)
+        # all user k-v list
+        user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        user_list = list()
+        for _d in user_res:
+            if not _d: continue
+            user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
+        # all api types
+        type_res = self.enum_bo.get_model_by_name(name='api-type')
+        type_list = list()
+        for _d in type_res:
+            if not _d: continue
+            type_list.append({'key': _d.key, 'value': _d.value})
         # no data
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, 'failure', StatusMsgs.get(101),
+                {'list': [], 'total': 0, 'user': user_list, 'type': type_list}
+            ).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         new_res = list()
         n = 1
@@ -1104,7 +1166,8 @@ class InfoService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, 'success', StatusMsgs.get(100),
+            {'list': new_res, 'total': total, 'user': user_list, 'type': type_list}
         ).json()
 
     def api_delete(self, params: dict) -> dict:
