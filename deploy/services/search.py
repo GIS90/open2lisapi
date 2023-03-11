@@ -311,6 +311,7 @@ class SearchService(object):
                     except:
                         return Status(
                             213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
+                    
             if k in self.req_sqlbase_list_search_like_types and v:      # like 查询参数
                 v = '%' + str(v) + '%'
             if k in self.req_sqlbase_list_search_int_types and v:      # int类型查询参数
@@ -334,22 +335,6 @@ class SearchService(object):
         # 追加数据库类型，关联enum表
         new_params['enum_name'] = 'db-type'
         res, total = self.sqlbase_bo.get_all(new_params)
-        if not res:
-            return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
-        # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
-        """ sqlbase list """
-        new_res = list()
-        n = 1
-        for _d in res:
-            if not _d: continue
-            _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
-            if _res_dict:
-                _res_dict['id'] = n
-                # 权限账户
-                _res_dict['edit'] = 'true' if req_rtx_id in auth_rtx_join([_res_dict.get('rtx_id')]) else 'false'
-                new_res.append(_res_dict)
-                n += 1
         """ all user k-v list"""
         user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         user_list = list()
@@ -365,6 +350,24 @@ class SearchService(object):
             database_list.append({'key': _d.key, 'value': _d.value})
         """
         database_list = self._group_database_types()
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101),
+                {'list': [], 'total': 0, 'user': user_list, 'database': database_list}).json()
+        # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
+        """ sqlbase list """
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
+            if _res_dict:
+                _res_dict['id'] = n
+                # 权限账户
+                _res_dict['edit'] = 'true' if req_rtx_id in auth_rtx_join([_res_dict.get('rtx_id')]) else 'false'
+                new_res.append(_res_dict)
+                n += 1
+
         return Status(
             100, 'success', StatusMsgs.get(100),
             {
