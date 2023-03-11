@@ -1138,7 +1138,7 @@ class InfoService(object):
         # **************** <get data> *****************
         res, total = self.api_bo.get_all(new_params)
         # all user k-v list
-        user_res, _ = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        user_res, _ = self.sysuser_bo.get_all({}, is_admin=True, is_del=True)
         user_list = list()
         for _d in user_res:
             if not _d: continue
