@@ -86,10 +86,10 @@ class ExcelResultBo(BOBase):
             q = q.filter(ExcelResultModel.ftype.in_(params.get('type')))
         if params.get('rtx_id'):
             q = q.filter(ExcelResultModel.rtx_id == str(params.get('rtx_id')))
-        if params.get('start_time'):
-            q = q.filter(ExcelResultModel.create_time >= params.get('start_time'))
-        if params.get('end_time'):
-            q = q.filter(ExcelResultModel.create_time <= params.get('end_time'))
+        if params.get('create_time_start'):  # 起始创建时间
+            q = q.filter(ExcelResultModel.create_time >= params.get('create_time_start'))
+        if params.get('create_time_end'):  # 结束创建时间
+            q = q.filter(ExcelResultModel.create_time <= params.get('create_time_end'))
         q = q.filter(ExcelResultModel.is_del != 1)
         q = q.order_by(ExcelResultModel.create_time.desc())
         if not q:

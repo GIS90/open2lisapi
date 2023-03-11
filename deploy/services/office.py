@@ -48,10 +48,11 @@ from deploy.bo.excel_source import ExcelSourceBo
 from deploy.bo.excel_result import ExcelResultBo
 from deploy.bo.enum import EnumBo
 from deploy.bo.office_pdf import OfficePDFBo
+from deploy.bo.sysuser import SysUserBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     OFFICE_LIMIT, OFFICE_STORE_BK, \
-    ADMIN, ADMIN_AUTH_LIST, SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
+    SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
 from deploy.utils.utils import get_now, d2s, md5, check_length, auth_rtx_join
 from deploy.utils.enums import *
 
@@ -81,9 +82,9 @@ class OfficeService(object):
     req_result_list_attrs = [
         'rtx_id',
         'name',
-        'type',
-        'start_time',
-        'end_time',
+        'type',     # 类型
+        'create_time_start',  # 起始创建时间
+        'create_time_end',  # 结束创建时间
         'limit',
         'offset'
     ]
@@ -288,6 +289,7 @@ class OfficeService(object):
         self.excel_result_bo = ExcelResultBo()
         self.enum_bo = EnumBo()
         self.office_pdf_bo = OfficePDFBo()
+        self.sysuser_bo = SysUserBo()
 
     def get_excel_headers(self, excel_file):
         """
@@ -1154,14 +1156,14 @@ class OfficeService(object):
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
                 v = int(v) if v else 0
-            elif k == 'type':      # filter: check parameter type, format is [1, 2]
+            elif k in ['type']:      # filter: check parameter type, format is [1, 2]
                 if not isinstance(v, list):
                     return Status(
                         213, 'failure', u'请求参数%s必须为list类型' % k, {}).json()
                 v = [str(i) for i in v] if v else []
             elif k == 'name' and v:     # filter: like search
                 v = '%' + str(v) + '%'
-            elif k in ['start_time', 'end_time'] and v:   # filter: start_time, end_time
+            elif k in ['create_time_start', 'create_time_end'] and v:   # filter: start_time, end_time
                 v = d2s(v) if isinstance(v, datetime.datetime) \
                     else v
             else:
@@ -1174,9 +1176,17 @@ class OfficeService(object):
         """     ============ get models list ==========    """
         new_params['enum_name'] = 'excel-type'
         res, total = self.excel_result_bo.get_all(new_params)
-        if not res:         # 无数据
+        # all api types
+        type_res = self.enum_bo.get_model_by_name(name='excel-type')
+        type_list = list()
+        for _d in type_res:
+            if not _d: continue
+            type_list.append({'key': _d.key, 'value': _d.value})
+        # 无数据
+        if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, 'failure', StatusMsgs.get(101),
+                {'list': [], 'total': 0, 'type': type_list}).json()
         # format data
         new_res = list()
         n = 1
@@ -1188,7 +1198,8 @@ class OfficeService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, 'success', StatusMsgs.get(100),
+            {'list': new_res, 'total': total, 'type': type_list}
         ).json()
 
     def excel_result_update(self, params: dict) -> dict:
