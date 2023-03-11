@@ -543,8 +543,9 @@ class QYWXLib(object):
                 file_content = f.read()
             files_body = {'media': (upload_name, file_content, 'text/plain')}
             url = "{}?access_token={}&type={}".format(QYWX_TEMP_UPLOAD, self.token, upload_type)
+            upload_name_utf = upload_name.encode('utf-8')
             headers = {
-                'filename': upload_name,
+                'filename': upload_name_utf,
                 'Content-type': 'multipart/form-data;'
             }
             status, response = self.http.post_form(url=url, headers=headers, files=files_body)

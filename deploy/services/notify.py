@@ -3182,11 +3182,12 @@ class NotifyService(object):
         try:
             # 消息内容【传入参数】
             new_content = dict()
+            content = new_params.get('content')
             if send_type in ['text', 'markdown']:    # text, markdown消息
-                new_content['data'] = new_params.get('content')
+                new_content['data'] = content
                 _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
             elif send_type in qywx_lib.temp_upload_types:  # 'image voice video file
-                json_content = json.loads(new_params.get('content'))
+                json_content = json.loads(content)
                 new_content['data'] = json_content.get('media_id')
                 _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
             else:
