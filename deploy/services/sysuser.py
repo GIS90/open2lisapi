@@ -410,4 +410,10 @@ class SysUserService(object):
                 {}
             ).json()
 
-
+    def random_avatar_list(self, params):
+        """
+        all avatar list
+        :params: request params
+        :return: json data
+        """
+        pass

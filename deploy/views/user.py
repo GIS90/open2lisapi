@@ -203,3 +203,25 @@ def avatar():
         LOG.error("user>avatar is error: %s" % e)
         return Status(501, 'failure',
             StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@user.route('/random_avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def random_avatar_list():
+    """
+    all avatar list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return SysUserService().random_avatar_list(params)
+    except Exception as e:
+        LOG.error("user>random avatar list is error: %s" % e)
+        return Status(501, 'failure',
+            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
