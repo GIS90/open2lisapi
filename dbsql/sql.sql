@@ -175,7 +175,7 @@ VALUES
 (7, '表格拆分', 'ExcelSplit', 'split', 4, 2, '8a9e64d86ed12ad40de129bc7f4683b2', 'excelSplit', FALSE, '', 'i_split', TRUE, FALSE, TRUE, 7, 'admin', FALSE, TRUE),
 (8, '表格历史', 'ExcelHistory', 'history', 4, 2, '76c9a06443a050eccb7989cda6fff225', 'excelHistory', FALSE, '', 'i_excel', TRUE, FALSE, TRUE, 8, 'admin', FALSE, TRUE),
 -- 通知管理
-(9, '通知消息', 'Notify', '/notify', 0, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'c_notify', TRUE, FALSE, TRUE, 9, 'admin', FALSE, FALSE),
+(9, '消息通知', 'Notify', '/notify', 0, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'c_notify', TRUE, FALSE, TRUE, 9, 'admin', FALSE, FALSE),
 (10, '短信通知', 'NotifyMessage', 'message', 9, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notifyMessage', FALSE, '', 'message', TRUE, FALSE, TRUE, 11, 'admin', FALSE, TRUE),
 (11, '钉钉绩效', 'NotifyDtalk', 'dtalk', 9, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notifyDtalk', FALSE, '', 'i_dtalk', TRUE, FALSE, TRUE, 10, 'admin', FALSE, TRUE),
 (22, '企微通知', 'NotifyQywx', 'qywx', 9, 2, '55c90dfdd0341b16ba273a012581265d', 'notifyQywx', FALSE, '', 'i_qywx', TRUE, FALSE, TRUE, 12, 'admin', FALSE, TRUE),
