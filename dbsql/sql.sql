@@ -164,9 +164,9 @@ insert into
 VALUES
 -- root
 (0, '首页', 'Home', '/', 0, 0, '5ecb64c5576af2642f7eacb4679c8fda', 'layout', FALSE, '/', '', TRUE, FALSE, TRUE, 0, 'admin', FALSE, FALSE),
--- 问题检索
-(1, '问题检索', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'c_search', TRUE, FALSE, TRUE, 1, 'admin', FALSE, FALSE),
-(2, '问题仓库', 'SearchProbase', 'probase', 1, 2, 'c97d41080c06a689936f1c665ea334b5', 'searchProbase', FALSE, '', 'i_problem', TRUE, FALSE, TRUE, 2, 'admin', FALSE, TRUE),
+-- 知识平台
+(1, '知识平台', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'c_search', TRUE, FALSE, TRUE, 1, 'admin', FALSE, FALSE),
+(2, '问题检索', 'SearchProbase', 'probase', 1, 2, 'c97d41080c06a689936f1c665ea334b5', 'searchProbase', FALSE, '', 'i_problem', TRUE, FALSE, TRUE, 2, 'admin', FALSE, TRUE),
 (3, '取数仓库', 'SearchSqlbase', 'sqlbase', 1, 2, '1b29b5aa48db5845f4a14c54a44eeb18', 'searchSqlbase', FALSE, '', 'i_sql', TRUE, FALSE, TRUE, 3, 'admin', FALSE, TRUE),
 -- 表格工具
 (4, '文档工具', 'Office', '/office', 0, 1, 'c1d81af5835844b4e9d936910ded8fdc', 'layout', FALSE, '/office/pdf2word', 'c_office', TRUE, FALSE, TRUE, 4, 'admin', FALSE, FALSE),
