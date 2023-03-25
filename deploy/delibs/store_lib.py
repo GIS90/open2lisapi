@@ -9,7 +9,7 @@ describe:
     后期业务量上来之后，在考虑继续扩展或者更换其他对象存储的问题
 
     七牛账户：13051355646
-    官网Python SDK：https://developer.qiniu.com/kodo/1242/python#1
+    官网Python SDK：https://developer.qiniu.com/kodo/1242/python
 
     存储对象类型说明：
     对比项        标准存储                      低频存储                      归档存储
@@ -92,6 +92,9 @@ from deploy.utils.status_msg import StatusMsgs
 class StoreLib(object):
     """
     store lib in utils
+
+    单密钥
+    多空间
     """
     def __init__(self, space_url, space_name):
         self.access_key = STORE_ACCESS
@@ -104,7 +107,12 @@ class StoreLib(object):
     @staticmethod
     def format_res(status_id: int, message: str, data: dict) -> dict:
         """
-        方法请求结果格式化
+        请求方法请求结果格式化
+        return json
+
+        status_id: response status id
+        message: message
+        data: data
         """
         return {
             'status_id': status_id,
@@ -124,21 +132,31 @@ class StoreLib(object):
         加入异常，以防止请求失败导致异常
         如果请求发生异常认定为初始化权限失败
         """
+        if not self.access_key \
+                or not self.secret_key:
+            return None
+
         try:
-            return Auth(self.access_key, self.secret_key)
+            return Auth(access_key=self.access_key, secret_key=self.secret_key)
         except:
             return None
 
-    def __new_token(self, space_name: str, store_name: str, timeout=120):
+    def __new_token(self, space_name: str, store_name: str, timeout=7200):
         """
         初始化上传文件的token
+        :params space_name: space name, is not allow null
+        :params store_name: store name, allow null
+        :params timeout: time out, second unit, default is 7200（2h）
         """
         if not self.check():
             return None
-        if not space_name or not store_name:
+        if not space_name:
             return None
+        # new store name(key)
+        # if not store_name:
+        #     store_name = self.new_now_store_name(v=self.get_now())
         try:
-            return self.conn.upload_token(space_name, store_name, timeout)
+            return self.conn.upload_token(bucket=space_name, key=store_name, expires=timeout)
         except:
             return None
 
@@ -165,16 +183,16 @@ class StoreLib(object):
         return hashlib.md5(v).hexdigest()
 
     def upload(self, space_name: str = None, store_name: str = None, local_file: str = None,
-               version: str = 'v2', timeout: int = 120) -> dict:
+               version: str = 'v2', timeout: int = 3600) -> dict:
         """
         上传本地文件/图片的方法
         space_name：存储对象的空间名称
         store_name：存储对象的文件名称
         local_file：需要上传的本地文件
         version：断点续传的默认方法，默认为v2版本
-        timeout：token存在时间，以秒为单位
+        timeout：token存在时间，以秒为单位，默认3600s（1h）
 
-        存储对象名称上带上目录/，存储的对象会自动创建对应目录
+        存储对象名称：带上目录/，qiniu存储的对象会自动创建对应目录
         """
         if not store_name:
             store_name = self.new_now_store_name(v=self.get_now())
@@ -182,7 +200,6 @@ class StoreLib(object):
             return self.format_res(
                 212, '缺少上传文件参数', {}
             )
-
         if not os.path.exists(local_file) or \
                 not os.path.isfile(local_file):
             return self.format_res(
@@ -192,7 +209,7 @@ class StoreLib(object):
         try:
             bucket_name = space_name if space_name \
                 else self.space_name
-            token = self.__new_token(bucket_name, store_name, timeout)
+            token = self.__new_token(space_name=bucket_name, store_name=store_name, timeout=timeout)
             if not token:
                 return self.format_res(
                     601, 'Token创建失败，请检查网络或者对象存储配置', {}
