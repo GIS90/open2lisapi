@@ -102,6 +102,9 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 
 ### 手动启动
 
+手工启动项目是为了方便调试项目，在本机、服务器简述不同的启动方式。
+
+#### 本机
 1.项目根目录wsgi.py文件，开启app.run(host="0.0.0.0", port=9999, debug=True)  
 2.安装好项目运行环境，***source .venv/bin/activate***启动项目运行python
 3.执行sudo python wsgi.py，代码目前已写入，处于注释状态  
@@ -109,6 +112,14 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 5.如果手动启动模式开启，在gunicorn进行启动，会error: [Errno 48] Address already in use.
 
 注意：启动项目一定要用virtualenv安装的python环境进行启动（source .venv/bin/activate）
+
+
+#### 服务器
+
+```
+export mode=prod
+```
+剩下的操作与本机启动一致，加入mode环境变量是为了使用prod配置文件。
 
 ### 数据库
 
@@ -204,6 +215,27 @@ crontab简单功能：
 ### qiniu对象存储
 
 官网开发手册Python API：https://developer.qiniu.com/kodo/1242/python
+
+1.七牛API上传文件发送ProtocolError-Connection-aborted错误
+解决：
+1.1 找到Pyhton的第三方包qiniu config.py配置文件
+https://github.com/qiniu/python-sdk/blob/master/qiniu/config.py
+1.2 修改参数
+```
+_config = {
+    'default_zone': zone.Zone(),
+    'default_rs_host': RS_HOST,
+    'default_rsf_host': RSF_HOST,
+    'default_api_host': API_HOST,
+    'default_uc_host': UC_HOST,
+    'connection_timeout': 120,  # 链接超时为时间为30s
+    'connection_retries': 3,  # 链接重试次数为3次
+    'connection_pool': 10,  # 链接池个数为10
+    'default_upload_threshold': 2 * _BLOCK_SIZE  # put_file上传方式的临界默认值
+}
+```
+把connection_timeout连接时间由默认的30秒修改为120秒。
+原因是服务器带宽不够导致上传超时。
 
 ### 其他
 
