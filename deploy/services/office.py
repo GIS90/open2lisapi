@@ -2174,7 +2174,7 @@ class OfficeService(object):
             'pages': []
         }
         if model.mode:      # 通用页码模式
-            _d['start'] = int(new_params.get('start')) if new_params.get('start') else 0
+            _d['start'] = int(new_params.get('start')) if new_params.get('start') else ''
             _d['end'] = int(new_params.get('end')) if new_params.get('end') else ''
         else:       # 指定页码模式
             _d['pages'] = new_params.get('transfer_pages') if new_params.get('transfer_pages') else []

@@ -151,7 +151,7 @@ class FileLib(object):
 
     def _pdf2word(self, cmd5: str,
                   pdf_file: str, word_name: str,
-                  start: int = 0, end: int = None, pages: list = None,
+                  start: int = None, end: int = None, pages: list = None,
                   *args, **kwargs):
         """
         pdf file convert to word file,
@@ -214,6 +214,7 @@ class FileLib(object):
         # all pages by default
         # cv.convert(docx_filename=word_file, start=start, end=end, pages=pages)
 
+        # 通过参数使用调用不同的参数方法
         if pages:
             cv.convert(docx_filename=word_file, pages=pages)
         elif start and not end:
@@ -223,7 +224,7 @@ class FileLib(object):
         elif start and end:
             cv.convert(docx_filename=word_file, start=start, end=end)
         else:
-            cv.convert(docx_filename=word_file, start=0, end=None, pages=[])
+            cv.convert(docx_filename=word_file)
 
         cv.close()
         # ---------------------------convert end--------------------------------------------------
@@ -264,7 +265,7 @@ class FileLib(object):
         for key, value in pdf_list.items():
             if not key or not value: continue
             # convert parameters deal
-            start = int(value.get('start')) if value.get('start') else 0    # start page
+            start = int(value.get('start')) if value.get('start') else ''    # start page
             end = int(value.get('end')) if value.get('end') else ''     # end page
             if start and end and start > end:
                 results[key] = {'ok': False, 'message': '结束页不允许小于开始页'}
@@ -300,7 +301,7 @@ class FileLib(object):
         # =========================== 多进程 start ===========================
         pool = multiprocessing.Pool(processes=self.cpu_count)
         for key, v in pdf_list.items():
-            start = int(v.get('start')) if v.get('start') else 0    # start page
+            start = int(v.get('start')) if v.get('start') else ''    # start page
             end = int(v.get('end')) if v.get('end') else ''  # end page
             pages = v.get('pages') if v.get('pages') else []  # pages list
             # parameters initialize end
