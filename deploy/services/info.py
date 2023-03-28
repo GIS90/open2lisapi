@@ -1035,17 +1035,22 @@ class InfoService(object):
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         # new_res_dict = dict()   # 所有节点信息：{ 节点id: 节点, 节点id: 节点 }
         all_nodes = list()   # 根所有的children节点信息：[{ id: id, name: name },{ id: id, name: name } ]
+        _max_id = self.DEPART_ROOT_ID   # 记录最大ID值
         for _d in res:
             # filter no id or no parent id
-            if not _d or not getattr(_d, 'id') or not getattr(_d, 'md5_id'):
+            if not _d \
+                    or not getattr(_d, 'id') \
+                    or not getattr(_d, 'md5_id'):
                 continue
-            _res_dict = self._depart_model_to_dict(_d, _type='tree')
-            if _res_dict:
-                all_nodes.append(_res_dict)
+            _d_dict = self._depart_model_to_dict(_d, _type='tree')
+            if _d_dict:
+                all_nodes.append(_d_dict)
+                if _max_id < _d_dict.get('id'):
+                    _max_id = _d_dict.get('id')
 
         depart_tree = self._nodes_fab(all_nodes, self.DEPART_ROOT_ID)
         return Status(
-            100, 'success', StatusMsgs.get(100), depart_tree
+            100, 'success', StatusMsgs.get(100), {'max_id': _max_id, 'tree': depart_tree}
         ).json()
 
     def depart_update(self, params: dict) -> dict:
