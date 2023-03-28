@@ -88,7 +88,7 @@ def watcher(watcher_args):
             start = datetime.now()
             res = fn(*args, **kwargs)
             end = datetime.now()
-            cost = round((end-start).microseconds * pow(0.1, 3), 3)   # API run time, unit is second
+            cost = round((end-start).microseconds * pow(0.1, 6), 3)   # API run time, unit is second
             if watcher_args:
                 __add_request(request=watcher_args, cost=cost)  # API request to write database table [request]
             LOG.info('@Watcher [%s] is run: %s' % (getattr(watcher_args, 'endpoint') or fn.__name__, cost))
