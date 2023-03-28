@@ -107,6 +107,11 @@ QYWX:
   TEMP_GET: /cgi-bin/media/get
 
 
+# 部门树
+DEPART:
+  ROOT: 1
+
+
 # 其他配置
 OTHERS:
   NOBN: NoNameBody

@@ -44,6 +44,7 @@ from deploy.bo.api import ApiBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import d2s, get_now, check_length, md5, s2d
+from deploy.config import DEPART_ROOT
 
 
 class InfoService(object):
@@ -290,7 +291,7 @@ class InfoService(object):
         information service class initialize
         """
         super(InfoService, self).__init__()
-        self.DEPART_ROOT_ID = 1
+        self.DEPART_ROOT_ID = DEPART_ROOT
         self.enum_bo = EnumBo()
         self.sysuser_bo = SysUserBo()
         self.depart_bo = DepartmentBo()
@@ -973,26 +974,14 @@ class InfoService(object):
         else:
             return _res
 
-    def _search_child_fab(self, node_id, all_nodes):
-        if not node_id or not all_nodes:
-            return []
-        all_nodes.sort(key=itemgetter('pid'))
-        for key, group in groupby(all_nodes, key=itemgetter('pid')):
-            if node_id == key:
-                return self._search_child_fab(self, key, group)
-        else:
-            return 
-
-    def _nodes_fab(self, root_direct_child_ids, all_nodes):
-        if not all_nodes:
-            return []
-        all_nodes.sort(key=itemgetter('pid'))
-        _res = dict()
-        for node_id in root_direct_child_ids:
-            if not node_id: continue        # no node id
-            _res[node_id] = self._search_child_fab(node_id, all_nodes)
-        else:
-            return _res
+    def _nodes_fab(self, all_nodes, parent_id):
+        tree = []
+        for item in all_nodes:
+            if item['pid'] == parent_id:
+                if not item['leaf']:
+                    item['children'] = self._nodes_fab(all_nodes, item['id'])
+                tree.append(item)
+        return tree
 
     def depart_list(self, params: dict) -> dict:
         """
@@ -1004,7 +993,7 @@ class InfoService(object):
         节点属性：
         id：ID值
         name：部门名称
-        md5_id：数据记录record
+        md5_id：部门MD5-ID
         description：部门描述
         pid：上级部门ID
         leaf：是否为叶子节点，如果为True不允许有子节点，默认为False
@@ -1016,13 +1005,12 @@ class InfoService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        # for _attr in self.req_page_comm_attrs:
-        #     if _attr not in params.keys():
-        #         return Status(
-        #             212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        for _attr in self.req_depart_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
         """end"""
         # **************************************************************************
-        """
         # new parameters
         new_params = dict()
         for k, v in params.items():
@@ -1033,6 +1021,7 @@ class InfoService(object):
             new_params[k] = str(v).strip()
 
         rtx_id = new_params.get('rtx_id')
+        # check user is available
         user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
         if not user_model:
             return Status(
@@ -1044,34 +1033,19 @@ class InfoService(object):
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
-        new_res_dict = dict()   # 所有节点信息：{ 节点id: 节点, 节点id: 节点 }
-        all_nodes = list()   # 根所有所有的children节点信息：[{ id: id, name: name },{ id: id, name: name } ]
-        root_direct_child_nodes = list()     # root节点的直属children
+        # new_res_dict = dict()   # 所有节点信息：{ 节点id: 节点, 节点id: 节点 }
+        all_nodes = list()   # 根所有的children节点信息：[{ id: id, name: name },{ id: id, name: name } ]
         for _d in res:
             # filter no id or no parent id
-            if not _d or not getattr(_d, 'id'):continue
+            if not _d or not getattr(_d, 'id') or not getattr(_d, 'md5_id'):
+                continue
             _res_dict = self._depart_model_to_dict(_d, _type='tree')
             if _res_dict:
-                new_res_dict[_res_dict.get('id')] = _res_dict
-                if _res_dict.get('id') != self.DEPART_ROOT_ID:
-                    all_nodes.append(_res_dict)
-                # 获取root节点下的所有子节点
-                if _res_dict.get('pid') == self.DEPART_ROOT_ID:
-                    root_direct_child_nodes.append(_res_dict)
-        ret_res = list()  # return result, list type
-        root_direct_child_nodes_ids = [node.get('id') for node in root_direct_child_nodes if node.get('id')]
-        nodes_fab = self._nodes_fab(root_direct_child_nodes_ids, all_nodes)
-        # 分2种情况：有root节点 无root节点
-        if new_res_dict.get(self.DEPART_ROOT_ID):
-            root = new_res_dict.get(self.DEPART_ROOT_ID)
-            root['children'] = root_direct_child_nodes
-            ret_res.append(root)
-        else:
-            ret_res = root_direct_child_nodes
-        print(ret_res)
-        """
+                all_nodes.append(_res_dict)
+
+        depart_tree = self._nodes_fab(all_nodes, self.DEPART_ROOT_ID)
         return Status(
-            100, 'success', StatusMsgs.get(100), []
+            100, 'success', StatusMsgs.get(100), depart_tree
         ).json()
 
     def depart_update(self, params: dict) -> dict:

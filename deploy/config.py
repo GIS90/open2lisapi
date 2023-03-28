@@ -139,6 +139,9 @@ QYWX_SEND_BACK = '/cgi-bin/message/recall'
 QYWX_TEMP_UPLOAD = '/cgi-bin/media/upload'
 QYWX_TEMP_GET = '/cgi-bin/media/get'
 
+# DEPART部门树
+DEPART_ROOT = 1
+
 # others
 NOBN = 'NoNameBody'
 
@@ -251,3 +254,5 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     QYWX_TEMP_UPLOAD = _config_info['QYWX']['TEMP_UPLOAD'] or QYWX_TEMP_UPLOAD
     QYWX_TEMP_GET = _config_info['QYWX']['TEMP_GET'] or QYWX_TEMP_GET
 
+    # depart
+    DEPART_ROOT = _config_info['DEPART']['ROOT'] or DEPART_ROOT
