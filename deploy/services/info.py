@@ -976,11 +976,11 @@ class InfoService(object):
 
     def _nodes_fab(self, all_nodes, parent_id):
         tree = []
-        for item in all_nodes:
-            if item['pid'] == parent_id:
-                if not item['leaf']:
-                    item['children'] = self._nodes_fab(all_nodes, item['id'])
-                tree.append(item)
+        for node in all_nodes:
+            if node['pid'] == parent_id:
+                if not node['leaf']:
+                    node['children'] = self._nodes_fab(all_nodes, node['id'])
+                tree.append(node)
         return tree
 
     def depart_list(self, params: dict) -> dict:
