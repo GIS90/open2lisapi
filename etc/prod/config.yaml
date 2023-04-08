@@ -109,7 +109,8 @@ QYWX:
 
 # 部门树
 DEPART:
-  ROOT: 1
+  ROOT_ID: 1
+  ROOT_PID: 0
 
 
 # 其他配置

@@ -421,11 +421,11 @@ def depart_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_update/', methods=['GET', 'POST'], strict_slashes=False)
+@info.route('/depart_update_tree/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
-def depart_update():
+def depart_update_tree():
     """
-    information > update department information
+    information > update department tree information
     :return: json data
     """
     if request.method == 'GET':
@@ -434,8 +434,48 @@ def depart_update():
     try:
         # 参数
         params = request.get_json() or {}
-        return InfoService().depart_update(params)
+        return InfoService().depart_update_tree(params)
     except Exception as e:
-        LOG.error("info>depart update is error: %s" % e)
+        LOG.error("info>depart update tree is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/depart_init/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def depart_init():
+    """
+    department init params
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().depart_init(params)
+    except Exception as e:
+        LOG.error("info>depart init is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@info.route('/depart_add/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def depart_add():
+    """
+    add new department to db table department
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return InfoService().depart_add(params)
+    except Exception as e:
+        LOG.error("info>depart add is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

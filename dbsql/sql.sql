@@ -557,9 +557,7 @@ CREATE TABLE `department`  (
 insert into
 department(`id`, `name`, `md5_id`, `description`, `pid`, `leaf`, `manage_rtx`, `create_rtx`, `is_del`, `order_id`)
 VALUES
-(1, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', 0, False, 'admin', 'admin', False, 0),
-(2, '部门一', '2', '初始化部门一', 1, False, 'admin', 'admin', False, 0),
-(3, '部门二', '3', '初始化部门二', 1, False, 'admin', 'admin', False, 0);
+(1, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', 0, True , 'admin', 'admin', False, 0);
 
 
 

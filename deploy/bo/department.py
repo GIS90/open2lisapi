@@ -36,6 +36,7 @@ from sqlalchemy import distinct, func
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.department import DepartmentModel
+from deploy.config import DEPART_ROOT_ID
 
 
 class DepartmentBo(BOBase):
@@ -55,8 +56,26 @@ class DepartmentBo(BOBase):
     def get_all(self, root=False):
         q = self.session.query(DepartmentModel)
         if not root:
-            q = q.filter(DepartmentModel.id != 1)
+            q = q.filter(DepartmentModel.id != DEPART_ROOT_ID)
         q = q.filter(DepartmentModel.is_del != True)
         q = q.order_by(DepartmentModel.order_id.asc(), DepartmentModel.id.asc())
         q = q.all()
+        return q
+
+    def get_model_by_id(self, id):
+        if not id:
+            return None
+        q = self.session.query(DepartmentModel)
+        q = q.filter(DepartmentModel.is_del != True)
+        q = q.filter(DepartmentModel.id == id)
+        q = q.first()
+        return q
+
+    def get_model_by_md5(self, md5):
+        if not id:
+            return None
+        q = self.session.query(DepartmentModel)
+        q = q.filter(DepartmentModel.is_del != True)
+        q = q.filter(DepartmentModel.md5_id == md5)
+        q = q.first()
         return q

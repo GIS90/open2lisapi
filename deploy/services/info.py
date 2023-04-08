@@ -44,7 +44,7 @@ from deploy.bo.api import ApiBo
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import d2s, get_now, check_length, md5, s2d
-from deploy.config import DEPART_ROOT
+from deploy.config import DEPART_ROOT_ID, DEPART_ROOT_PID
 
 
 class InfoService(object):
@@ -202,6 +202,11 @@ class InfoService(object):
         'rtx_id'
     ]
 
+    req_depart_update_attrs = [
+        'rtx_id',
+        'data'
+    ]
+
     depart_list_attrs = [
         'id',
         'name',
@@ -221,6 +226,13 @@ class InfoService(object):
         'delete_rtx',
         'is_del',
         'order_id'
+    ]
+
+    depart_update_attrs = [
+        'name',
+        'pid',
+        'lock',
+        'description',
     ]
 
     api_list_attrs = [
@@ -286,12 +298,46 @@ class InfoService(object):
         'rtx_id'
     ]
 
+    req_depart_init_attrs = [
+        'rtx_id'
+    ]
+
+    req_depart_add_attrs = [
+        'rtx_id',
+        'name',
+        'description',
+        'manage_rtx',
+        'lock',
+        'order_id',
+        'pid'
+    ]
+
+    req_depart_add_need_attrs = [
+        'rtx_id',
+        'name',
+        'description',
+        'manage_rtx',
+        'pid'
+    ]
+
+    req_depart_add_bool_attrs = [
+        'lock'
+    ]
+
+    req_depart_add_len = {
+        'rtx_id': 25,
+        'name': 30,
+        'description': 200,
+        'manage_rtx': 25
+    }
+
     def __init__(self):
         """
         information service class initialize
         """
         super(InfoService, self).__init__()
-        self.DEPART_ROOT_ID = DEPART_ROOT
+        self.DEPART_ROOT_ID = DEPART_ROOT_ID
+        self.DEPART_ROOT_PID = DEPART_ROOT_PID
         self.enum_bo = EnumBo()
         self.sysuser_bo = SysUserBo()
         self.depart_bo = DepartmentBo()
@@ -925,143 +971,6 @@ class InfoService(object):
             100, 'success', StatusMsgs.get(100), {'md5': md5_id}
         ).json()
 
-    def _depart_model_to_dict(self, model, _type='list'):
-        """
-        depart model transfer to dict data
-        """
-        _res = dict()
-        if not model:
-            return _res
-
-        for attr in self.depart_list_attrs:
-            if not attr: continue
-            if attr == 'id' and _type in ['list', 'tree']:
-                _res[attr] = model.id
-            elif attr == 'name' and _type in ['list', 'tree']:
-                _res['label'] = model.name if getattr(model, 'name') else ""
-            elif attr == 'md5_id' and _type in ['list', 'tree']:
-                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
-            elif attr == 'description' and _type in ['list', 'tree']:
-                _res[attr] = model.description if getattr(model, 'description') else ""
-            elif attr == 'pid' and _type in ['list', 'tree']:
-                _res[attr] = model.pid if getattr(model, 'pid') else ""
-            elif attr == 'leaf' and _type in ['list', 'tree']:
-                _res[attr] = True if getattr(model, 'leaf') else False
-            elif attr == 'lock' and _type in ['list', 'tree']:
-                _res[attr] = True if getattr(model, 'lock') else False
-            elif attr == 'manage_rtx' and _type in ['list', 'tree']:
-                _res[attr] = model.manage_rtx if getattr(model, 'manage_rtx') else ""
-            elif attr == 'dept_path' and _type in ['list', 'tree']:
-                _res[attr] = model.dept_path if getattr(model, 'dept_path') else ""
-            elif attr == 'deptid_path' and _type in ['list', 'tree']:
-                _res[attr] = model.deptid_path if getattr(model, 'deptid_path') else ""
-            elif attr == 'create_rtx' and _type in ['list']:
-                _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
-            elif attr == 'create_time' and _type in ['list']:
-                _res[attr] = self._transfer_time(model.create_time)
-            elif attr == 'update_rtx' and _type in ['list']:
-                _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
-            elif attr == 'update_time' and _type in ['list']:
-                _res[attr] = self._transfer_time(model.update_time)
-            elif attr == 'delete_rtx' and _type in ['list']:
-                _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
-            elif attr == 'delete_time' and _type in ['list']:
-                _res[attr] = self._transfer_time(model.delete_time)
-            elif attr == 'is_del' and _type in ['list']:
-                _res[attr] = True if getattr(model, 'is_del') else False
-            elif attr == 'order_id' and _type in ['list', 'tree']:
-                _res[attr] = model.order_id if getattr(model, 'order_id') else 1
-        else:
-            return _res
-
-    def _nodes_fab(self, all_nodes, parent_id):
-        tree = []
-        for node in all_nodes:
-            if node['pid'] == parent_id:
-                if not node['leaf']:
-                    node['children'] = self._nodes_fab(all_nodes, node['id'])
-                tree.append(node)
-        return tree
-
-    def depart_list(self, params: dict) -> dict:
-        """
-        get department data list by params
-        params is dict
-        return json data
-
-        https://element.eleme.cn/2.13/#/zh-CN/component/tree
-        节点属性：
-        id：ID值
-        name：部门名称
-        md5_id：部门MD5-ID
-        description：部门描述
-        pid：上级部门ID
-        leaf：是否为叶子节点，如果为True不允许有子节点，默认为False
-        lock：是否锁定，如果为True为锁定，默认为False
-        """
-        # ====================== parameters check ======================
-        if not params:
-            return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
-        # **************************************************************************
-        """inspect api request necessary parameters"""
-        for _attr in self.req_depart_list_attrs:
-            if _attr not in params.keys():
-                return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
-        """end"""
-        # **************************************************************************
-        # new parameters
-        new_params = dict()
-        for k, v in params.items():
-            if not k: continue
-            if k not in self.req_depart_list_attrs and v:
-                return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
-            new_params[k] = str(v).strip()
-
-        rtx_id = new_params.get('rtx_id')
-        # check user is available
-        user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
-        if not user_model:
-            return Status(
-                302, 'failure', u'用户%s不存在' % rtx_id, {}).json()
-        # **************** <get data> *****************
-        res = self.depart_bo.get_all(root=True)
-        # no data
-        if not res:
-            return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
-        # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
-        # new_res_dict = dict()   # 所有节点信息：{ 节点id: 节点, 节点id: 节点 }
-        all_nodes = list()   # 根所有的children节点信息：[{ id: id, name: name },{ id: id, name: name } ]
-        _max_id = self.DEPART_ROOT_ID   # 记录最大ID值
-        for _d in res:
-            # filter no id or no parent id
-            if not _d \
-                    or not getattr(_d, 'id') \
-                    or not getattr(_d, 'md5_id'):
-                continue
-            _d_dict = self._depart_model_to_dict(_d, _type='tree')
-            if _d_dict:
-                all_nodes.append(_d_dict)
-                if _max_id < _d_dict.get('id'):
-                    _max_id = _d_dict.get('id')
-
-        depart_tree = self._nodes_fab(all_nodes, self.DEPART_ROOT_ID)
-        return Status(
-            100, 'success', StatusMsgs.get(100), {'max_id': _max_id, 'tree': depart_tree}
-        ).json()
-
-    def depart_update(self, params: dict) -> dict:
-        """
-        information > update department information
-        :return: json data
-        """
-        return Status(
-            100, 'success', StatusMsgs.get(100), {}
-        ).json()
-
     def api_list(self, params: dict) -> dict:
         """
         get api list from api table by params
@@ -1517,3 +1426,344 @@ class InfoService(object):
         # return data
         return Status(
             100, 'success', StatusMsgs.get(100), _res).json()
+
+    def _depart_model_to_dict(self, model, _type='list'):
+        """
+        depart model transfer to dict data
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.depart_list_attrs:
+            if not attr: continue
+            if attr == 'id' and _type in ['list', 'tree']:
+                _res[attr] = model.id
+            elif attr == 'name' and _type in ['list', 'tree']:
+                _res['label'] = model.name if getattr(model, 'name') else ""
+            elif attr == 'md5_id' and _type in ['list', 'tree']:
+                _res[attr] = model.md5_id if getattr(model, 'md5_id') else ""
+            elif attr == 'description' and _type in ['list', 'tree']:
+                _res[attr] = model.description if getattr(model, 'description') else ""
+            elif attr == 'pid' and _type in ['list', 'tree']:
+                _res[attr] = model.pid
+            elif attr == 'leaf' and _type in ['list', 'tree']:
+                _res[attr] = True if getattr(model, 'leaf') else False
+            elif attr == 'lock' and _type in ['list', 'tree']:
+                _res[attr] = True if getattr(model, 'lock') else False
+            elif attr == 'manage_rtx' and _type in ['list', 'tree']:
+                _res[attr] = model.manage_rtx if getattr(model, 'manage_rtx') else ""
+            elif attr == 'dept_path' and _type in ['list', 'tree']:
+                _res[attr] = model.dept_path if getattr(model, 'dept_path') else ""
+            elif attr == 'deptid_path' and _type in ['list', 'tree']:
+                _res[attr] = model.deptid_path if getattr(model, 'deptid_path') else ""
+            elif attr == 'create_rtx' and _type in ['list']:
+                _res[attr] = model.create_rtx if getattr(model, 'create_rtx') else ""
+            elif attr == 'create_time' and _type in ['list']:
+                _res[attr] = self._transfer_time(model.create_time)
+            elif attr == 'update_rtx' and _type in ['list']:
+                _res[attr] = model.update_rtx if getattr(model, 'update_rtx') else ""
+            elif attr == 'update_time' and _type in ['list']:
+                _res[attr] = self._transfer_time(model.update_time)
+            elif attr == 'delete_rtx' and _type in ['list']:
+                _res[attr] = model.delete_rtx if getattr(model, 'delete_rtx') else ""
+            elif attr == 'delete_time' and _type in ['list']:
+                _res[attr] = self._transfer_time(model.delete_time)
+            elif attr == 'is_del' and _type in ['list']:
+                _res[attr] = True if getattr(model, 'is_del') else False
+            elif attr == 'order_id' and _type in ['list', 'tree']:
+                _res[attr] = model.order_id if getattr(model, 'order_id') else 1
+        else:
+            return _res
+
+    def _nodes_tree(self, all_nodes, parent_id):
+        tree = []
+        for node in all_nodes:
+            if node['pid'] == parent_id:
+                if not node['leaf']:
+                    node['children'] = self._nodes_tree(all_nodes, node['id'])
+                tree.append(node)
+        return tree
+
+    def depart_list(self, params: dict) -> dict:
+        """
+        get department data list by params
+        params is dict
+        return json data
+
+        https://element.eleme.cn/2.13/#/zh-CN/component/tree
+        节点属性：
+        id：ID值
+        name：部门名称
+        md5_id：部门MD5-ID
+        description：部门描述
+        pid：上级部门ID
+        leaf：是否为叶子节点，如果为True不允许有子节点，默认为False
+        lock：是否锁定，如果为True为锁定，默认为False
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_depart_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_depart_list_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            new_params[k] = str(v).strip()
+
+        rtx_id = new_params.get('rtx_id')
+        # check user is available
+        user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
+        if not user_model:
+            return Status(
+                302, 'failure', u'用户%s不存在' % rtx_id, {}).json()
+        # **************** <get data> *****************
+        res = self.depart_bo.get_all(root=True)
+        # no data
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
+        # new_res_dict = dict()   # 所有节点信息：{ 节点id: 节点, 节点id: 节点 }
+        all_nodes = list()   # 根所有的children节点信息：[{ id: id, name: name },{ id: id, name: name } ]
+        _max_id = self.DEPART_ROOT_ID   # 记录最大ID值
+        for _d in res:
+            # filter no id or no parent id
+            if not _d \
+                    or not getattr(_d, 'md5_id'):
+                continue
+            _d_dict = self._depart_model_to_dict(_d, _type='tree')
+            if _d_dict:
+                all_nodes.append(_d_dict)
+                if _max_id < _d_dict.get('id'):
+                    _max_id = _d_dict.get('id')
+        """
+        DEPART_ROOT_ID：不显示根节点
+        DEPART_ROOT_PID：显示根节点
+        """
+        nodes_tree = self._nodes_tree(all_nodes, self.DEPART_ROOT_PID)  # 从根节点开始显示
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'max_id': _max_id, 'tree': nodes_tree}
+        ).json()
+
+    def _nodes_array(self, all_nodes, node_list=[]):
+        for node in all_nodes:
+            node_list.append(node)
+            if node.get("children"):
+                self._nodes_array(node.get("children"), node_list)
+        return node_list
+
+    def depart_update_tree(self, params: dict) -> dict:
+        """
+        information > update department tree information
+        :return: json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_depart_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_depart_update_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if k == 'rtx_id' and not v:
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % k, {}).json()
+            if k == 'data':
+                if not v:
+                    return Status(
+                        213, 'failure', u'部门树不允许清空，请至少保留一个部门', {}).json()
+                if not isinstance(v, list):
+                    return Status(
+                        213, 'failure', u'请求参数%s只允许为list类型' % k, {}).json()
+            new_params[k] = v
+
+        all_nodes = new_params.get('data')
+        nodes_array = self._nodes_array(all_nodes, [])
+        # print('*' * 100)
+        for node in nodes_array:
+            if not node: continue
+            # print(node)
+        return Status(
+            100, 'success', StatusMsgs.get(100), {}
+        ).json()
+
+    def depart_init(self, params: dict) -> dict:
+        """
+        department init params
+        """
+        # ---------------------- parameters check ----------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_depart_init_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_depart_init_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            v = str(v)
+            new_params[k] = v
+        # ------------- return data -------------
+        res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        if not res:
+            return Status(
+                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        user_res = list()
+        for _d in res:
+            if not _d: continue
+            user_res.append({'key': _d.rtx_id, 'value': _d.fullname})
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'user': user_res}
+        ).json()
+
+    def __depart_path(self, depart_id):
+        """
+        组成根节点到当前部门的路径
+        :params depart_id: depart id
+        """
+        _depart_path_id = []
+        _depart_path_name = []
+        while True:
+            if depart_id == self.DEPART_ROOT_PID:
+                break
+            depart_model = self.depart_bo.get_model_by_id(id=depart_id)
+            if not depart_model:
+                break
+            _depart_path_id.append(depart_model.id)
+            _depart_path_name.append(depart_model.name)
+            depart_id = depart_model.pid
+        _depart_path_id_reverse = _depart_path_id[::-1]
+        _depart_path_name_reverse = _depart_path_name[::-1]
+        _depart_path_id_reverse = [str(x) for x in _depart_path_id_reverse]
+        return '>'.join(_depart_path_id_reverse), '>'.join(_depart_path_name_reverse)
+
+    def depart_add(self, params: dict) -> dict:
+        """
+        add new department to db table department
+        :return: json data
+        """
+        # ---------------------- parameters check ----------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_depart_add_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # illegal
+            if k not in self.req_depart_add_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # value is not allow null
+            if k in self.req_depart_add_need_attrs and not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            # value is boolean
+            if k in self.req_depart_add_bool_attrs:
+                if not isinstance(v, bool):
+                    return Status(
+                        213, 'failure', u'请求参数%s只允许是Boolean类型' % k, {}).json()
+            new_params[k] = v
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
+        if order_id and not order_id.isdigit():
+            return Status(
+                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+        # parameters check length
+        for _key, _value in self.req_depart_add_len.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # ===================== add new department data =====================
+        new_depart = self.depart_bo.new_mode()
+        # 交互信息
+        for attr in self.req_depart_add_attrs:
+            if not attr: continue
+            if attr == 'rtx_id':
+                new_depart.create_rtx = new_params.get(attr)
+            else:
+                setattr(new_depart, attr, new_params.get(attr))
+        # 其他信息
+        now = get_now()
+        new_depart_md5 = md5('%s%s%s' % (new_params.get('name'), now, new_params.get('rtx_Id')))
+        new_depart.md5_id = new_depart_md5
+        new_depart.create_time = now
+        new_depart.is_del = False
+        new_depart.leaf = True
+        deptid_path, dept_path = self.__depart_path(depart_id=new_params.get('pid'))
+        new_depart.dept_path = '%s>%s' % (dept_path, new_params.get('name'))
+        try:
+            self.depart_bo.add_model(new_depart)
+        except:
+            return Status(
+                320, 'failure', StatusMsgs.get(320), {}).json()
+        # ******************************* update new deapart id *******************************
+        try:
+            # 更新新增节点ID
+            depart_model = self.depart_bo.get_model_by_md5(md5=new_depart_md5)
+            depart_model.deptid_path = '%s>%s' % (deptid_path, depart_model.id)
+            self.depart_bo.merge_model(depart_model)
+            # return new depart
+            new_node = self._depart_model_to_dict(depart_model, _type='tree')
+            new_node['deptid_path'] = '%s>%s' % (deptid_path, depart_model.id)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+        # ******************************* update up deapart data *******************************
+        try:
+            # 更新上级节点leaf属性
+            up_depart_model = self.depart_bo.get_model_by_id(id=new_params.get('pid'))
+            up_depart_model.leaf = False
+            self.depart_bo.merge_model(up_depart_model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+        # return depart tree
+        # depart_list = self.depart_list({'rtx_id': new_params.get('rtx_id')})
+        # depart_list_tree = json.loads(depart_list).get('data').get('tree')
+        return Status(
+            100, 'success', StatusMsgs.get(100), new_node
+        ).json()
+

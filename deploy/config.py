@@ -140,7 +140,8 @@ QYWX_TEMP_UPLOAD = '/cgi-bin/media/upload'
 QYWX_TEMP_GET = '/cgi-bin/media/get'
 
 # DEPART部门树
-DEPART_ROOT = 1
+DEPART_ROOT_ID = 1
+DEPART_ROOT_PID = 0
 
 # others
 NOBN = 'NoNameBody'
@@ -255,4 +256,5 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     QYWX_TEMP_GET = _config_info['QYWX']['TEMP_GET'] or QYWX_TEMP_GET
 
     # depart
-    DEPART_ROOT = _config_info['DEPART']['ROOT'] or DEPART_ROOT
+    DEPART_ROOT_ID = _config_info['DEPART']['ROOT_ID'] or DEPART_ROOT_ID
+    DEPART_ROOT_PID = _config_info['DEPART']['ROOT_PID'] or DEPART_ROOT_PID
