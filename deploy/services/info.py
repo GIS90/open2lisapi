@@ -1767,3 +1767,54 @@ class InfoService(object):
             100, 'success', StatusMsgs.get(100), new_node
         ).json()
 
+    def depart_remove(self, params: dict) -> dict:
+        """
+        remove department by node md5-id
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.depart_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # < update data >
+        try:
+            setattr(model, 'is_del', True)
+            setattr(model, 'delete_rtx', new_params.get('rtx_id'))
+            setattr(model, 'delete_time', get_now())
+            self.depart_bo.merge_model(model)
+        except:
+            return Status(
+                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
