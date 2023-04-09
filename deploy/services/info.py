@@ -202,7 +202,7 @@ class InfoService(object):
         'rtx_id'
     ]
 
-    req_depart_update_attrs = [
+    req_depart_update_tree_attrs = [
         'rtx_id',
         'data'
     ]
@@ -330,6 +330,26 @@ class InfoService(object):
         'description': 200,
         'manage_rtx': 25
     }
+
+    req_depart_update_attrs = [
+        'rtx_id',
+        'name',
+        'description',
+        'manage_rtx',
+        'lock',
+        'order_id',
+        'pid',
+        'md5'
+    ]
+
+    req_depart_update_need_attrs = [
+        'rtx_id',
+        'name',
+        'description',
+        'manage_rtx',
+        'pid',
+        'md5'
+    ]
 
     def __init__(self):
         """
@@ -1575,7 +1595,7 @@ class InfoService(object):
                 212, 'failure', StatusMsgs.get(212), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_depart_update_attrs:
+        for _attr in self.req_depart_update_tree_attrs:
             if _attr not in params.keys():
                 return Status(
                     212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
@@ -1585,7 +1605,7 @@ class InfoService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_depart_update_attrs and v:
+            if k not in self.req_depart_update_tree_attrs and v:
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             if k == 'rtx_id' and not v:
@@ -1817,4 +1837,133 @@ class InfoService(object):
                 321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def depart_detail(self, params: dict) -> dict:
+        """
+        department detail informations by node md5-id
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== depart detail ======================
+        model = self.depart_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        depart_res = self._depart_model_to_dict(model, _type='tree')
+        # ====================== user list ======================
+        res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
+        user_res = list()
+        for _d in res:
+            if not _d: continue
+            user_res.append({'key': _d.rtx_id, 'value': _d.fullname})
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'user': user_res, 'depart': depart_res}
+        ).json()
+
+    def depart_update(self, params: dict) -> dict:
+        """
+        update department to db table department by md5-id
+        :return: json data
+        """
+        # ---------------------- parameters check ----------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_depart_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # illegal
+            if k not in self.req_depart_update_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # value is not allow null
+            if k in self.req_depart_update_need_attrs and not v:
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            # value is boolean
+            if k in self.req_depart_add_bool_attrs:
+                if not isinstance(v, bool):
+                    return Status(
+                        213, 'failure', u'请求参数%s只允许是Boolean类型' % k, {}).json()
+            new_params[k] = v
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
+        if order_id and not order_id.isdigit():
+            return Status(
+                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+        # parameters check length
+        for _key, _value in self.req_depart_add_len.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # ******************************* update up deapart data *******************************
+        model = self.depart_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # 交互信息
+        for attr in self.req_depart_add_attrs:
+            if not attr: continue
+            if attr == 'rtx_id':
+                model.update_rtx = new_params.get(attr)
+            else:
+                setattr(model, attr, new_params.get(attr))
+        # 其他信息
+        now = get_now()
+        model.update_time = now
+        try:
+            self.depart_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}
         ).json()
