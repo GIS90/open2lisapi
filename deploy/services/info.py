@@ -327,7 +327,7 @@ class InfoService(object):
     req_depart_add_len = {
         'rtx_id': 25,
         'name': 30,
-        'description': 200,
+        'description': 240,
         'manage_rtx': 25
     }
 
@@ -1713,7 +1713,7 @@ class InfoService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # value is not allow null
-            if k in self.req_depart_add_need_attrs and not v:
+            if k in self.req_depart_add_need_attrs and not str(v):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             # value is boolean
@@ -1826,7 +1826,12 @@ class InfoService(object):
         if model and model.is_del:
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
-        # < update data >
+        # root node not allow delete
+        if model.id == self.DEPART_ROOT_ID:
+            return Status(
+                306, 'failure', '根节点不允许删除', {}).json()
+
+        # < delete data >
         try:
             setattr(model, 'is_del', True)
             setattr(model, 'delete_rtx', new_params.get('rtx_id'))
@@ -1915,7 +1920,7 @@ class InfoService(object):
                 return Status(
                     213, 'failure', u'请求参数%s不合法' % k, {}).json()
             # value is not allow null
-            if k in self.req_depart_update_need_attrs and not v:
+            if k in self.req_depart_update_need_attrs and not str(v):
                 return Status(
                     214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
             # value is boolean
