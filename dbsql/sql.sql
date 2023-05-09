@@ -555,9 +555,9 @@ CREATE TABLE `department`  (
 -- default value
 -- 根节点
 insert into
-department(`id`, `name`, `md5_id`, `description`, `pid`, `leaf`, `manage_rtx`, `create_rtx`, `is_del`, `order_id`)
+department(`id`, `name`, `md5_id`, `description`, `pid`, `leaf`, `lock`, `dept_path`, `deptid_path`, `manage_rtx`, `create_rtx`, `is_del`, `order_id`)
 VALUES
-(1, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', 0, True , 'admin', 'admin', False, 0);
+(1, '根节点', '63a9f0ea7bb98050796b649e85481845', '部门根节点', 0, True , False, '1', '根节点', 'admin', 'admin', False, 0);
 
 
 

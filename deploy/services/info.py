@@ -1670,22 +1670,28 @@ class InfoService(object):
     def __depart_path(self, depart_id):
         """
         组成根节点到当前部门的路径
+        数据库while循环的方式进行获取
         :params depart_id: depart id
         """
         _depart_path_id = []
         _depart_path_name = []
         while True:
+            # 根节点 > exit
             if depart_id == self.DEPART_ROOT_PID:
                 break
             depart_model = self.depart_bo.get_model_by_id(id=depart_id)
+            # 无节点 > exit
             if not depart_model:
                 break
-            _depart_path_id.append(depart_model.id)
-            _depart_path_name.append(depart_model.name)
+            # append id, name
+            _depart_path_id.append(str(depart_model.id))
+            _depart_path_name.append(str(depart_model.name))
+            # next >>>>> while
             depart_id = depart_model.pid
+        # deal and return data
         _depart_path_id_reverse = _depart_path_id[::-1]
         _depart_path_name_reverse = _depart_path_name[::-1]
-        _depart_path_id_reverse = [str(x) for x in _depart_path_id_reverse]
+        # _depart_path_id_reverse = [str(x) for x in _depart_path_id_reverse]
         return '>'.join(_depart_path_id_reverse), '>'.join(_depart_path_name_reverse)
 
     def depart_add(self, params: dict) -> dict:
@@ -1765,7 +1771,7 @@ class InfoService(object):
             depart_model = self.depart_bo.get_model_by_md5(md5=new_depart_md5)
             depart_model.deptid_path = '%s>%s' % (deptid_path, depart_model.id)
             self.depart_bo.merge_model(depart_model)
-            # return new depart
+            # format new depart dict type
             new_node = self._depart_model_to_dict(depart_model, _type='tree')
             new_node['deptid_path'] = '%s>%s' % (deptid_path, depart_model.id)
         except:
