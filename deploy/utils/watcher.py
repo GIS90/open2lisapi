@@ -54,7 +54,8 @@ GLOBAL_NEW_ENDPOINR = [
     'dashboard.index',
     'auth.user_list',
     'info.dict_list',
-    'search.sqlbase_list'
+    'search.sqlbase_list',
+    'info.depart_detail'
 ]
 
 
