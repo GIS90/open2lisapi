@@ -79,3 +79,11 @@ class DepartmentBo(BOBase):
         q = q.filter(DepartmentModel.md5_id == md5)
         q = q.first()
         return q
+
+    def get_models_by_pid(self, pid):
+        q = self.session.query(DepartmentModel)
+        q = q.filter(DepartmentModel.pid == pid)
+        q = q.filter(DepartmentModel.is_del != True)
+        q = q.order_by(DepartmentModel.order_id.asc(), DepartmentModel.id.asc())
+        q = q.all()
+        return q

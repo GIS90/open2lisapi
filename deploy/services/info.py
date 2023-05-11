@@ -1628,10 +1628,8 @@ class InfoService(object):
 
         all_nodes = new_params.get('data')
         nodes_array = self._nodes_array(all_nodes, [])
-        # print('*' * 100)
         for node in nodes_array:
             if not node: continue
-            # print(node)
         return Status(
             100, 'success', StatusMsgs.get(100), {}
         ).json()
@@ -1783,7 +1781,7 @@ class InfoService(object):
         except:
             return Status(
                 322, 'failure', StatusMsgs.get(322), {}).json()
-        # ******************************* update up deapart data *******************************
+        # ******************************* update up node data *******************************
         try:
             # 更新上级节点leaf属性
             up_depart_model = self.depart_bo.get_model_by_id(id=new_params.get('pid'))
@@ -1985,6 +1983,18 @@ class InfoService(object):
             100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}
         ).json()
 
+    def _update_node_src_leaf(self, node_id):
+        """
+        更新操作节点的父节点是否为leaf节点
+        node_id为外部传入节点的父节点ID
+        """
+        try:
+            model = self.depart_bo.get_model_by_id(node_id)
+            child_model = self.depart_bo.get_models_by_pid(node_id)
+            model.leaf = False if child_model else True
+        except:
+            raise Exception('更新节点源上级节点leaf信息失败')
+
     def depart_drag(self, params: dict) -> dict:
         """
         update department parent node by md5
@@ -2030,7 +2040,10 @@ class InfoService(object):
             return Status(
                 306, 'failure', '节点被禁用，不允许调整', {}).json()
 
+        # ******************************* 节点信息 *******************************
         try:
+            # 记录操作节点之前的PID
+            node_src_pid = model.pid
             # 上级节点信息
             model.pid = new_params.get('pid')
             deptid_path, dept_path = self.__depart_path(depart_id=new_params.get('pid'))
@@ -2040,6 +2053,23 @@ class InfoService(object):
             model.update_rtx = new_params.get('rtx_id')
             model.update_time = get_now()
             self.depart_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+        # ******************************* 操作节点的目标上级节点 *******************************
+        try:
+            # 更新上级节点leaf属性
+            up_depart_model = self.depart_bo.get_model_by_id(id=new_params.get('pid'))
+            # 只有leaf为True才进行更新
+            if up_depart_model.leaf:
+                up_depart_model.leaf = False
+                self.depart_bo.merge_model(up_depart_model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+        # ******************************* 更新源节点的父节点leaf信息 *******************************
+        try:
+            res = self._update_node_src_leaf(node_src_pid)
         except:
             return Status(
                 322, 'failure', StatusMsgs.get(322), {}).json()
