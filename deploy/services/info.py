@@ -1850,6 +1850,12 @@ class InfoService(object):
         except:
             return Status(
                 321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+        # ******************************* 更新节点的父节点leaf信息 *******************************
+        try:
+            res = self._update_node_src_leaf(model.pid)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
         return Status(
             100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
@@ -1992,6 +1998,7 @@ class InfoService(object):
             model = self.depart_bo.get_model_by_id(node_id)
             child_model = self.depart_bo.get_models_by_pid(node_id)
             model.leaf = False if child_model else True
+            self.depart_bo.merge_model(model)
         except:
             raise Exception('更新节点源上级节点leaf信息失败')
 
