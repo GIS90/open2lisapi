@@ -327,7 +327,7 @@ class InfoService(object):
     req_depart_add_len = {
         'rtx_id': 25,
         'name': 30,
-        'description': 240,
+        'description': 300,
         'manage_rtx': 25
     }
 
@@ -338,7 +338,7 @@ class InfoService(object):
         'manage_rtx',
         'lock',
         'order_id',
-        'pid',
+        # 'pid', # 采用drag方式更新上级节点
         'md5'
     ]
 
@@ -347,6 +347,12 @@ class InfoService(object):
         'name',
         'description',
         'manage_rtx',
+        # 'pid',
+        'md5'
+    ]
+
+    req_depart_drag_attrs = [
+        'rtx_id',
         'pid',
         'md5'
     ]
@@ -1960,8 +1966,8 @@ class InfoService(object):
             return Status(
                 306, 'failure', StatusMsgs.get(306), {}).json()
         # 交互信息
-        for attr in self.req_depart_add_attrs:
-            if not attr: continue
+        for attr in self.req_depart_update_attrs:
+            if not attr and attr in ['md5']: continue
             if attr == 'rtx_id':
                 model.update_rtx = new_params.get(attr)
             else:
@@ -1970,6 +1976,69 @@ class InfoService(object):
         now = get_now()
         model.update_time = now
         try:
+            self.depart_bo.merge_model(model)
+        except:
+            return Status(
+                322, 'failure', StatusMsgs.get(322), {}).json()
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}
+        ).json()
+
+    def depart_drag(self, params: dict) -> dict:
+        """
+        update department parent node by md5
+        :return: json data
+        """
+        # ---------------------- parameters check ----------------------
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_depart_drag_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # illegal
+            if k not in self.req_depart_drag_attrs and v:
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+            # value is not allow null
+            if k in self.req_depart_drag_attrs and not str(v):
+                return Status(
+                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = v
+
+        # ******************************* update up deapart data *******************************
+        model = self.depart_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                302, 'failure', StatusMsgs.get(302), {}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                306, 'failure', StatusMsgs.get(306), {}).json()
+        # data is lock
+        if model and model.lock:
+            return Status(
+                306, 'failure', '节点被禁用，不允许调整', {}).json()
+
+        try:
+            # 上级节点信息
+            model.pid = new_params.get('pid')
+            deptid_path, dept_path = self.__depart_path(depart_id=new_params.get('pid'))
+            model.dept_path = '%s>%s' % (dept_path, model.name)
+            model.deptid_path = '%s>%s' % (deptid_path, model.id)
+            # 操作信息
+            model.update_rtx = new_params.get('rtx_id')
+            model.update_time = get_now()
             self.depart_bo.merge_model(model)
         except:
             return Status(
