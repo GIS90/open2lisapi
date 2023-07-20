@@ -63,6 +63,7 @@ from deploy.views.common import common
 from deploy.views.dashboard import dashboard
 from deploy.views.info import info
 from deploy.views.search import search
+from deploy.views.image import image
 # services
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
@@ -206,6 +207,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('notify', notify)
         self.register_blueprint('info', info)
         self.register_blueprint('auth', auth)
+        self.register_blueprint('image', image)
 
     def init_run(self):
         LOG.debug('Server is initializing......')
