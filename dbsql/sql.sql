@@ -639,3 +639,26 @@ CREATE TABLE `sqlbase`  (
 CREATE UNIQUE INDEX sqlbase_index ON sqlbase (`md5_id`);
 
 
+
+-- create avatar
+DROP TABLES IF EXISTS `sysuser_avatar`;
+
+CREATE TABLE `sysuser_avatar`  (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `rtx_id` varchar(25) NOT NULL COMMENT '创建人RTX-ID',
+  `name` varchar(55) NOT NULL COMMENT '文件名称',
+  `md5_id` varchar(55) NOT NULL COMMENT '数据MD5-ID',
+  `summary` varchar(200) NULL COMMENT '简要',
+  `label` varchar(35) NULL COMMENT '标签，用英文;分割',
+  `url` varchar(100) NULL COMMENT '存储地址',
+  `count` int DEFAULT 0 COMMENT '设置次数',
+  `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+  `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+  `delete_time` datetime COMMENT '删除时间',
+  `is_del` bool DEFAULT False COMMENT '是否删除',
+  PRIMARY KEY (`id`)
+);
+
+CREATE UNIQUE INDEX sysuser_avatar_index ON sqlbase (`md5_id`);
+
+
