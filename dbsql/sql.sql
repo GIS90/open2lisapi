@@ -640,7 +640,7 @@ CREATE UNIQUE INDEX sqlbase_index ON sqlbase (`md5_id`);
 
 
 
--- create avatar
+-- create sysuser_avatar
 DROP TABLES IF EXISTS `sysuser_avatar`;
 
 CREATE TABLE `sysuser_avatar`  (
@@ -650,12 +650,15 @@ CREATE TABLE `sysuser_avatar`  (
   `md5_id` varchar(55) NOT NULL COMMENT '数据MD5-ID',
   `summary` varchar(200) NULL COMMENT '简要',
   `label` varchar(35) NULL COMMENT '标签，用英文;分割',
-  `url` varchar(100) NULL COMMENT '存储地址',
+  `url` varchar(120) NOT NULL COMMENT '存储地址',
   `count` int DEFAULT 0 COMMENT '设置次数',
   `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_rtx` varchar(25) COMMENT '最近更新用户rtx',
+  `update_time` datetime COMMENT '最近更新时间',
   `delete_rtx` varchar(25) COMMENT '删除用户rtx',
   `delete_time` datetime COMMENT '删除时间',
   `is_del` bool DEFAULT False COMMENT '是否删除',
+  `order_id` int DEFAULT 1 COMMENT '排序ID，用于同级排序，从小到达，默认值1',
   PRIMARY KEY (`id`)
 );
 

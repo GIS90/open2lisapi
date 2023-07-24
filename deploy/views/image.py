@@ -46,11 +46,11 @@ image = Blueprint('image', __name__, url_prefix='/image')
 CORS(image, supports_credentials=True)
 
 
-@image.route('/avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
+@image.route('/profile_avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
-def avatar_list():
+def profile_avatar_list():
     """
-    image > avatar list
+    image > profile avatar list
     :return: json data
     """
     if request.method == 'GET':
@@ -59,8 +59,8 @@ def avatar_list():
     try:
         # 参数
         params = request.get_json() or {}
-        return ImageService().avatar_list(params)
+        return ImageService().profile_avatar_list(params)
     except Exception as e:
-        LOG.error("image>avatar list is error: %s" % e)
+        LOG.error("image>profile avatar list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

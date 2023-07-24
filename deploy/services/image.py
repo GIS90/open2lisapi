@@ -34,6 +34,9 @@ Life is short, I use python.
 # ------------------------------------------------------------
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.utils import d2s, s2d
+
+from deploy.bo.sysuser_avatar import SysUserAvatarModelBo
 
 
 class ImageService(object):
@@ -60,9 +63,89 @@ class ImageService(object):
         'offset'
     ]
 
-    def avatar_list(self, params: dict) -> dict:
+    sysuser_avatar_list_attrs = [
+        # 'id',
+        'rtx_id',
+        'md5_id',
+        'name',
+        'summary',
+        'label',
+        'url',
+        'count',
+        'create_time',
+        'update_rtx',
+        'update_time',
+        'delete_rtx',
+        'delete_time',
+        'is_del',
+        'order_id'
+    ]
+
+    def __init__(self):
         """
-        get avatar data list by params
+        information service class initialize
+        """
+        super(ImageService, self).__init__()
+        self.sysuser_avatar_bo = SysUserAvatarModelBo()
+
+    @staticmethod
+    def _transfer_time(t):
+        if not t:
+            return ""
+
+        if not isinstance(t, str):
+            return d2s(t)
+        elif isinstance(t, str) and t == '0000-00-00 00:00:00':
+            return ""
+        else:
+            return t or ''
+
+    def _sysuer_avatar_model_to_dict(self, model, _type='list'):
+        """
+        enum model transfer to dict data
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        for attr in self.sysuser_avatar_list_attrs:
+            if not attr: continue
+            if attr == 'id' and _type in ['list']:
+                _res[attr] = getattr(model, 'id', '')
+            elif attr == 'name' and _type in ['list']:
+                _res[attr] = getattr(model, 'name', '')
+            elif attr == 'md5_id' and _type in ['list', 'avatar']:
+                _res[attr] = getattr(model, 'md5_id', '')
+            elif attr == 'rtx_id' and _type in ['list']:
+                _res[attr] = getattr(model, 'rtx_id', '')
+            elif attr == 'summary' and _type in ['list']:
+                _res[attr] = getattr(model, 'summary', '')
+            elif attr == 'label' and _type in ['list']:
+                _res[attr] = getattr(model, 'label', '')
+            elif attr == 'url' and _type in ['list', 'avatar']:
+                _res[attr] = getattr(model, 'url', '')
+            elif attr == 'count' and _type in ['list']:
+                _res[attr] = getattr(model, 'count', 0)
+            elif attr == 'create_time' and _type in ['list']:
+                _res[attr] = self._transfer_time(model.create_time)
+            elif attr == 'update_rtx' and _type in ['list']:
+                _res[attr] = getattr(model, 'update_rtx', '')
+            elif attr == 'update_time' and _type in ['list']:
+                _res[attr] = self._transfer_time(model.update_time)
+            elif attr == 'delete_rtx' and _type in ['list']:
+                _res[attr] = getattr(model, 'delete_rtx', '')
+            elif attr == 'delete_time' and _type in ['list']:
+                _res[attr] = self._transfer_time(model.delete_time)
+            elif attr == 'is_del' and _type in ['list']:
+                _res[attr] = model.is_del or False
+            elif attr == 'order_id' and _type in ['list']:
+                _res[attr] = getattr(model, 'order_id', 1)
+        else:
+            return _res
+
+    def profile_avatar_list(self, params: dict) -> dict:
+        """
+        get profile avatar data list by params
         params is dict
         return json data
         """
@@ -93,35 +176,11 @@ class ImageService(object):
                 v = str(v) if v else ''
             new_params[k] = v
 
-        images = [
-            {'id': 1, 'url': "http://2lstore.pygo2.top/avatars/1a02dfe1808eaadc5e9c8d70f5733daa.jpeg"},
-            {'id': 2, 'url': 'http://2lstore.pygo2.top/avatars/2fbdcfae592accd03f6c0170b288e985.jpeg'},
-            {'id': 3, 'url': 'http://2lstore.pygo2.top/avatars/3c87f0f3cc5af848c32d80ca05f24542.jpeg'},
-            {'id': 4, 'url': 'http://2lstore.pygo2.top/avatars/4f6162b0284b95fa699e17f8e6f5929d.jpeg'},
-            {'id': 5, 'url': 'http://2lstore.pygo2.top/avatars/5d9b1e6862029fce98b342e2a1b727be.jpeg'},
-            {'id': 6, 'url': 'http://2lstore.pygo2.top/avatars/f6203911630ee1b04db542c02629b25b.jpeg'},
-            {'id': 7, 'url': 'http://2lstore.pygo2.top/avatars/4336fa14f3f2a6c075395fad6d631611.jpeg'},
-            {'id': 8, 'url': 'http://2lstore.pygo2.top/avatars/b7cbcdc96f20fdf497c4d3d4f5a0dbc2.jpeg'},
-            {'id': 9, 'url': 'http://2lstore.pygo2.top/avatars/c933509f3fcc721e6f8e8612f7ec8725.jpeg'},
-            {'id': 10, 'url': 'http://2lstore.pygo2.top/avatars/cf54984fcab697eed7df219d5128cda0.jpeg'},
-            {'id': 11, 'url': 'http://2lstore.pygo2.top/avatars/d65d529de6fb7a186d07e3920767307a.jpeg'},
-            {'id': 12, 'url': 'http://2lstore.pygo2.top/avatars/e3471b6c8b2806548eae9d4b4a22d596.jpeg'},
-            {'id': 13, 'url': 'http://2lstore.pygo2.top/avatars/f0cfc6c28eb2cee49f3c65130c28868e.jpeg'},
-            {'id': 14, 'url': 'http://2lstore.pygo2.top/avatars/f71b2efcb9b12fc50d4fe91174291430.jpeg'},
-            {'id': 15, 'url': 'http://2lstore.pygo2.top/avatars/4336fa14f3f2a6c075395fad6d631611.jpeg'},
-            {'id': 16, 'url': 'http://2lstore.pygo2.top/avatars/b7cbcdc96f20fdf497c4d3d4f5a0dbc2.jpeg'},
-            {'id': 17, 'url': 'http://2lstore.pygo2.top/avatars/c933509f3fcc721e6f8e8612f7ec8725.jpeg'},
-            {'id': 18, 'url': 'http://2lstore.pygo2.top/avatars/cf54984fcab697eed7df219d5128cda0.jpeg'},
-            {'id': 19, 'url': 'http://2lstore.pygo2.top/avatars/d65d529de6fb7a186d07e3920767307a.jpeg'},
-            {'id': 20, 'url': 'http://2lstore.pygo2.top/avatars/e3471b6c8b2806548eae9d4b4a22d596.jpeg'},
-            {'id': 21, 'url': 'http://2lstore.pygo2.top/avatars/f0cfc6c28eb2cee49f3c65130c28868e.jpeg'}
-        ]
-        return Status(
-            100, 'failure', StatusMsgs.get(100), {'list': images, 'total': 21}).json()
-
-        """
         # **************** <get data> *****************
-        res, total = self.enum_bo.get_all(new_params)
+        rtx_id = new_params.get('rtx_id')
+        # 全量
+        new_params.pop('rtx_id')
+        res, total = self.sysuser_avatar_bo.get_all(new_params)
         # no data
         if not res:
             return Status(
@@ -131,7 +190,7 @@ class ImageService(object):
         n = 1
         for _d in res:
             if not _d: continue
-            _res_dict = self._enum_model_to_dict(_d)
+            _res_dict = self._sysuer_avatar_model_to_dict(_d, _type='avatar')
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
@@ -139,4 +198,4 @@ class ImageService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
-        """
+
