@@ -274,7 +274,7 @@ class ImageService(object):
             setattr(user_model, 'avatar', avatar_model.url)
             self.sysuser_bo.merge_model(user_model)
             return Status(
-                100, 'success', StatusMsgs.get(100), {'rtx_id': rtx_id}).json()
+                100, 'success', StatusMsgs.get(100), {'rtx_id': rtx_id, 'avatar': avatar_model.url}).json()
         except:
             return Status(
                 450, 'failure', StatusMsgs.get(450), {'rtx_id': rtx_id}).json()
