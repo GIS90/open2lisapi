@@ -64,3 +64,23 @@ def profile_avatar_list():
         LOG.error("image>profile avatar list is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+
+
+@image.route('/profile_avatar_set/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+def profile_avatar_set():
+    """
+    image > profile avatar set
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            211, 'failure', StatusMsgs.get(211), {}).json()
+    try:
+        # 参数
+        params = request.get_json() or {}
+        return ImageService().profile_avatar_set(params)
+    except Exception as e:
+        LOG.error("image>profile avatar set is error: %s" % e)
+        return Status(501, 'failure',
+                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

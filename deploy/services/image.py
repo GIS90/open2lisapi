@@ -34,9 +34,10 @@ Life is short, I use python.
 # ------------------------------------------------------------
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import d2s, s2d
+from deploy.utils.utils import d2s, s2d, check_length, auth_rtx_join
 
 from deploy.bo.sysuser_avatar import SysUserAvatarModelBo
+from deploy.bo.sysuser import SysUserBo
 
 
 class ImageService(object):
@@ -63,6 +64,16 @@ class ImageService(object):
         'offset'
     ]
 
+    req_profile_avatar_set_attrs = [
+        'rtx_id',
+        'avatar',
+    ]
+
+    req_profile_avatar_set_ck_len_attrs = {
+        'rtx_id': 25,
+        'avatar': 120
+    }
+
     sysuser_avatar_list_attrs = [
         # 'id',
         'rtx_id',
@@ -87,6 +98,7 @@ class ImageService(object):
         """
         super(ImageService, self).__init__()
         self.sysuser_avatar_bo = SysUserAvatarModelBo()
+        self.sysuser_bo = SysUserBo()
 
     @staticmethod
     def _transfer_time(t):
@@ -198,4 +210,72 @@ class ImageService(object):
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
+
+    def profile_avatar_set(self, params: dict) -> dict:
+        """
+        set profile avatar url list by params
+        params is dict
+        return json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_profile_avatar_set_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_profile_avatar_set_attrs:
+                return Status(
+                    213, 'failure', '请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:  # is not null
+                return Status(
+                    214, 'failure', '请求参数%s为必须信息' % k, {}).json()
+            new_params[k] = v
+        # parameters length check
+        for _key, _value in self.req_profile_avatar_set_ck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+
+        # **************** <get avatar data> *****************
+        avatar_model = self.sysuser_avatar_bo.get_model_by_md5(new_params.get('avatar'))
+        # check
+        if not avatar_model or not avatar_model.url:
+            return Status(
+                302, 'failure', "图片不存在，请重新选择" or StatusMsgs.get(302), {}).json()
+
+        # **************** <get sysuser data> *****************
+        rtx_id = new_params.get('rtx_id')
+        user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
+        # check
+        if not user_model:
+            return Status(
+                302, 'failure', u'用户%s不存在' % rtx_id, {}).json()
+        # authority【管理员具有所有数据权限】
+        # 权限账户
+        if rtx_id not in auth_rtx_join([user_model.rtx_id]):
+            return Status(
+                311, 'failure', StatusMsgs.get(311), {}).json()
+
+        # <<<<<<<<<<<<< update user avatar >>>>>>>>>>>>>
+        try:
+            setattr(user_model, 'avatar', avatar_model.url)
+            self.sysuser_bo.merge_model(user_model)
+            return Status(
+                100, 'success', StatusMsgs.get(100), {'rtx_id': rtx_id}).json()
+        except:
+            return Status(
+                450, 'failure', StatusMsgs.get(450), {'rtx_id': rtx_id}).json()
 

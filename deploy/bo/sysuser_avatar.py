@@ -67,3 +67,9 @@ class SysUserAvatarModelBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all(), total
+
+    def get_model_by_md5(self, md5):
+        q = self.session.query(SysUserAvatarModel)
+        q = q.filter(SysUserAvatarModel.is_del != 1)
+        q = q.filter(SysUserAvatarModel.md5_id == md5)
+        return q.first() if q else None
