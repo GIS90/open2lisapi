@@ -3,7 +3,8 @@
 """
 ------------------------------------------------
 
-describe: 
+describe:
+    image service
 
 base_info:
     __author__ = "PyGo"
@@ -208,7 +209,7 @@ class ImageService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total, 'rtx_id': rtx_id}
         ).json()
 
     def profile_avatar_set(self, params: dict) -> dict:
