@@ -128,14 +128,15 @@ VALUES
 
 
 -- create menu && index
+-- ID设置AUTO_INCREMENT，不可设置默认值
 DROP TABLES IF EXISTS `menu`;
 CREATE TABLE `menu`  (
-    `id` int default 0 NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `name` varchar(25) NOT NULL COMMENT '路由rtx-id，首字母大写',
-    `path` varchar(35) NOT NULL COMMENT '路由path，首字母小写',
-    `title` varchar(25) NOT NULL COMMENT '名称',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `name` varchar(25) NOT NULL COMMENT '路由rtx-id，大驼峰命名方式',
+    `path` varchar(35) NOT NULL COMMENT '路由path，全小写字母',
+    `title` varchar(25) NOT NULL COMMENT '菜单名称',
     `pid` int NOT NULL COMMENT '父ID',
-    `level` int NOT NULL default 1 COMMENT '级别',
+    `level` int default 1 NOT NULL COMMENT '级别',
     `md5_id` varchar(55) NOT NULL COMMENT 'md5值',
     `component` varchar(25) NOT NULL COMMENT '路由组件，与router mappings映射',
     `hidden` bool default False COMMENT '是否在SideBar显示，默认为false',
@@ -144,7 +145,7 @@ CREATE TABLE `menu`  (
     `cache` bool default true COMMENT '页面是否进行cache，默认True缓存',
     `affix` bool default false  COMMENT '是否在tags-view固定，默认false',
     `breadcrumb` bool default true COMMENT '是否breadcrumb中显示，默认true',
-    `order_id` int COMMENT '排序ID',
+    `order_id` int default 1 COMMENT '排序ID',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
     `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
     `delete_time` timestamp COMMENT '删除时间',
@@ -153,8 +154,8 @@ CREATE TABLE `menu`  (
     `is_shortcut` bool default True COMMENT 'Dashboard快捷入口是否显示',
 
     PRIMARY KEY (`id`),
-    UNIQUE INDEX `menu_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
-    UNIQUE INDEX `menu_name_index`(`name`) USING HASH COMMENT 'name唯一索引'
+    UNIQUE INDEX `menu_md5_index`(`md5_id`) USING HASH COMMENT '菜单md5唯一索引',
+    UNIQUE INDEX `menu_name_index`(`name`) USING HASH COMMENT '菜单name唯一索引'
 ) COMMENT='系统菜单表';
 
 -- insert default menu
@@ -163,36 +164,37 @@ insert into
     menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `cache`, `affix`, `breadcrumb`, `order_id`, `create_rtx`, `is_del`, `is_shortcut`)
 VALUES
 -- root
-(0, '首页', 'Home', '/', 0, 0, '5ecb64c5576af2642f7eacb4679c8fda', 'layout', FALSE, '/', '', TRUE, FALSE, TRUE, 0, 'admin', FALSE, FALSE),
+(1, '首页', 'Home', '/', 1, 0, '5ecb64c5576af2642f7eacb4679c8fda', 'layout', FALSE, '/', '', TRUE, FALSE, TRUE, 1, 'admin', FALSE, FALSE),
 -- 表格工具
-(1, '文档工具', 'Office', '/office', 0, 1, 'c1d81af5835844b4e9d936910ded8fdc', 'layout', FALSE, '/office/pdf2word', 'c-office', TRUE, FALSE, TRUE, 4, 'admin', FALSE, FALSE),
-(2, 'PDF转WORD', 'PdfToWord', 'pdf2word', 1, 2, 'aa40dbd997f60d173d05f1f8375eb6bd', 'pdf2Word', FALSE, '', 'i_word', TRUE, FALSE, TRUE, 5, 'admin', FALSE, TRUE),
-(3, '表格合并', 'ExcelMerge', 'merge', 1, 2, '68be4837f6c739877233e527a996dd00', 'excelMerge', FALSE, '', 'i_merge', TRUE, FALSE, TRUE, 6, 'admin', FALSE, TRUE),
-(4, '表格拆分', 'ExcelSplit', 'split', 1, 2, '8a9e64d86ed12ad40de129bc7f4683b2', 'excelSplit', FALSE, '', 'i_split', TRUE, FALSE, TRUE, 7, 'admin', FALSE, TRUE),
-(5, '表格历史', 'ExcelHistory', 'history', 1, 2, '76c9a06443a050eccb7989cda6fff225', 'excelHistory', FALSE, '', 'i_excel', TRUE, FALSE, TRUE, 8, 'admin', FALSE, TRUE),
+(2, '文档工具', 'Office', '/office', 1, 1, 'c1d81af5835844b4e9d936910ded8fdc', 'layout', FALSE, '/office/pdf2word', 'c-office', TRUE, FALSE, TRUE, 100, 'admin', FALSE, FALSE),
+(3, 'PDF转WORD', 'PdfToWord', 'pdf2word', 2, 2, 'aa40dbd997f60d173d05f1f8375eb6bd', 'pdf2Word', FALSE, '', 'i_word', TRUE, FALSE, TRUE, 101, 'admin', FALSE, TRUE),
+(4, '表格合并', 'ExcelMerge', 'merge', 2, 2, '68be4837f6c739877233e527a996dd00', 'excelMerge', FALSE, '', 'i_merge', TRUE, FALSE, TRUE, 102, 'admin', FALSE, TRUE),
+(5, '表格拆分', 'ExcelSplit', 'split', 2, 2, '8a9e64d86ed12ad40de129bc7f4683b2', 'excelSplit', FALSE, '', 'i_split', TRUE, FALSE, TRUE, 103, 'admin', FALSE, TRUE),
+(6, '表格历史', 'ExcelHistory', 'history', 2, 2, '76c9a06443a050eccb7989cda6fff225', 'excelHistory', FALSE, '', 'i_excel', TRUE, FALSE, TRUE, 104, 'admin', FALSE, TRUE),
 -- 知识平台
-(6, '知识平台', 'Search', '/search', 0, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'c-search', TRUE, FALSE, TRUE, 1, 'admin', FALSE, FALSE),
-(7, '问题检索', 'SearchProbase', 'probase', 6, 2, 'c97d41080c06a689936f1c665ea334b5', 'searchProbase', FALSE, '', 'i_problem', TRUE, FALSE, TRUE, 2, 'admin', FALSE, TRUE),
-(8, '取数仓库', 'SearchSqlbase', 'sqlbase', 6, 2, '1b29b5aa48db5845f4a14c54a44eeb18', 'searchSqlbase', FALSE, '', 'i_sql', TRUE, FALSE, TRUE, 3, 'admin', FALSE, TRUE),
+(7, '知识平台', 'Search', '/search', 1, 1, '13348442cc6a27032d2b4aa28b75a5d3', 'layout', FALSE, '/search/probase', 'c-search', TRUE, FALSE, TRUE, 200, 'admin', FALSE, FALSE),
+(8, '取数仓库', 'SearchSqlbase', 'sqlbase', 7, 2, '1b29b5aa48db5845f4a14c54a44eeb18', 'searchSqlbase', FALSE, '', 'i_sql', TRUE, FALSE, TRUE, 201, 'admin', FALSE, TRUE),
+(9, '问题检索', 'SearchProbase', 'probase', 7, 2, 'c97d41080c06a689936f1c665ea334b5', 'searchProbase', FALSE, '', 'i_problem', TRUE, FALSE, TRUE, 202, 'admin', FALSE, TRUE),
+(10, '知识分享', 'SearchShare', 'share', 7, 2, '5f9f18dc1e434aef6e52721b43adae5b', 'searchShare', FALSE, '', 'i-share', TRUE, FALSE, TRUE, 203, 'admin', FALSE, TRUE),
 -- 通知管理
-(9, '消息通知', 'Notify', '/notify', 0, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'c-notify', TRUE, FALSE, TRUE, 9, 'admin', FALSE, FALSE),
-(10, '短信通知', 'NotifyMessage', 'message', 9, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notifyMessage', FALSE, '', 'message', TRUE, FALSE, TRUE, 11, 'admin', FALSE, TRUE),
-(11, '钉钉绩效', 'NotifyDtalk', 'dtalk', 9, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notifyDtalk', FALSE, '', 'i_dtalk', TRUE, FALSE, TRUE, 10, 'admin', FALSE, TRUE),
-(22, '企微通知', 'NotifyQywx', 'qywx', 9, 2, '55c90dfdd0341b16ba273a012581265d', 'notifyQywx', FALSE, '', 'i_qywx', TRUE, FALSE, TRUE, 12, 'admin', FALSE, TRUE),
+(11, '消息通知', 'Notify', '/notify', 1, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'c-notify', TRUE, FALSE, TRUE, 300, 'admin', FALSE, FALSE),
+(12, '钉钉绩效', 'NotifyDtalk', 'dtalk', 11, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notifyDtalk', FALSE, '', 'i_dtalk', TRUE, FALSE, TRUE, 301, 'admin', FALSE, TRUE),
+(13, '企微通知', 'NotifyQywx', 'qywx', 11, 2, '55c90dfdd0341b16ba273a012581265d', 'notifyQywx', FALSE, '', 'i_qywx', TRUE, FALSE, TRUE, 302, 'admin', FALSE, TRUE),
+(14, '短信通知', 'NotifyMessage', 'message', 11, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notifyMessage', FALSE, '', 'message', TRUE, FALSE, TRUE, 303, 'admin', FALSE, TRUE),
 -- 信息维护
-(12, '信息维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c-info', TRUE, FALSE, TRUE, 12, 'admin', FALSE, FALSE),
-(13, '部门架构', 'InfoDepartment', 'department', 12, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'infoDepartment', FALSE, '', 'tree', TRUE, FALSE, TRUE, 13, 'admin', FALSE, TRUE),
-(14, '数据字典', 'InfoDict', 'dict', 12, 2, '91516e7a50ce0a67a8eb1f9229c293d1', 'infoDict', FALSE, '', 'i_dict', TRUE, FALSE, TRUE, 14, 'admin', FALSE, TRUE),
-(23, '后台API', 'infoApi', 'api', 12, 2, '4ae6c8f4429f7bacb050c9c980cf51d3', 'infoApi', FALSE, '', 'i_api', TRUE, FALSE, TRUE, 14, 'admin', FALSE, TRUE),
+(15, '信息维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c-info', TRUE, FALSE, TRUE, 400, 'admin', FALSE, FALSE),
+(16, '部门架构', 'InfoDepart', 'depart', 15, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'infoDepart', FALSE, '', 'tree', TRUE, FALSE, TRUE, 401, 'admin', FALSE, TRUE),
+(17, '数据字典', 'InfoDict', 'dict', 15, 2, '91516e7a50ce0a67a8eb1f9229c293d1', 'infoDict', FALSE, '', 'i_dict', TRUE, FALSE, TRUE, 402, 'admin', FALSE, TRUE),
+(18, '后台API', 'InfoApi', 'api', 15, 2, '4ae6c8f4429f7bacb050c9c980cf51d3', 'infoApi', FALSE, '', 'i_api', TRUE, FALSE, TRUE, 403, 'admin', FALSE, TRUE),
 -- 权限管理
-(15, '权限管理', 'Manage', '/manage', 0, 1, '34e34c43ec6b943c10a3cc1a1a16fb11', 'layout', FALSE, '/manage/user', 'c-manage', TRUE, FALSE, TRUE, 1000, 'admin', FALSE, FALSE),
-(16, '用户管理', 'ManageUser', 'user', 15, 2, '8f9bfe9d1345237cb3b2b205864da075', 'manageUser', FALSE, '', 'peoples', TRUE, FALSE, TRUE, 1001, 'admin', FALSE, TRUE),
-(17, '角色管理', 'ManageRole', 'role', 15, 2, 'bbbabdbe1b262f75d99d62880b953be1', 'manageRole', FALSE, '', 'i_role', TRUE, FALSE, TRUE, 1002, 'admin', FALSE, TRUE),
-(18, '菜单管理', 'ManageMenu', 'menu', 15, 2, 'b61541208db7fa7dba42c85224405911', 'manageMenu', FALSE, '', 'component', TRUE, FALSE, TRUE, 1003, 'admin', FALSE, TRUE),
+(19, '权限管理', 'Manage', '/manage', 0, 1, '34e34c43ec6b943c10a3cc1a1a16fb11', 'layout', FALSE, '/manage/user', 'c-manage', TRUE, FALSE, TRUE, 1000, 'admin', FALSE, FALSE),
+(20, '用户管理', 'ManageUser', 'user', 19, 2, '8f9bfe9d1345237cb3b2b205864da075', 'manageUser', FALSE, '', 'peoples', TRUE, FALSE, TRUE, 1001, 'admin', FALSE, TRUE),
+(21, '角色管理', 'ManageRole', 'role', 19, 2, 'bbbabdbe1b262f75d99d62880b953be1', 'manageRole', FALSE, '', 'i_role', TRUE, FALSE, TRUE, 1002, 'admin', FALSE, TRUE),
+(22, '菜单管理', 'ManageMenu', 'menu', 19, 2, 'b61541208db7fa7dba42c85224405911', 'manageMenu', FALSE, '', 'component', TRUE, FALSE, TRUE, 1003, 'admin', FALSE, TRUE),
 -- 个人设置
-(19, '个人设置', 'Setter', '/setter', 0, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'c-setter', TRUE, FALSE, TRUE, 2000, 'admin', FALSE, FALSE),
-(20, '个人中心', 'SetterProfile', 'profile', 19, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setterProfile', FALSE, '', 'i_user', TRUE, FALSE, TRUE, 2001, 'admin', FALSE, TRUE),
-(21, '系统向导', 'SetterGuide', 'guide', 19, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setterGuide', FALSE, '', 'guide', TRUE, FALSE, TRUE, 2002, 'admin', FALSE, TRUE);
+(23, '个人设置', 'Setter', '/setter', 0, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'c-setter', TRUE, FALSE, TRUE, 2000, 'admin', FALSE, FALSE),
+(24, '个人中心', 'SetterProfile', 'profile', 23, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setterProfile', FALSE, '', 'i_user', TRUE, FALSE, TRUE, 2001, 'admin', FALSE, TRUE),
+(25, '系统向导', 'SetterGuide', 'guide', 23, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setterGuide', FALSE, '', 'guide', TRUE, FALSE, TRUE, 2002, 'admin', FALSE, TRUE);
 
 
 

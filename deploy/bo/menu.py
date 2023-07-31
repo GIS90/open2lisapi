@@ -36,7 +36,7 @@ from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.menu import MenuModel
-from deploy.config import MENU_ROOT_ID, MENU_ONE_LEVEL
+from deploy.config import MENU_ROOT_ID, MENU_ONE_LEVEL, MENU_ROOT_LEVEL
 
 
 class MenuBo(BOBase):
@@ -86,7 +86,7 @@ class MenuBo(BOBase):
 
     def get_root_one_menus(self):
         q = self.session.query(MenuModel)
-        q = q.filter(MenuModel.level.in_([MENU_ROOT_ID, MENU_ONE_LEVEL]))
+        q = q.filter(MenuModel.level.in_([MENU_ROOT_LEVEL, MENU_ONE_LEVEL]))
         q = q.order_by(MenuModel.order_id.asc(), MenuModel.id.asc())
         q = q.all()
         return q

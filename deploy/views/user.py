@@ -99,6 +99,7 @@ def auth():
     """
     login to system get user authority
     :return: json data
+    用户菜单权限
     """
     if request.method == 'GET':
         return Status(

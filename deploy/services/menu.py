@@ -192,7 +192,7 @@ class MenuService(object):
         get user routers by authority list
         get_login_auth_by_rtx to use
         思路：
-            1.get_all获取全部权限数据
+            1.get_all获取全部权限数据[去掉home根菜单]
             2.每一条菜单数据转为字段类型数据的菜单
             3.把一级菜单加入one_menus，二级加入template_list
             4.对二级菜单进行分组
@@ -220,14 +220,23 @@ class MenuService(object):
                 continue
             _d = self._model_to_menu_dict(menu, level=menu.level)
             if not _d: continue
-            if is_admin:    # 管理员特殊权限
+            if is_admin:
+                # 管理员特殊权限
+                """TODO 后续优化只有一级、二级菜单功能"""
                 if menu.level == 2:
                     add_flag[menu.pid] = True
-                one_menus[menu.id] = _d if menu.level == MENU_ONE_LEVEL \
-                    else two_m_template_list.append(_d)
-            else:       # 非管理员，用二级菜单去判断是否有一级
                 if menu.level == MENU_ONE_LEVEL:
                     one_menus[menu.id] = _d
+                else:
+                    two_m_template_list.append(_d)
+                """fix bug: 处理one_menus二级空值问题"""
+                # one_menus[menu.id] = _d if menu.level == MENU_ONE_LEVEL \
+                #     else two_m_template_list.append(_d)
+            else:
+                # 非管理员，用二级菜单去判断是否有一级
+                if menu.level == MENU_ONE_LEVEL:
+                    one_menus[menu.id] = _d
+                # auth_list 用户权限列表（非管理员的权限判断）
                 if menu.level == 2 and menu.id in auth_list:
                     add_flag[menu.pid] = True
                     two_m_template_list.append(_d)

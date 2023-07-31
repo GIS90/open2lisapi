@@ -1529,7 +1529,7 @@ class AuthorityService(object):
             return Status(
                 214, 'failure', u'缺少rtx_id请求参数', {}).json()
         # ------------------ get all menus ------------------
-        all_menus = self.menu_bo.get_all_no(root=True)   # 全部数据，包含禁用菜单 根节点0
+        all_menus = self.menu_bo.get_all_no(root=True)   # 全部数据，包含禁用菜单 根节点
         if not all_menus:
             return Status(
                 101, 'failure', StatusMsgs.get(101), {}).json()
@@ -1544,6 +1544,11 @@ class AuthorityService(object):
             if not menu: continue
             _d = self._menu_model_to_dict(menu, info=False)
             if not _d: continue
+            """
+            TODO
+            菜单只有一级、二级
+            后续优化
+            """
             if int(menu.level) == MENU_ONE_LEVEL:
                 one_menus[menu.id] = _d
                 one_menus_keys.append({'id': menu.id})

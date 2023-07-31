@@ -100,7 +100,8 @@ STORE_SECRET = 'xabmlB9zZ_MRwtgofQJzUxINnmcO_VUfkXYILx_Q'
 STORE_SPACE_NAME = 'open2lisapi'
 
 # menu
-MENU_ROOT_ID = 0
+MENU_ROOT_ID = 1
+MENU_ROOT_LEVEL = 0
 MENU_ONE_LEVEL = 1
 
 # image
@@ -214,6 +215,7 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
 
     # menu
     MENU_ROOT_ID = _config_info['MENU']['MENU_ROOT_ID'] or MENU_ROOT_ID
+    MENU_ROOT_LEVEL = _config_info['MENU']['MENU_ROOT_LEVEL'] or MENU_ROOT_LEVEL
     MENU_ONE_LEVEL = _config_info['MENU']['MENU_ONE_LEVEL'] or MENU_ONE_LEVEL
 
     # image
