@@ -181,8 +181,8 @@ VALUES
 (12, '钉钉绩效', 'NotifyDtalk', 'dtalk', 11, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notifyDtalk', FALSE, '', 'i_dtalk', TRUE, FALSE, TRUE, 301, 'admin', FALSE, TRUE),
 (13, '企微通知', 'NotifyQywx', 'qywx', 11, 2, '55c90dfdd0341b16ba273a012581265d', 'notifyQywx', FALSE, '', 'i_qywx', TRUE, FALSE, TRUE, 302, 'admin', FALSE, TRUE),
 (14, '短信通知', 'NotifyMessage', 'message', 11, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notifyMessage', FALSE, '', 'message', TRUE, FALSE, TRUE, 303, 'admin', FALSE, TRUE),
--- 信息维护
-(15, '信息维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c-info', TRUE, FALSE, TRUE, 400, 'admin', FALSE, FALSE),
+-- 系统维护
+(15, '系统维护', 'Info', '/info', 0, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c-info', TRUE, FALSE, TRUE, 400, 'admin', FALSE, FALSE),
 (16, '部门架构', 'InfoDepart', 'depart', 15, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'infoDepart', FALSE, '', 'tree', TRUE, FALSE, TRUE, 401, 'admin', FALSE, TRUE),
 (17, '数据字典', 'InfoDict', 'dict', 15, 2, '91516e7a50ce0a67a8eb1f9229c293d1', 'infoDict', FALSE, '', 'i_dict', TRUE, FALSE, TRUE, 402, 'admin', FALSE, TRUE),
 (18, '后台API', 'InfoApi', 'api', 15, 2, '4ae6c8f4429f7bacb050c9c980cf51d3', 'infoApi', FALSE, '', 'i_api', TRUE, FALSE, TRUE, 403, 'admin', FALSE, TRUE),
