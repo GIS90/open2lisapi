@@ -555,7 +555,7 @@ class AuthorityService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
             ).json()
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             # if getattr(_d, 'engname') == ADMIN: continue     # 不显示管理员角色
@@ -1079,12 +1079,15 @@ class AuthorityService(object):
             return Status(
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         new_res = list()
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             # if getattr(_d, 'rtx_id') == ADMIN: continue     # 不显示管理员
             _res_dict = self._user_model_to_dict(_d)
             if _res_dict:
+                _res_dict['id'] = n
                 new_res.append(_res_dict)
+                n += 1
         return Status(
             100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()

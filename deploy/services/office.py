@@ -736,7 +736,7 @@ class OfficeService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # format return data
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._excel_source_model_to_dict(_d)
@@ -1189,7 +1189,7 @@ class OfficeService(object):
                 {'list': [], 'total': 0, 'type': type_list}).json()
         # format data
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._excel_result_model_to_dict(_d)
@@ -1755,7 +1755,7 @@ class OfficeService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # format return data
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._office_pdf_model_to_dict(_d, _type='info')

@@ -711,7 +711,7 @@ class NotifyService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ================= 遍历数据 ==================
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._dtalk_model_to_dict(_d)
@@ -1181,7 +1181,7 @@ class NotifyService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._dtalk_robot_model_to_dict(_d)
@@ -2004,7 +2004,7 @@ class NotifyService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._qywx_robot_model_to_dict(_d)
@@ -2601,7 +2601,7 @@ class NotifyService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ================= 遍历数据 ==================
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._qywx_model_to_dict(_d)

@@ -357,7 +357,7 @@ class SearchService(object):
         # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
         """ sqlbase list """
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._sqlbase_model_to_dict(_d, _type='list')

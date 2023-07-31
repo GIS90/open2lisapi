@@ -510,7 +510,7 @@ class InfoService(object):
                 101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._enum_model_to_dict(_d)
@@ -1071,7 +1071,7 @@ class InfoService(object):
             ).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         new_res = list()
-        n = 1
+        n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
             _res_dict = self._api_model_to_dict(_d)
