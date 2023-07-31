@@ -610,7 +610,7 @@ class NotifyService(object):
                             break
                     _res['sheet_names'] = new_res
                     set_sheet_name = ';'.join(set_sheet_name)
-                    if len(set_sheet_name) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
+                    if _type in ['list'] and len(set_sheet_name) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
                         set_sheet_name = '%s...具体查看请下载' % set_sheet_name[0:SHEET_NAME_LIMIT]
                     _res['set_sheet_name'] = set_sheet_name
                     _res['set_sheet_index'] = set_sheet_index
