@@ -1635,7 +1635,7 @@ class AuthorityService(object):
                 if int(menu.id) == MENU_ROOT_ID \
                 else one_menus.append({'label': menu.title, 'value': str(menu.id)})
         menu_options = [
-            {'label': "根节点", 'options': root_menu},
+            {'label': "Home", 'options': root_menu},
             {'label': "一级菜单", 'options': one_menus}
         ]
 
@@ -1755,7 +1755,7 @@ class AuthorityService(object):
                 if int(menu.id) == MENU_ROOT_ID \
                 else one_menus.append({'label': menu.title, 'value': str(menu.id)})
         menu_options = [
-            {'label': "根节点", 'options': root_menu},
+            {'label': "Home", 'options': root_menu},
             {'label': "一级菜单", 'options': one_menus}
         ]
 
