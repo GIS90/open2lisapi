@@ -605,12 +605,13 @@ class NotifyService(object):
                         new_res.append({'key': k, 'value': v})
                         if str(k) in set_sheet_index:
                             set_sheet_name.append(v)
-                        if int(k) >= SHEET_NUM_LIMIT:  # 加了展示条数的限制，否则页面展示太多
+                        # fix bug: 详情sheet_headers的条数限制问题
+                        if _type in ['list'] and int(k) >= SHEET_NUM_LIMIT:  # 加了展示条数的限制，否则页面展示太多
                             new_res.append({'key': '...N', 'value': '（具体查看请下载）'})
                             break
                     _res['sheet_names'] = new_res
                     set_sheet_name = ';'.join(set_sheet_name)
-                    # fix bug: 详情sheet_headers的条数限制问题
+                    # fix bug: 详情sheet名称字数限制问题
                     if _type in ['list'] and len(set_sheet_name) > SHEET_NAME_LIMIT:  # 加了展示字数的限制，否则页面展示太多
                         set_sheet_name = '%s...具体查看请下载' % set_sheet_name[0:SHEET_NAME_LIMIT]
                     _res['set_sheet_name'] = set_sheet_name
