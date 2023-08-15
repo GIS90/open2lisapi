@@ -34,6 +34,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 import json
 import datetime
+from collections import OrderedDict
 
 from deploy.bo.sqlbase import SqlbaseBo
 from deploy.bo.sysuser import SysUserBo
@@ -457,10 +458,11 @@ class SearchService(object):
                 _no_rel_db_list.append({'key': _d.key, 'value': _d.value})
             else:
                 _other_db_list.append({'key': _d.key, 'value': _d.value})
-        if _rel_db_list:
-            _res.append({'label': '关系型数据库', 'options': _rel_db_list})
+        # 分组label排序
         if _no_rel_db_list:
             _res.append({'label': '非关系型数据库', 'options': _no_rel_db_list})
+        if _rel_db_list:
+            _res.append({'label': '关系型数据库', 'options': _rel_db_list})
         # 其他默认值
         # if not _other_db_list:
             # _other_db_list = [{'key': 'no', 'value': '暂无分类'}]
