@@ -189,8 +189,8 @@ class WebFlaskServer(WebBaseClass):
     def register_blueprint(self, obj_n, obj):
         """
         view blueprint register
-        :param obj_n: blueprint object
-        :param obj: blueprint name
+        :param obj_n: blueprint name
+        :param obj: blueprint object
         :return: None
         """
         if obj:
