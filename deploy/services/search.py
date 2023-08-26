@@ -196,6 +196,17 @@ class SearchService(object):
         'md5'
     ]
 
+    req_share_list_attrs = [
+        'rtx_id',   # 查询用户rtx
+        'limit',    # 条数
+        'offset',   # 偏移多少条
+        'search'    # 模糊查询内容
+    ]
+
+    req_share_like_list_attrs = [
+        'search'  # 模糊查询内容
+    ]
+
     def __init__(self):
         """
         search service class initialize
@@ -777,3 +788,82 @@ class SearchService(object):
         except:
             return Status(
                 450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+
+    def share_list(self, params: dict) -> json:
+        """
+        get share data list from db table share by parameters
+        :return: many json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                212, 'failure', StatusMsgs.get(212), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_page_comm_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_share_list_attrs and v:  # is illegal parameter
+                return Status(
+                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+
+            if k in self.req_share_like_list_attrs and v:  # like 查询参数
+                v = '%' + str(v) + '%'
+
+            if k == 'limit':
+                v = int(v) if v else OFFICE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+
+            # 参数写入new-params
+            new_params[k] = v
+
+        # **************** 全员获取ALL数据 *****************
+        req_rtx_id = new_params.get('rtx_id')
+        new_params.pop('rtx_id')
+        '''
+        # <get data>
+        res, total = self.sqlbase_bo.get_all(new_params)
+        """ return data list """
+        new_res = list()
+        n = 1 + new_params.get('offset')
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
+            if _res_dict:
+                _res_dict['id'] = n
+                # 权限账户
+                _res_dict['edit'] = 'true' if req_rtx_id in auth_rtx_join([_res_dict.get('rtx_id')]) else 'false'
+                new_res.append(_res_dict)
+                n += 1
+        '''
+        total = 11
+        new_res = {
+            '1': [
+                {'id': 1, 'md5': 'A', 'name': 'Python 2.7.X 官方教程中文版', 'image': 'http://www.pythondoc.com/img/python27.png', 'url': 'http://www.pythondoc.com/flask-testing/index.html', 'summary': 'The Python Tutorial (Python 2.7.X) 的中文翻译版本。Python Tutorial 为初学 Python 必备官方教程，本教程适用于 Python 2.7.X 系列。'},
+                {'id': 2, 'md5': 'B', 'name': 'Python 3.6.X 官方教程中文版', 'image': 'http://www.pythondoc.com/img/python3.png', 'url': 'http://www.pythondoc.com/pythontutorial3/index.html', 'summary': 'The Python Tutorial (Python 3.6.X) 的中文翻译版本。Python Tutorial 为初学 Python 必备官方教程，本教程适用于 Python 3.6.X。'},
+                {'id': 3, 'md5': 'C', 'name': 'Flask官方教程【中文翻译】', 'image': 'http://www.pythondoc.com/img/flask.png', 'url': 'http://www.pythondoc.com/flask/index.html', 'summary': 'Flask 是一个轻量级的 Web 应用框架。其 WSGI 工具箱采用 Werkzeug ，模板引擎则使用 Jinja2。本教程适用于 Flask 0.10.1 以上版本。'},
+                {'id': 4, 'md5': 'D', 'name': 'Flask Restful API中文教程', 'image': 'http://www.pythondoc.com/img/flask-restful.png', 'url': 'http://www.pythondoc.com/Flask-RESTful/index.html', 'summary': 'Flask-RESTful 为 Flask 添加了快速构建 REST APIs 的支持。'}
+            ],
+            '2': [
+                {'id': 5, 'md5': 'E', 'name': 'Flask+SQLAlchemy+Postgresql异步方案', 'image': 'http://www.pythondoc.com/img/flaskasyn.png', 'url': 'http://www.pythonpub.com/article/1499', 'summary': 'Flask + SQLAlchemy + Postgresql 异步方案示例，为 Flask 开发提供数据库异步参考。'},
+                {'id': 6, 'md5': 'F', 'name': 'Flask-SQLAlchmey中文教程', 'image': 'http://www.pythondoc.com/img/flaskalchemy.png', 'url': 'http://www.pythondoc.com/flask-sqlalchemy/index.html', 'summary': 'Flask-SQLAlchmey 为 Flask 提供了简单且有用的 SQLAlchmey 集成。'},
+                {'id': 7, 'md5': 'G', 'name': 'Flask-Testing单元测试教程', 'image': 'http://www.pythondoc.com/img/flasktesting.png', 'url': 'http://www.pythondoc.com/flask-testing/index.html', 'summary': 'Flask-Testing 为 Flask 提供了单元测试的工具。'},
+                {'id': 8, 'md5': 'H', 'name': 'Flask Restful API设计', 'image': 'http://www.pythondoc.com/img/flaskret.png', 'url': 'http://www.pythondoc.com/flask-restful/index.html', 'summary': 'Miguel 编写的使用 Python 以及 Flask 编写 RESTful API。'}
+            ],
+            '3': [
+                {'id': 9, 'md5': 'I', 'name': 'Explore Flask中文教程', 'image': 'http://www.pythondoc.com/img/exploreflask.png', 'url': 'http://www.pythondoc.com/exploreflask/index.html', 'summary': '探索 Flask 是一本关于使用 Flask 开发 Web 应用程序的最佳实践和模式的书籍。这本书是 Flask 官方教程的一个有力的补充材料。适合进阶使用。'},
+                {'id': 10, 'md5': 'J', 'name': 'Flask-Exceptional 中文翻译', 'image': 'http://www.pythondoc.com/img/flaskexc.png', 'url': 'http://www.pythondoc.com/flask-exceptional/index.html', 'summary': 'Flask-Exceptional 是一个为 Flask 添加 Exceptional 支持。'},
+                {'id': 11, 'md5': 'K', 'name': 'Flask-Cache 中文翻译', 'image': 'http://www.pythondoc.com/img/flaskcache.png', 'url': 'http://www.pythondoc.com/flask-cache/index.html', 'summary': 'Flask-Cache 是一个用于 Flask 作为缓存的第三方扩展。'}
+            ]
+        }
+
+        return Status(
+            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
