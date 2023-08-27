@@ -176,6 +176,7 @@ VALUES
 (8, 'SQL仓库', 'SearchSqlbase', 'sqlbase', 7, 2, '1b29b5aa48db5845f4a14c54a44eeb18', 'searchSqlbase', FALSE, '', 'i_sql', TRUE, FALSE, TRUE, 201, 'admin', FALSE, TRUE),
 (9, '问题检索', 'SearchProbase', 'probase', 7, 2, 'c97d41080c06a689936f1c665ea334b5', 'searchProbase', FALSE, '', 'i_problem', TRUE, FALSE, TRUE, 202, 'admin', FALSE, TRUE),
 (10, '知识分享', 'SearchShare', 'share', 7, 2, '5f9f18dc1e434aef6e52721b43adae5b', 'searchShare', FALSE, '', 'i-share', TRUE, FALSE, TRUE, 203, 'admin', FALSE, TRUE),
+(28, '羊毛工具', 'SearchSheep', 'sheep', 7, 2, '23ec24c5ca59000543cee1dfded0cbea', 'searchSheep', FALSE, '', 'i-sheep', TRUE, FALSE, TRUE, 204, 'admin', FALSE, TRUE),
 -- 通知管理
 (11, '消息通知', 'Notify', '/notify', 1, 1, 'aaf9ed605d0193362321ba0def15c9b7', 'layout', FALSE, '/notify/message', 'c-notify', TRUE, FALSE, TRUE, 300, 'admin', FALSE, FALSE),
 (12, '钉钉绩效', 'NotifyDtalk', 'dtalk', 11, 2, '42dd43a9a00cc082e7bd9adec205439b', 'notifyDtalk', FALSE, '', 'i_dtalk', TRUE, FALSE, TRUE, 301, 'admin', FALSE, TRUE),
