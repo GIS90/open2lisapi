@@ -61,7 +61,7 @@ from deploy.views.authority import auth
 from deploy.views.notify import notify
 from deploy.views.common import common
 from deploy.views.dashboard import dashboard
-from deploy.views.info import info
+from deploy.views.system import system
 from deploy.views.search import search
 from deploy.views.image import image
 # services
@@ -205,7 +205,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('search', search)
         self.register_blueprint('office', office)
         self.register_blueprint('notify', notify)
-        self.register_blueprint('info', info)
+        self.register_blueprint('system', system)
         self.register_blueprint('auth', auth)
         self.register_blueprint('image', image)
 

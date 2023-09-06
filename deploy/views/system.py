@@ -46,11 +46,11 @@ from deploy.utils.watcher import watcher
 from deploy.services.info import InfoService
 
 
-info = Blueprint('info', __name__, url_prefix='/info')
-CORS(info, supports_credentials=True)
+system = Blueprint('system', __name__, url_prefix='/system')
+CORS(system, supports_credentials=True)
 
 
-@info.route('/dict_list/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_list():
     """
@@ -70,7 +70,7 @@ def dict_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_status/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_status/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_status():
     """
@@ -90,7 +90,7 @@ def dict_status():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_delete/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_delete():
     """
@@ -110,7 +110,7 @@ def dict_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_deletes/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_deletes():
     """
@@ -130,7 +130,7 @@ def dict_deletes():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_disables/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_disables/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_disables():
     """
@@ -150,7 +150,7 @@ def dict_disables():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_detail():
     """
@@ -171,7 +171,7 @@ def dict_detail():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_update/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_update():
     """
@@ -197,7 +197,7 @@ def dict_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_names/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_names/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_names():
     """
@@ -218,7 +218,7 @@ def dict_names():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/dict_add/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_add/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_add():
     """
@@ -239,7 +239,7 @@ def dict_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/api_add/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_add/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_add():
     """
@@ -269,7 +269,7 @@ def api_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/api_list/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_list():
     """
@@ -289,7 +289,7 @@ def api_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/api_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_delete/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_delete():
     """
@@ -309,7 +309,7 @@ def api_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/api_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_deletes/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_deletes():
     """
@@ -329,7 +329,7 @@ def api_deletes():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/api_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_detail():
     """
@@ -350,7 +350,7 @@ def api_detail():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/api_update/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_update():
     """
@@ -380,7 +380,7 @@ def api_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/api_types/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_types/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_types():
     """
@@ -401,7 +401,7 @@ def api_types():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_list/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_list():
     """
@@ -421,7 +421,7 @@ def depart_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_update_tree/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_update_tree/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_update_tree():
     """
@@ -441,7 +441,7 @@ def depart_update_tree():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_init/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_init/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_init():
     """
@@ -461,7 +461,7 @@ def depart_init():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_add/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_add/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_add():
     """
@@ -481,7 +481,7 @@ def depart_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_remove/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_remove/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_remove():
     """
@@ -501,7 +501,7 @@ def depart_remove():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_detail():
     """
@@ -521,7 +521,7 @@ def depart_detail():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_update/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_update():
     """
@@ -541,7 +541,7 @@ def depart_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@info.route('/depart_drag/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_drag/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def depart_drag():
     """

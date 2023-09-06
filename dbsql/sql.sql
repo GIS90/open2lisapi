@@ -183,12 +183,12 @@ VALUES
 (13, '企微通知', 'NotifyQywx', 'qywx', 11, 2, '55c90dfdd0341b16ba273a012581265d', 'notifyQywx', FALSE, '', 'i_qywx', TRUE, FALSE, TRUE, 302, 'admin', FALSE, TRUE),
 (14, '短信通知', 'NotifyMessage', 'message', 11, 2, '4c2a8fe7eaf24721cc7a9f0175115bd4', 'notifyMessage', FALSE, '', 'message', TRUE, FALSE, TRUE, 303, 'admin', FALSE, TRUE),
 -- 系统维护
-(15, '系统维护', 'Info', '/info', 1, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c-info', TRUE, FALSE, TRUE, 400, 'admin', FALSE, FALSE),
-(16, '部门架构', 'InfoDepart', 'depart', 15, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'infoDepart', FALSE, '', 'tree', TRUE, FALSE, TRUE, 401, 'admin', FALSE, TRUE),
-(17, '数据字典', 'InfoDict', 'dict', 15, 2, '91516e7a50ce0a67a8eb1f9229c293d1', 'infoDict', FALSE, '', 'i_dict', TRUE, FALSE, TRUE, 402, 'admin', FALSE, TRUE),
-(18, '后台API', 'InfoApi', 'api', 15, 2, '4ae6c8f4429f7bacb050c9c980cf51d3', 'infoApi', FALSE, '', 'i_api', TRUE, FALSE, TRUE, 403, 'admin', FALSE, TRUE),
-(19, '头像管理', 'InfoAvatar', 'avatar', 15, 2, 'eafdc02f3b847285bf1815f55f1f4e46', 'infoAvatar', FALSE, '', 'i-avatar', TRUE, FALSE, TRUE, 404, 'admin', FALSE, TRUE),
-(27, '日志查看', 'InfoLog', 'log', 15, 2, 'fa83d9352d3c8fab04893bbf60be7e06', 'infoLog', FALSE, '', 'i-log', TRUE, FALSE, TRUE, 405, 'admin', FALSE, TRUE),
+(15, '系统维护', 'System', '/system', 1, 1, '4059b0251f66a18cb56f544728796875', 'layout', FALSE, '/info/department', 'c-info', TRUE, FALSE, TRUE, 400, 'admin', FALSE, FALSE),
+(16, '部门架构', 'SystemDepart', 'depart', 15, 2, '1d17cb9923b99f823da9f5a16dc460e5', 'systemDepart', FALSE, '', 'tree', TRUE, FALSE, TRUE, 401, 'admin', FALSE, TRUE),
+(17, '数据字典', 'SystemDict', 'dict', 15, 2, '91516e7a50ce0a67a8eb1f9229c293d1', 'systemDict', FALSE, '', 'i_dict', TRUE, FALSE, TRUE, 402, 'admin', FALSE, TRUE),
+(18, '后台API', 'SystemApi', 'api', 15, 2, '4ae6c8f4429f7bacb050c9c980cf51d3', 'systemApi', FALSE, '', 'i_api', TRUE, FALSE, TRUE, 403, 'admin', FALSE, TRUE),
+(19, '头像管理', 'SystemAvatar', 'avatar', 15, 2, 'eafdc02f3b847285bf1815f55f1f4e46', 'systemAvatar', FALSE, '', 'i-avatar', TRUE, FALSE, TRUE, 404, 'admin', FALSE, TRUE),
+(27, '日志查看', 'SystemLog', 'log', 15, 2, 'fa83d9352d3c8fab04893bbf60be7e06', 'systemLog', FALSE, '', 'i-log', TRUE, FALSE, TRUE, 405, 'admin', FALSE, TRUE),
 -- 权限管理
 (20, '权限管理', 'Manage', '/manage', 1, 1, '34e34c43ec6b943c10a3cc1a1a16fb11', 'layout', FALSE, '/manage/user', 'c-manage', TRUE, FALSE, TRUE, 1000, 'admin', FALSE, FALSE),
 (21, '用户管理', 'ManageUser', 'user', 20, 2, '8f9bfe9d1345237cb3b2b205864da075', 'manageUser', FALSE, '', 'peoples', TRUE, FALSE, TRUE, 1001, 'admin', FALSE, TRUE),
