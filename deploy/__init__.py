@@ -129,7 +129,13 @@ class WebFlaskServer(WebBaseClass):
             no record request condition
               - ForApi or for_api: special api
             """
-            if hasattr(request, 'endpoint') and \
+            LOG.debug('=====================================================')
+            LOG.debug(request)
+            LOG.debug(request.endpoint)
+            LOG.debug(hasattr(request, 'endpoint'))
+            LOG.debug(getattr(request, 'endpoint', None))
+            LOG.debug('---------------------------------------------------')
+            if getattr(request, 'endpoint', None) and \
                     (request.endpoint.endswith('ForApi')
                      or request.endpoint.endswith('for_api')):
                 return
