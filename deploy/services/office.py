@@ -279,12 +279,14 @@ class OfficeService(object):
 
     def __init__(self):
         """
-        office service class initialize
+        OfficeService class initialize
         """
         super(OfficeService, self).__init__()
+        # lib
         self.excel_lib = ExcelLib()
         self.file_lib = FileLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
+        # bo
         self.excel_source_bo = ExcelSourceBo()
         self.excel_result_bo = ExcelResultBo()
         self.enum_bo = EnumBo()
