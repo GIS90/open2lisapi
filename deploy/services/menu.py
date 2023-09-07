@@ -44,42 +44,48 @@ class MenuService(object):
     """
     menu service
     """
+
+    all_attrs = [
+        'id', 'name', 'path', 'title', 'pid', 'level', 'md5_id', 'component',
+        'hidden', 'redirect', 'icon', 'noCache', 'affix', 'breadcrumb',
+        'create_time', 'create_rtx', 'is_del', 'delete_time', 'delete_rtx'
+    ]
+
+    menu_attrs = [
+        'id',
+        'name',
+        'path',
+        'pid',
+        'level',
+        'md5_id',
+        'component',
+        'hidden',
+        'redirect',
+        'order_id'
+    ]
+
+    menu_meta_attrs = [
+        'title',
+        'icon',
+        'cache',
+        'affix',
+        'breadcrumb',
+    ]
+
+    del_attrs = [
+        'id',
+        'pid',
+        'level',
+        'md5_id'
+    ]
+
     def __init__(self):
         """
-        menu service class initialize
+        MenuService class initialize
         """
         super(MenuService, self).__init__()
+        # bo
         self.menu_bo = MenuBo()
-        self.all_attrs = [
-            'id', 'name', 'path', 'title', 'pid', 'level', 'md5_id', 'component',
-            'hidden', 'redirect', 'icon', 'noCache', 'affix', 'breadcrumb',
-            'create_time', 'create_rtx', 'is_del', 'delete_time', 'delete_rtx'
-        ]
-        self.menu_attrs = [
-            'id',
-            'name',
-            'path',
-            'pid',
-            'level',
-            'md5_id',
-            'component',
-            'hidden',
-            'redirect',
-            'order_id'
-        ]
-        self.menu_meta_attrs = [
-            'title',
-            'icon',
-            'cache',
-            'affix',
-            'breadcrumb',
-        ]
-        self.del_attrs = [
-            'id',
-            'pid',
-            'level',
-            'md5_id'
-        ]
 
     def __str__(self):
         print("MenuService class")
