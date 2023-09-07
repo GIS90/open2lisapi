@@ -386,14 +386,14 @@ class NotifyService(object):
 
     def __init__(self):
         """
-        notify service class initialize
+        NotifyService class initialize
         """
         super(NotifyService, self).__init__()
-        # Lib
+        # lib
         self.excel_lib = ExcelLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.file_lib = FileLib()
-        # Bo
+        # bo
         self.dtalk_bo = DtalkMessageBo()
         self.dtalk_robot_bo = DtalkRobotBo()
         self.qywx_bo = QywxMessageBo()
