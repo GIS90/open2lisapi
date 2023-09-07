@@ -101,6 +101,12 @@ class ImageService(object):
         self.sysuser_avatar_bo = SysUserAvatarModelBo()
         self.sysuser_bo = SysUserBo()
 
+    def __str__(self):
+        print("ImageService class")
+
+    def __repr__(self):
+        self.__str__()
+
     @staticmethod
     def _transfer_time(t):
         if not t:
