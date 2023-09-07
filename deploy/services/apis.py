@@ -64,10 +64,10 @@ class ApisService(object):
         super(ApisService, self).__init__()
 
     def __str__(self):
-        """
-        buildin str
-        """
-        print('APIS')
+        print("ApisService class")
+
+    def __repr__(self):
+        self.__str__()
 
     def get_access_token(self):
         url = "https://aip.baidubce.com/oauth/2.0/token"
