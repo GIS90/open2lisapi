@@ -80,9 +80,9 @@ class RequestService(object):
             'long',
             'type'
         ]
-        
+
     def __str__(self):
-        print("SearchService class")
+        print("RequestService class")
 
     def __repr__(self):
         self.__str__()
