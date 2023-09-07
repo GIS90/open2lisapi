@@ -95,9 +95,10 @@ class ImageService(object):
 
     def __init__(self):
         """
-        information service class initialize
+        ImageService class initialize
         """
         super(ImageService, self).__init__()
+        # bo
         self.sysuser_avatar_bo = SysUserAvatarModelBo()
         self.sysuser_bo = SysUserBo()
 
