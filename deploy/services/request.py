@@ -78,9 +78,10 @@ class RequestService(object):
 
     def __init__(self):
         """
-        request service class initialize
+        RequestService class initialize
         """
         super(RequestService, self).__init__()
+        # bo
         self.request_bo = RequestBo()
 
     def __str__(self):
