@@ -59,13 +59,16 @@ class SysUserService(object):
 
     def __init__(self):
         """
-        sysuser service class initialize
+        SysUserService class initialize
         """
         super(SysUserService, self).__init__()
+        # bo
         self.sysuser_bo = SysUserBo()
         self.menu_bo = MenuBo()
         self.role_bo = RoleBo()
+        # service
         self.menu_service = MenuService()
+        # lib
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.image_lib = ImageLib()
 
