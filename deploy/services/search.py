@@ -228,7 +228,7 @@ class SearchService(object):
 
     def __init__(self):
         """
-        search service class initialize
+        SearchService class initialize
         """
         super(SearchService, self).__init__()
         # bo
