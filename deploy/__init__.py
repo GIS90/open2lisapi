@@ -123,11 +123,6 @@ class WebFlaskServer(WebBaseClass):
               - apis: rest open apis, special api for blueprints
               - manage: login in and login out APIs
             """
-            print('*' * 100)
-            print(request)
-            print(request.blueprint)
-            print(request.blueprint in ['apis', 'manage'])
-            print(request.endpoint)
             if request.blueprint in ['apis', 'manage']:
                 return
             """
