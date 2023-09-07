@@ -81,6 +81,12 @@ class MenuService(object):
             'md5_id'
         ]
 
+    def __str__(self):
+        print("MenuService class")
+
+    def __repr__(self):
+        self.__str__()
+
     def _model_to_menu_dict(self, model, level: int = 1) -> dict:
         """
         format menu model to dict type data
