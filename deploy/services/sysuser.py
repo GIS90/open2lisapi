@@ -64,6 +64,12 @@ class SysUserService(object):
         self.update_attrs = ['name', 'email', 'phone', 'introduction']
         self.password_attrs = ['old_password', 'new_password', 'con_password']
 
+    def __str__(self):
+        print("SysUserService class")
+
+    def __repr__(self):
+        self.__str__()
+
     def _model_to_dict(self, model, _type: str = 'base') -> dict:
         """
         user model transfer to dict data
