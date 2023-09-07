@@ -369,6 +369,12 @@ class InfoService(object):
         self.depart_bo = DepartmentBo()
         self.api_bo = ApiBo()
 
+    def __str__(self):
+        print("InfoService class")
+
+    def __repr__(self):
+        self.__str__()
+
     @staticmethod
     def _transfer_time(t):
         if not t:
