@@ -46,7 +46,7 @@ apis = Blueprint('apis', __name__, url_prefix='/apis')
 CORS(apis, supports_credentials=True)
 
 
-@apis.route('/chat/', methods=['GET', 'POST'], strict_slashes=False)
+@apis.route('/ai/chat/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def ai_chat():
     """
