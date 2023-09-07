@@ -52,34 +52,36 @@ class RequestService(object):
         'offset'
     ]
 
+    all_attrs = [
+        'id',
+        'rtx_id',
+        'ip',
+        'blueprint',
+        'endpoint',
+        'method',
+        'path',
+        'full_path',
+        'host_url',
+        'url',
+        'create_time',
+    ]
+
+    timeline_attrs = [
+        'id',
+        'path',
+        'url',
+        'create_time',
+        'short',
+        'long',
+        'type'
+    ]
+
     def __init__(self):
         """
         request service class initialize
         """
         super(RequestService, self).__init__()
         self.request_bo = RequestBo()
-        self.all_attrs = [
-            'id',
-            'rtx_id',
-            'ip',
-            'blueprint',
-            'endpoint',
-            'method',
-            'path',
-            'full_path',
-            'host_url',
-            'url',
-            'create_time',
-        ]
-        self.timeline_attrs = [
-            'id',
-            'path',
-            'url',
-            'create_time',
-            'short',
-            'long',
-            'type'
-        ]
 
     def __str__(self):
         print("RequestService class")
