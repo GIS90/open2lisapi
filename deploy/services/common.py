@@ -90,6 +90,12 @@ class CommonService(object):
         self.notify_service = NotifyService()
         self.image_lib = ImageLib()
 
+    def __str__(self):
+        print("CommonService class")
+
+    def __repr__(self):
+        self.__str__()
+
     def file_upload(self, params, upload_file, is_check_fmt: bool = True) -> json:
         """
         one file upload to server(file store object)
