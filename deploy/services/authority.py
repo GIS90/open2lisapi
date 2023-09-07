@@ -313,9 +313,10 @@ class AuthorityService(object):
 
     def __init__(self):
         """
-        authority service class initialize
+        AuthorityService class initialize
         """
         super(AuthorityService, self).__init__()
+        # bo
         self.role_bo = RoleBo()
         self.menu_bo = MenuBo()
         self.sysuser_bo = SysUserBo()
