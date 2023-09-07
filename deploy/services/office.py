@@ -291,6 +291,12 @@ class OfficeService(object):
         self.office_pdf_bo = OfficePDFBo()
         self.sysuser_bo = SysUserBo()
 
+    def __str__(self):
+        print("OfficeService class")
+
+    def __repr__(self):
+        self.__str__()
+
     def get_excel_headers(self, excel_file):
         """
         get excel base information
