@@ -59,7 +59,7 @@ class SysUserService(object):
 
     def __init__(self):
         """
-        SysUserService class initialize
+        SysUserServices class initialize
         """
         super(SysUserService, self).__init__()
         # bo
