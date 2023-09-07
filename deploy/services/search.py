@@ -234,6 +234,12 @@ class SearchService(object):
         self.sysuser_bo = SysUserBo()
         self.enum_bo = EnumBo()
 
+    def __str__(self):
+        print("SearchService class")
+
+    def __repr__(self):
+        self.__str__()
+
     def _transfer_time(self, t):
         """
         数据库datetime字段 TO 字符串格式时间字段
