@@ -359,11 +359,13 @@ class InfoService(object):
 
     def __init__(self):
         """
-        information service class initialize
+        InfoService class initialize
         """
         super(InfoService, self).__init__()
+        # config
         self.DEPART_ROOT_ID = DEPART_ROOT_ID
         self.DEPART_ROOT_PID = DEPART_ROOT_PID
+        # bo
         self.enum_bo = EnumBo()
         self.sysuser_bo = SysUserBo()
         self.depart_bo = DepartmentBo()
