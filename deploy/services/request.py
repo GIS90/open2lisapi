@@ -80,6 +80,12 @@ class RequestService(object):
             'long',
             'type'
         ]
+        
+    def __str__(self):
+        print("SearchService class")
+
+    def __repr__(self):
+        self.__str__()
 
     @staticmethod
     def _transfer_time(t):
