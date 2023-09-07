@@ -59,7 +59,7 @@ class ApisService(object):
 
     def __init__(self):
         """
-        common service class initialize
+        ApisService class initialize
         """
         super(ApisService, self).__init__()
 
