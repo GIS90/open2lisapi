@@ -47,6 +47,16 @@ class SysUserService(object):
     sysuser service
     """
 
+    base_attrs = ['id', 'rtx_id', 'md5_id', 'fullname', 'password',
+                  'email', 'phone', 'avatar', 'introduction',
+                  'department', 'role', 'is_del']
+
+    extend_attrs = ['create_time', 'create_rtx', 'delete_time', 'delete_rtx']
+
+    update_attrs = ['name', 'email', 'phone', 'introduction']
+
+    password_attrs = ['old_password', 'new_password', 'con_password']
+
     def __init__(self):
         """
         sysuser service class initialize
@@ -58,11 +68,6 @@ class SysUserService(object):
         self.menu_service = MenuService()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
         self.image_lib = ImageLib()
-        self.base_attrs = ['id', 'rtx_id', 'md5_id', 'fullname', 'password',
-                           'email', 'phone', 'avatar', 'introduction', 'department', 'role', 'is_del']
-        self.extend_attrs = ['create_time', 'create_rtx', 'delete_time', 'delete_rtx']
-        self.update_attrs = ['name', 'email', 'phone', 'introduction']
-        self.password_attrs = ['old_password', 'new_password', 'con_password']
 
     def __str__(self):
         print("SysUserService class")
