@@ -400,6 +400,12 @@ class NotifyService(object):
         self.qywx_robot_bo = QywxRobotBo()
         self.enum_bo = EnumBo()
 
+    def __str__(self):
+        print("NotifyService class")
+
+    def __repr__(self):
+        self.__str__()
+
     @staticmethod
     def _transfer_time(t):
         if not t:
