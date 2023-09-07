@@ -97,9 +97,10 @@ class DashboardService(object):
 
     def __init__(self):
         """
-        dashboard service class initialize
+        DashboardService class initialize
         """
         super(DashboardService, self).__init__()
+        # bo
         self.sysuser_bo = SysUserBo()
         self.request_bo = RequestBo()
         self.menu_bo = MenuBo()
