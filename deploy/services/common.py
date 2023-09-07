@@ -81,14 +81,16 @@ class CommonService(object):
 
     def __init__(self):
         """
-        common service class initialize
+        CommonService class initialize
         """
         super(CommonService, self).__init__()
+        # lib
         self.file_lib = FileLib()
         self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
+        self.image_lib = ImageLib()
+        # service
         self.office_service = OfficeService()
         self.notify_service = NotifyService()
-        self.image_lib = ImageLib()
 
     def __str__(self):
         print("CommonService class")
