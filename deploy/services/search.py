@@ -230,6 +230,7 @@ class SearchService(object):
         """
         search service class initialize
         """
+        super(SearchService, self).__init__()
         self.sqlbase_bo = SqlbaseBo()
         self.sysuser_bo = SysUserBo()
         self.enum_bo = EnumBo()
