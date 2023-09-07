@@ -99,11 +99,18 @@ class DashboardService(object):
         """
         dashboard service class initialize
         """
+        super(DashboardService, self).__init__()
         self.sysuser_bo = SysUserBo()
         self.request_bo = RequestBo()
         self.menu_bo = MenuBo()
         self.role_bo = RoleBo()
         self.shortcut_bo = ShortCutBo()
+
+    def __str__(self):
+        print("DashboardService class")
+
+    def __repr__(self):
+        self.__str__()
 
     def pan(self, params: dict) -> dict:
         """
