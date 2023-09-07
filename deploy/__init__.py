@@ -113,7 +113,7 @@ class WebFlaskServer(WebBaseClass):
             # self.app.permanent_session_lifetime = timedelta(minutes=60)
 
             """
-            user is logined in
+            user was logined in
             """
             if get_user_id():
                 return
