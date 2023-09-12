@@ -125,7 +125,14 @@ class WebFlaskServer(WebBaseClass):
               - apis: rest open apis, special api for blueprints
               - manage: login in and login out APIs
             """
+            # blueprint
             if request.blueprint in ['apis', 'manage']:
+                return
+            # url>path
+            if getattr(request, 'path', None) and (
+                request.path.startswith('/apis'),
+                request.path.startswith('/manage'),
+            ):
                 return
             """
             no check condition
