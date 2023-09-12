@@ -90,6 +90,7 @@ class WebFlaskServer(WebBaseClass):
         Initialize webFlaskServer instance
         and flask configuration
         """
+        # app
         self.app = app
         if not self.app:
             LOG.info('Web server initialize is failure......')
@@ -104,6 +105,7 @@ class WebFlaskServer(WebBaseClass):
                               endpoint='static',
                               view_func=self.app.send_static_file)
         self.request_service = RequestService()
+        # init
         super(WebFlaskServer, self).__init__()
 
         @self.app.before_request
@@ -187,6 +189,12 @@ class WebFlaskServer(WebBaseClass):
         def get_default_favicon():
             return self.app.send_static_file('images/favicon.ico')
 
+    def __str__(self):
+        print("WebFlaskServer class")
+
+    def __repr__(self):
+        self.__str__()
+
     def register_blueprint(self, obj_n, obj):
         """
         view blueprint register
@@ -212,7 +220,7 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('apis', apis)
 
     def init_run(self):
-        LOG.debug('Server is initializing......')
+        LOG.debug('Web server is initializing......')
         self._autoinit_register_blueprint()
         LOG.info('Web server is running......')
 
