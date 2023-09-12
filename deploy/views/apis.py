@@ -46,21 +46,21 @@ apis = Blueprint('apis', __name__, url_prefix='/apis')
 CORS(apis, supports_credentials=True)
 
 
-@apis.route('/ai/chat/', methods=['GET', 'POST'], strict_slashes=False)
+@apis.route('/demo/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
-def ai_chat():
+def demo():
     """
-    api: ai chat
+    api: demo
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method == 'POST':
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         params = request.get_json() or {}
-        return ApisService().ai_chat(params)
+        return ApisService().demo(params)
     except Exception as e:
-        LOG.error("apis>ai-chat is error: %s" % e)
+        LOG.error("apis>demo is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
