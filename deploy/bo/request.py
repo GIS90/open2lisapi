@@ -235,3 +235,8 @@ class RequestBo(BOBase):
         if params.get('limit'):
             q = q.limit(params.get('limit'))
         return q.all(), total
+
+    def get_model_by_id(self, id):
+        q = self.session.query(RequestModel)
+        q = q.filter(RequestModel.id == id)
+        return q.first() if q else None
