@@ -32,7 +32,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python request.py
 # ------------------------------------------------------------
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.models.request import RequestModel
@@ -182,3 +182,56 @@ class RequestBo(BOBase):
         if end_time:
             q = q.filter(RequestModel.create_time <= end_time)
         return q.first()
+
+    def get_all(self, params):
+        q = self.session.query(RequestModel.id,
+                               RequestModel.rtx_id,
+                               RequestModel.ip,
+                               RequestModel.blueprint,
+                               RequestModel.apiname,
+                               RequestModel.endpoint,
+                               RequestModel.method,
+                               RequestModel.path,
+                               RequestModel.full_path,
+                               RequestModel.host_url,
+                               RequestModel.url,
+                               RequestModel.create_time,
+                               ApiModel.type,
+                               ApiModel.short,
+                               ApiModel.long)
+        q = q.filter(RequestModel.blueprint == ApiModel.blueprint)
+        q = q.filter(RequestModel.apiname == ApiModel.apiname)
+        q = q.filter(RequestModel.endpoint == ApiModel.endpoint)
+        # q = q.filter(RequestModel.path == ApiModel.path)
+        q = q.filter(ApiModel.is_del != 1)
+        """多参数高级筛选"""
+        if params.get('create_rtx'):  # 创建用户RTX
+            q = q.filter(RequestModel.rtx_id.in_(params.get('create_rtx')))
+        if params.get('type'):  # API类型
+            q = q.filter(ApiModel.type.in_(params.get('type')))
+        if params.get('blueprint'):  # blueprint
+            q = q.filter(ApiModel.blueprint.like(params.get('blueprint')))
+        if params.get('apiname'):  # apiname
+            q = q.filter(ApiModel.apiname.like(params.get('apiname')))
+        if params.get('content'):  # 模糊查询内容
+            q = q.filter(or_(
+                ApiModel.blueprint.like(params.get('content')),
+                ApiModel.apiname.like(params.get('content')),
+                ApiModel.endpoint.like(params.get('content')),
+                ApiModel.path.like(params.get('content')),
+                ApiModel.short.like(params.get('content')),
+                ApiModel.long.like(params.get('content'))
+            ))
+        if params.get('create_time_start'):  # 起始创建时间
+            q = q.filter(RequestModel.create_time >= params.get('create_time_start'))
+        if params.get('create_time_end'):  # 结束创建时间
+            q = q.filter(RequestModel.create_time <= params.get('create_time_end'))
+        q = q.order_by(RequestModel.create_time.desc())
+        if not q:
+            return [], 0
+        total = len(q.all())
+        if params.get('offset'):
+            q = q.offset(params.get('offset'))
+        if params.get('limit'):
+            q = q.limit(params.get('limit'))
+        return q.all(), total
