@@ -41,6 +41,7 @@ import time
 import subprocess
 import platform
 from datetime import datetime, timedelta
+from pathlib import Path as pathlib_path, PurePath as pathlib_purepath
 # from functools import wraps
 from flask import session
 from deploy.config import ADMIN, ADMIN_AUTH_LIST
@@ -218,13 +219,26 @@ def mk_dirs(path):
     return path
 
 
-def get_base_dir():
+def get_deploy_dir():
     """
-    获取项目base目录（deploy）
+    获取项目deploy目录
 
-    :return: deploy base path
+    :return: abs deploy path
     """
     return os.path.dirname(get_cur_folder())
+
+
+def get_root_dir():
+    """
+    获取项目root目录
+
+    :return: project root directory
+    """
+    root = pathlib_path(__file__).resolve().parent.parent.parent
+    if root.is_absolute() and pathlib_path.exists(root):
+        return root
+    else:
+        return pathlib_path.cwd().resolve().parent.parent
 
 
 def v2decimal(x, y):

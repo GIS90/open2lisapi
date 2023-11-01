@@ -45,7 +45,7 @@ import zipfile
 from openpyxl.styles import colors
 
 from deploy.utils.utils import filename2md5, \
-    get_base_dir, get_now, mk_dirs
+    get_now, mk_dirs
 from deploy.utils.utils import get_now
 from deploy.config import STORE_CACHE
 from deploy.utils.status_msg import StatusMsgs
