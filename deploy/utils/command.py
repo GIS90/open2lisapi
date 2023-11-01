@@ -58,8 +58,8 @@ import os
 import inspect
 from subprocess import PIPE, Popen
 
-from deploy.logger import logger as LOG
-from config import DEBUG
+from deploy.utils.logger import logger as LOG
+from deploy.config import DEBUG
 
 
 def get_cur_folder():
