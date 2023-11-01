@@ -41,9 +41,8 @@ import time
 import subprocess
 import platform
 from datetime import datetime, timedelta
-from functools import wraps
+# from functools import wraps
 from flask import session
-from deploy.utils.logger import logger as LOG
 from deploy.config import ADMIN, ADMIN_AUTH_LIST
 
 
@@ -183,19 +182,6 @@ def get_user_id():
     :return: rtx id or None
     """
     return session.get('user-id') or session.get('rtx-d')
-
-
-# 计时装饰器
-def timeer(fn):
-    @wraps(fn)
-    def _wrapper(*args, **kwargs):
-        start = datetime.now()
-        res = fn(*args, **kwargs)
-        end = datetime.now()
-        LOG.info('@timeer %s is run: %s' % (fn.__name__, (end - start).seconds))
-        return res
-
-    return _wrapper
 
 
 def get_real_ip(request):
