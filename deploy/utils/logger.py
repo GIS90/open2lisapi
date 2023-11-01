@@ -67,7 +67,7 @@ import inspect
 import logging
 import os
 import sys
-from pathlib import Path as pathlib_path, PurePath as pathlib_pure
+from pathlib import Path as pathlib_path, PurePath as pathlib_purepath
 from logging.handlers import RotatingFileHandler
 from deploy.config import LOG_DIR, LOG_LEVEL, LOG_FORMATTER, LOG_FILENAME_PREFIX
 
