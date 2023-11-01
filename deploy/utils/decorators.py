@@ -47,6 +47,7 @@ from functools import wraps
 import warnings
 
 
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 def timer(func):
     """
     方法执行时间装饰器
@@ -62,6 +63,7 @@ def timer(func):
     return __wrapper
 
 
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 def debug(func):
     """
     debug装饰器
@@ -75,6 +77,7 @@ def debug(func):
     return __wrapper
 
 
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 def deprecated(func):
     """
     方法过时提示
