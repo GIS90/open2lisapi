@@ -67,6 +67,7 @@ import inspect
 import logging
 import os
 import sys
+from pathlib import Path as pathlib_path, PurePath as pathlib_pure
 from logging.handlers import RotatingFileHandler
 from deploy.config import LOG_DIR, LOG_LEVEL, LOG_FORMATTER, LOG_FILENAME_PREFIX
 
@@ -98,6 +99,14 @@ def _get_now(format="%Y-%m-%d %H:%M:%S"):
 def __get_log_folder():
     p_folder = os.path.dirname(os.path.dirname(_get_cur_folder()))
     return os.path.join(p_folder, 'log')
+
+
+def __get_log_folder2():
+    """
+    新方法pathlib
+    """
+    cwd = pathlib_path(pathlib_path.cwd())
+    return pathlib_path.joinpath(cwd.parent.parent, 'log')
 
 
 logdir = LOG_DIR

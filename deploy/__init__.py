@@ -50,7 +50,7 @@ from deploy.models.base import get_session
 # build-in package
 from deploy.utils.base_class import WebBaseClass
 from deploy.utils.logger import logger as LOG
-from deploy.utils.utils import get_user_id, timeer, get_real_ip
+from deploy.utils.utils import get_user_id, get_real_ip
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 # views

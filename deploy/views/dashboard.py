@@ -41,7 +41,7 @@ from flask_cors import CORS, cross_origin
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.utils import timeer
+from deploy.utils.decorators import timer
 from deploy.utils.watcher import watcher
 from deploy.services.dashboard import DashboardService
 from deploy.services.request import RequestService
