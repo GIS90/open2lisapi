@@ -47,6 +47,20 @@ from functools import wraps
 import warnings
 
 
+def decorator(func):
+    """
+    装饰器模板
+    """
+    @wraps(func)
+    def __wrapper(*args, **kwargs):
+        # 额外功能
+        result = func(*args, **kwargs)
+        # 额外功能
+        print("[Decorator] >>>>> %s." % func.__name__)
+        return result
+    return __wrapper
+
+
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 def timer(func):
     """
