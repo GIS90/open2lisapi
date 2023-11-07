@@ -497,6 +497,7 @@ class ExcelLib(object):
             name：新文件名称 if not exist will to set current time to rename new file
             sheet: default 0 if not exist了，默认处理文件的第一个sheet
             type: 行拆分或者列拆分，default is 1 行拆分
+            num: 行拆行数（不包含表头），默认1
             store: 存储方式，一表多Sheet或者多表一Sheet，default is 1 多表一Sheet
             rule: list formatter default 999 if not exist, 文件命名方式采用自增数字序列
             title: 新文件是否有标题，default is 1 有标题
@@ -504,7 +505,7 @@ class ExcelLib(object):
 
         type: 1行 2列
         store: 1多表一Sheet 2一表多Sheet
-        999: 自增
+        9999: 自增
         title: 1有标题 0无标题
         """
         if not file or not os.path.exists(file):
@@ -515,6 +516,11 @@ class ExcelLib(object):
             name = 'SPLIT-%s' % get_now(format="%Y-%m-%d-%H-%M-%S")
         sheet = int(kwargs.get('sheet')) \
             if kwargs.get('sheet') else 0    # default is 0
+        num = int(kwargs.get('num')) \
+            if int(kwargs.get('num')) else 1
+        # split num, min value is 1
+        if num < 1:
+            num = 1
         rc = str(kwargs.get('type')) \
             if kwargs.get('type') else '1'  # default is 1 行拆分 2列拆分
         store = str(kwargs.get('store')) \
@@ -556,11 +562,12 @@ class ExcelLib(object):
                 real_dir = self.get_split_store_dir(name)
                 for row in range(1, sheet_row, 1):
                     select_col = list()
-                    # judge is or not 999 自增数字序列
+                    # judge is or not 9999 自增数字序列
                     if self.DEFAULT_AUTO_ID in rule:
                         select_col.append(str(row))
                     write_excel = xlwt.Workbook(encoding='utf-8')
                     new_sheet = write_excel.add_sheet('Sheet', cell_overwrite_ok=True)
+                    # to get select col field
                     for col in range(0, sheet_col, 1):
                         if title == '1':    # is or not write title
                             new_sheet.write(0, col, label=sheet.cell_value(0, col))

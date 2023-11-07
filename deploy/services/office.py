@@ -152,6 +152,7 @@ class OfficeService(object):
         'md5',
         'name',
         'sheet',
+        'num',
         'store',
         'split',
         'columns',
@@ -1604,8 +1605,16 @@ class OfficeService(object):
             elif k == 'header' and v not in bool_type:
                 return Status(
                     213, 'failure', u'请求参数%s值不合法' % k, {}).json()
+            elif k == 'num':
+                try:
+                    v = int(v) or 1
+                except:
+                    return Status(
+                        213, 'failure', u'请求参数%s值不合法' % k, {}).json()
 
-            new_params[k] = str(v) if k != 'columns' else v
+            new_params[k] = str(v) if k not in ['columns', 'num'] else v
+
+        # 默认第一个拆分sheet对象
         if not new_params.get('sheet'):
             new_params['sheet'] = '0'
         # ---------------------- check params ok...... -----------------------
@@ -1620,17 +1629,20 @@ class OfficeService(object):
         if model and model.is_del:
             return Status(
                 304, 'failure', StatusMsgs.get(304), {}).json()
+
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 权限账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
                 309, 'failure', StatusMsgs.get(309), {}).json()
+
         # file not exist
         if not model.local_url or \
                 not os.path.exists(model.local_url):
             return Status(
                 226, 'failure', StatusMsgs.get(226), {}).json()
+
         """ =================== split ===================="""
         # 无新文件名称，以原始文件为名称
         if not new_params.get('name'):
@@ -1641,33 +1653,51 @@ class OfficeService(object):
                 if os.path.splitext(name)[-1] in self.EXCEL_FORMAT:
                     name = os.path.splitext(name)[0]
             new_params['name'] = name
+
+        # ===================================================================
+        headers = model.headers
         # 无sheet，默认index为0
         sheet = new_params.get('sheet') or '0'
-        headers = model.headers
+
         # 分割表行数检查
-        row = 0
+        row = 0     # 拆分表行数
+        col = 0     # 拆分表列表
         if headers:  # db get row
             sheet_header = json.loads(headers).get(str(sheet))
             if sheet_header:
                 row = sheet_header.get('row') or 0
+                col = sheet_header.get('col') or 0
         if row == 0:   # file get row
             sheets = self.excel_lib.read_headers(model.local_url).get('sheets')
             if sheets:
                 sheet_header = sheets.get(int(sheet))
                 if sheet_header:
-                    row = sheet_header.get('row')
+                    row = sheet_header.get('row') or 0
+                    col = sheet_header.get('col') or 0
         if row == 0:        # 0行无数据
             return Status(
                 227, 'failure', StatusMsgs.get(227), {}).json()
         if row >= 65535:        # 最大行数65535
             return Status(
                 228, 'failure', StatusMsgs.get(228), {}).json()
+
+        # 拆分行数check
+        split_num = new_params.get('num')
+        if split_num < 1:
+            return Status(
+                228, 'failure', '拆分行数最小值为1', {}).json()
+        if split_num > (row - 1):
+            return Status(
+                228, 'failure', '拆分行数超过表格最大行数：%s' % row, {}).json()
+        # ===================================================================
+
         # =========================== main method ===========================
         try:
             resp_json = self.excel_lib.split_xlrw(file=model.local_url,
                                                   name=new_params.get('name'),
                                                   sheet=new_params.get('sheet'),
                                                   type=new_params.get('split'),
+                                                  num=new_params.get('num'),
                                                   store=new_params.get('store'),
                                                   rule=new_params.get('columns'),
                                                   title=new_params.get('header'))
