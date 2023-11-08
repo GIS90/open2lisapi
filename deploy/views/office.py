@@ -299,11 +299,10 @@ def excel_split():
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
-    # 参数
-    params = request.get_json() or {}
-    return OfficeService().excel_split(params)
     try:
-        pass
+        # 参数
+        params = request.get_json() or {}
+        return OfficeService().excel_split(params)
     except Exception as e:
         LOG.error("office>excel split is error: %s" % e)
         return Status(501, 'failure',
