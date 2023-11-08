@@ -560,7 +560,8 @@ class ExcelLib(object):
         if rc == '1':
             if store == '1':    # store: 1 多表一Sheet
                 real_dir = self.get_split_store_dir(name)
-                for row in range(1, sheet_row, 1):
+                # 第一层循环 >>>>> 总循环（控制数量）
+                for row in range(1, sheet_row, num):
                     select_col = list()
                     # judge is or not 9999 自增数字序列
                     if self.DEFAULT_AUTO_ID in rule:
@@ -569,32 +570,61 @@ class ExcelLib(object):
                     new_sheet = write_excel.add_sheet('Sheet', cell_overwrite_ok=True)
                     # to get select col field
                     for col in range(0, sheet_col, 1):
-                        if title == '1':    # is or not write title
+                        # is or not write title
+                        if title == '1':
                             new_sheet.write(0, col, label=sheet.cell_value(0, col))
+                        # excel name string list
                         if str(col) in rule:
                             select_col.append(str(sheet.cell_value(row, col)))
-                        # 行拆分，只有一行，看是否写入title
-                        new_sheet.write(1 if title == '1' else 0, col, label=sheet.cell_value(row, col))
+
+                    # 第二层循环 >>>>> 数据写入
+                    # 新表行，判断是有标题
+                    new_sheet_row = 1 if title == '1' else 0
+                    inner_row_max = row + num if (row + num) < sheet_row else sheet_row
+                    for inner_row in range(row, inner_row_max, 1):
+                        for col in range(0, sheet_col, 1):
+                            # cell写入
+                            new_sheet.write(new_sheet_row, col, label=sheet.cell_value(inner_row, col))
+                        new_sheet_row += 1
+
+                    # save new excel
                     new_excel_name = '%s%s' % ('_'.join(select_col), self.DEFAULT_OLD_V_PREFIX)
                     write_excel.save(os.path.join(real_dir, new_excel_name))
                 is_compress = True  # 压缩
             elif store == '2':     # store: 2 一表多Sheet
                 write_excel = xlwt.Workbook(encoding='utf-8')
-                for row in range(1, sheet_row, 1):
+                # 第一层循环 >>>>> 总循环（控制数量）
+                for row in range(1, sheet_row, num):
                     select_col = list()
                     # judge is or not 999 自增数字序列
                     if self.DEFAULT_AUTO_ID in rule:
                         select_col.append(str(row))
                     for k, v in enumerate(sheet.row_values(row), 0):
-                        if str(k) in rule: select_col.append(str(v))
+                        if str(k) in rule:
+                            select_col.append(str(v))
+
+                    # >>>>>>>>>>>>>>>>>>>>> new excel sheet
                     new_sheet_name = '_'.join(select_col)
                     new_sheet = write_excel.add_sheet(new_sheet_name, cell_overwrite_ok=True)
+
+                    # title
                     for col in range(0, sheet_col, 1):
-                        if title == '1':  # is or not write title
+                        # is or not write title
+                        if title == '1':
                             new_sheet.write(0, col, label=sheet.cell_value(0, col))
-                        # 行拆分，只有一行，看是否写入title
-                        new_sheet.write(1 if title == '1' else 0, col, label=sheet.cell_value(row, col))
-                    # end sheet
+
+                    # 第二层循环 >>>>> 数据写入
+                    # 新表行，判断是有标题
+                    new_sheet_row = 1 if title == '1' else 0
+                    inner_row_max = row + num if (row + num) < sheet_row else sheet_row
+                    for inner_row in range(row, inner_row_max, 1):
+                        for col in range(0, sheet_col, 1):
+                            # cell写入
+                            new_sheet.write(new_sheet_row, col, label=sheet.cell_value(inner_row, col))
+                        new_sheet_row += 1
+                    # <<<<<<<<<<<<<<<<<<<< end sheet
+
+                # save new excel
                 new_excel_name = name
                 if os.path.splitext(new_excel_name)[-1] not in self.prefix_list:
                     new_excel_name = '%s%s' % (new_excel_name, self.DEFAULT_OLD_V_PREFIX)
@@ -619,7 +649,8 @@ class ExcelLib(object):
                     write_excel = xlwt.Workbook(encoding='utf-8')
                     new_sheet = write_excel.add_sheet('Sheet', cell_overwrite_ok=True)
                     for k, v in enumerate(sheet.row_values(0), 0):      # 列拆分获取0行title内容
-                        if str(k) in rule: select_col.append(str(v))
+                        if str(k) in rule:
+                            select_col.append(str(v))
                     # select_col.append(str(sheet.cell_value(0, col)))
                     if title == '1':   # is or not write title
                         new_sheet.write(0, 0, label=sheet.cell_value(0, col))
@@ -638,7 +669,8 @@ class ExcelLib(object):
                     if self.DEFAULT_AUTO_ID in rule:
                         select_col.append(str(col))
                     for k, v in enumerate(sheet.row_values(0), 0):      # 列拆分获取0行title内容
-                        if str(k) in rule: select_col.append(str(v))
+                        if str(k) in rule:
+                            select_col.append(str(v))
                     # select_col.append(str(sheet.cell_value(0, col)))
                     new_sheet_name = '_'.join(select_col)
                     new_sheet = write_excel.add_sheet(new_sheet_name, cell_overwrite_ok=True)

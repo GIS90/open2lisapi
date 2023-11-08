@@ -1692,15 +1692,16 @@ class OfficeService(object):
         # ===================================================================
 
         # =========================== main method ===========================
+        resp_json = self.excel_lib.split_xlrw(file=model.local_url,
+                                              name=new_params.get('name'),
+                                              sheet=new_params.get('sheet'),
+                                              type=new_params.get('split'),
+                                              num=new_params.get('num'),
+                                              store=new_params.get('store'),
+                                              rule=new_params.get('columns'),
+                                              title=new_params.get('header'))
         try:
-            resp_json = self.excel_lib.split_xlrw(file=model.local_url,
-                                                  name=new_params.get('name'),
-                                                  sheet=new_params.get('sheet'),
-                                                  type=new_params.get('split'),
-                                                  num=new_params.get('num'),
-                                                  store=new_params.get('store'),
-                                                  rule=new_params.get('columns'),
-                                                  title=new_params.get('header'))
+            pass
         except Exception as e:
             # 异常处理
             print('ExcelLib split excel error: %s' % e)
