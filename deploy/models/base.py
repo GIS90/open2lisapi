@@ -59,20 +59,26 @@ def init_database_engine():
 
 
 def get_session():
-    # 方式一
-    # global DBSession
-    # if not DBSession:
-    #     dbengine_databus = init_database_engine()
-    #     DBSession = sessionmaker(bind=dbengine_databus,
-    #                              autoflush=True,
-    #                              autocommit=True
-    #                              )
+    # 方式一：全局一个sessionmaker对象
+    global DBSession
+    if not DBSession:
+        dbengine_databus = init_database_engine()
+        DBSession = sessionmaker(bind=dbengine_databus,
+                                 autoflush=True,
+                                 autocommit=True
+                                 )
 
-    # 方式二
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+    # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * #
+
+    # 方式二: 每次都创建sessionmaker对象
+    """
     dbengine_databus = init_database_engine()
     DBSession = sessionmaker(bind=dbengine_databus,
                              autoflush=True,
                              autocommit=True
                              )
+    """
+
     return DBSession()
 
