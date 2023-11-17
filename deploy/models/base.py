@@ -62,8 +62,8 @@ def get_session():
     # 方式一：全局一个sessionmaker对象
     global DBSession
     if not DBSession:
-        dbengine_databus = init_database_engine()
-        DBSession = sessionmaker(bind=dbengine_databus,
+        db_engine = init_database_engine()
+        DBSession = sessionmaker(bind=db_engine,
                                  autoflush=True,
                                  autocommit=True
                                  )
@@ -73,8 +73,8 @@ def get_session():
 
     # 方式二: 每次都创建sessionmaker对象
     """
-    dbengine_databus = init_database_engine()
-    DBSession = sessionmaker(bind=dbengine_databus,
+    db_engine = init_database_engine()
+    DBSession = sessionmaker(bind=db_engine,
                              autoflush=True,
                              autocommit=True
                              )
