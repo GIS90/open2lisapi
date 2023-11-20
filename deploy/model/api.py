@@ -68,7 +68,7 @@ class ApiModel(base.ModelBase):
     delete_rtx = Column(name="delete_rtx", type_=String(25), comment="删除操作人")
     update_time = Column(name="update_time", type_=TIMESTAMP(), comment="最近修改时间")
     update_rtx = Column(name="update_rtx", type_=String(25), comment="最近修改操作人")
-    is_del = Column(name="is_del", type_=Boolean(), comment="是否删除标识")
+    is_del = Column(name="is_del", type_=Boolean(), default=False, comment="是否删除标识")
     order_id = Column(name="order_id", type_=Integer, comment="顺序ID")
 
     def __str__(self):
