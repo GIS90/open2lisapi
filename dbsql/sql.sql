@@ -145,7 +145,7 @@ VALUES
 -- ID设置AUTO_INCREMENT，不可设置默认值
 DROP TABLES IF EXISTS `menu`;
 CREATE TABLE `menu`  (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     `name` varchar(25) NOT NULL COMMENT '路由rtx-id，大驼峰命名方式',
     `path` varchar(35) NOT NULL COMMENT '路由path，全小写字母',
     `title` varchar(25) NOT NULL COMMENT '菜单名称',
@@ -221,9 +221,9 @@ VALUES
 -- create request && index
 DROP TABLES IF EXISTS `request`;
 CREATE TABLE `request`  (
-    `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx唯一标识',
-    `ip` varchar(15) NOT NULL COMMENT '用户IP',
+    `id` bigint NOT NULL AUTO_INCREMENT COMMENT ' 主键，自增ID',
+    `rtx_id` varchar(25) NOT NULL COMMENT '请求访问用户rtx-id唯一标识',
+    `ip` varchar(15) NULL COMMENT '用户IP',
     `blueprint` varchar(15) NULL COMMENT 'API地址blueprint',
     `apiname` varchar(25) NULL COMMENT 'API接口View方法名称',
     `endpoint` varchar(41) NULL COMMENT 'API地址endpoint',
@@ -233,8 +233,8 @@ CREATE TABLE `request`  (
     `host_url` varchar(55) NULL COMMENT 'API地址host_url',
     `url` varchar(120) NULL COMMENT 'API地址url',
     `cost` decimal(10, 4) NULL COMMENT 'API运行时间',
-    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '请求时间点',
-    `create_date` date COMMENT '请求日期',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `create_date` date not null COMMENT '创建日期',
 
     PRIMARY KEY (`id`),
     UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
@@ -242,7 +242,7 @@ CREATE TABLE `request`  (
 
 -- delete
 delete from request;
--- no insert data
+------------------------------------------------------------------------------------------------
 
 
 
@@ -250,7 +250,7 @@ delete from request;
 -- create api mapping && index
 DROP TABLES IF EXISTS `api`;
 CREATE TABLE `api`  (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT ' 主键，自增ID',
     `blueprint` varchar(25) NOT NULL COMMENT 'API接口blueprint',
     `apiname` varchar(35) NOT NULL COMMENT 'API接口View方法名称',
     `endpoint` varchar(65) NOT NULL COMMENT 'API接口endpoint',
@@ -282,7 +282,7 @@ delete from api;
 -- create enum mapping && index
 DROP TABLES IF EXISTS `enum`;
 CREATE TABLE `enum`  (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT ' 主键，自增ID',
     `name` varchar(35) NOT NULL COMMENT '枚举名称',
     `md5_id` varchar(55) NOT NULL COMMENT '枚举md5-id，以name为md5',
     `key` varchar(55) NOT NULL COMMENT '枚举子集对应的key',
@@ -382,7 +382,7 @@ insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `cre
 DROP TABLES IF EXISTS `excel_source`;
 
 CREATE TABLE `excel_source` (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT ' 主键，自增ID',
     `name` varchar(80) COMMENT '原始名称',
     `store_name` varchar(100) COMMENT '存储名称',
     `md5_id` varchar(55) NOT NULL COMMENT 'md5-id',

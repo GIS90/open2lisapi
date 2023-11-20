@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe: 
-    request
+    model class              DB table
+    ---------------------------------------
+    RequestModel             request
 
 base_info:
     __author__ = "PyGo"
@@ -12,9 +14,10 @@ base_info:
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.request import RequestModel
 
 design:
 
@@ -46,24 +49,29 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("RequestModel")
+__all__ = ["RequestModel"]
 
 
 class RequestModel(base.ModelBase):
     __tablename__ = 'request'
 
-    id = Column(Integer, primary_key=True)
-    rtx_id = Column(String(25))
-    ip = Column(String(15))
-    blueprint = Column(String(15))
-    apiname = Column(String(25))
-    endpoint = Column(String(41))
-    method = Column(String(10))
-    path = Column(String(45))
-    full_path = Column(String(85))
-    host_url = Column(String(55))
-    url = Column(String(120))
-    cost = Column(DECIMAL(10, 4))
-    create_time = Column(TIMESTAMP())
-    create_date = Column(Date())
+    id = Column(name="id", type_=Integer,  autoincrement="auto", primary_key=True, comment="主键，自增ID")
+    rtx_id = Column(name="rtx_id", type_=String(25), nullable=False, comment="请求访问用户rtx-id唯一标识")
+    ip = Column(name="ip", type_=String(15), comment="用户IP")
+    blueprint = Column(name="blueprint", type_=String(15), comment="API地址blueprint")
+    apiname = Column(name="apiname", type_=String(25), comment="API接口View方法名称")
+    endpoint = Column(name="endpoint", type_=String(41), comment="API地址endpoint")
+    method = Column(name="method", type_=String(10), comment="API请求method")
+    path = Column(name="path", type_=String(45), comment="API请求path")
+    full_path = Column(name="full_path", type_=String(85), comment="API地址full_path")
+    host_url = Column(name="host_url", type_=String(55), comment="API地址host_url")
+    url = Column(name="url", type_=String(120), comment="API地址url")
+    cost = Column(name="cost", type_=DECIMAL(10, 4), comment="API运行时间")
+    create_time = Column(name="create_time", type_=TIMESTAMP(), nullable=False, comment="创建时间")
+    create_date = Column(name="create_date", type_=Date(), nullable=False, comment="创建日期")
 
+    def __str__(self):
+        return "RequestModel Class, relate to DB table: request."
+
+    def __repr__(self):
+        return self.__str__()
