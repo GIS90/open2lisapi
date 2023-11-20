@@ -123,3 +123,6 @@ def logout():
     request_service.add_request(request=request, cost=cost, rtx=rtx_id)
     return Status(
         100, 'success', StatusMsgs.get(100), {}).json()
+
+
+# TODO 用jwt模式
