@@ -85,11 +85,11 @@ class ModelTemplate(base.ModelBase):
     __tablename__ = 'model_template'
 
     id = Column(name="id", type_=Integer, autoincrement="auto", primary_key=True, index=True, comment="主键，自增ID")
-    name = Column(name="name", type_=String(25), comment="名称")
-    md5_id = Column(name="md5_id", type_=String(55), unique=True, comment="唯一标识：MD5-ID")
+    name = Column(name="name", type_=String(25), nullable=False, comment="名称")
+    md5_id = Column(name="md5_id", type_=String(55), unique=True, nullable=False, comment="唯一标识：MD5-ID")
 
-    create_time = Column(name="create_time", type_=TIMESTAMP(), comment="创建时间")
-    create_rtx = Column(name="create_rtx", type_=String(25), comment="创建人")
+    create_time = Column(name="create_time", type_=TIMESTAMP(), nullable=False, comment="创建时间")
+    create_rtx = Column(name="create_rtx", type_=String(25), nullable=False, comment="创建人")
     update_time = Column(name="update_time", type_=TIMESTAMP(), comment="最新更新时间")
     update_rtx = Column(name="update_rtx", type_=String(25), comment="最后更新人")
     delete_time = Column(name="delete_time", type_=TIMESTAMP(), comment="删除时间")
