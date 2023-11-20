@@ -46,7 +46,7 @@ from deploy.utils.watcher import watcher
 from deploy.services.info import InfoService
 
 
-system = Blueprint('system', __name__, url_prefix='/system')
+system = Blueprint(name='system', import_name=__name__, url_prefix='/system')
 CORS(system, supports_credentials=True)
 
 

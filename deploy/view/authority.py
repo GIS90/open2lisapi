@@ -48,7 +48,7 @@ from deploy.utils.watcher import watcher
 from deploy.services.authority import AuthorityService
 
 
-auth = Blueprint('auth', __name__, url_prefix='/auth')
+auth = Blueprint(name='auth', import_name=__name__, url_prefix='/auth')
 CORS(auth, supports_credentials=True)
 
 

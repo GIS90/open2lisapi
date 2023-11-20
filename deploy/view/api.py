@@ -42,11 +42,11 @@ from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.watcher import watcher
 
 
-apis = Blueprint('apis', __name__, url_prefix='/apis')
-CORS(apis, supports_credentials=True)
+api = Blueprint(name='api', import_name=__name__, url_prefix='/api')
+CORS(api, supports_credentials=True)
 
 
-@apis.route('/demo/', methods=['GET', 'POST'], strict_slashes=False)
+@api.route('/demo/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 def demo():
     """
@@ -61,6 +61,6 @@ def demo():
         params = request.get_json() or {}
         return ApisService().demo(params)
     except Exception as e:
-        LOG.error("apis>demo is error: %s" % e)
+        LOG.error("api>demo is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()

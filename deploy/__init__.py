@@ -6,8 +6,6 @@
 describe:
     WebFlaskServer initialize 
     flask app and blueprint collections
-    
-    Singleton mode
 
 base_info:
     __author__ = "PyGo"
@@ -18,8 +16,18 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    ------------------------------------------------------------------------------
+    from deploy import create_app
+
+    app = create_app()
+
+    # 手动启动
+    if __name__ == '__main__':
+        app.run(host="0.0.0.0", port=9999, debug=True)
+    ------------------------------------------------------------------------------
 
 design:
+    WebFlaskServer use Singleton mode
 
 reference urls:
 
@@ -35,37 +43,42 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python __init__.py.py
 # ------------------------------------------------------------
-
+# three package
 import os
 import sys
-from flask import (Flask, make_response,
+from flask import (Flask,
+                   make_response,
                    abort,
                    redirect,
                    url_for,
                    g,
-                   request)
+                   request,
+                   )
 
 from deploy.config import VERSION, NAME, SECRET_KEY
 from deploy.models.base import get_session
+
 # build-in package
 from deploy.utils.base_class import WebBaseClass
 from deploy.utils.logger import logger as LOG
 from deploy.utils.utils import get_user_id, get_real_ip
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
-# views
-from deploy.views.manage import manage
-from deploy.views.user import user
-from deploy.views.office import office
-from deploy.views.authority import auth
-from deploy.views.notify import notify
-from deploy.views.common import common
-from deploy.views.dashboard import dashboard
-from deploy.views.system import system
-from deploy.views.search import search
-from deploy.views.image import image
-from deploy.views.apis import apis
-# services
+
+# view
+from deploy.view import user, \
+    system, \
+    manage, \
+    dashboard, \
+    search, \
+    notify, \
+    office, \
+    image, \
+    common, \
+    auth, \
+    api
+
+# service
 from deploy.services.sysuser import SysUserService
 from deploy.services.request import RequestService
 
@@ -87,27 +100,30 @@ class WebFlaskServer(WebBaseClass):
 
     def __init__(self, app):
         """
-        Initialize webFlaskServer instance
-        and flask configuration
+        Initialize WebFlaskServer instance, Flask App base configuration
+        in addition flask configuration
         """
-        # app
+        # Flask App
         self.app = app
         if not self.app:
             LOG.info('Web server initialize is failure......')
             sys.exit(1)
-        # flask base config
+
+        # App base configuration
+        # -------------------------------------------------------------------------------
         _realpath = os.path.dirname(os.path.realpath(__file__))
         self.app.template_folder = _realpath + '/templates/'
-        self.app.secret_key = SECRET_KEY or 'python'
+        self.app.secret_key = SECRET_KEY or 'I love python'
         self.app.static_folder = _realpath + '/static'
         self.app.static_url_path = '/static'
         self.app.add_url_rule(self.app.static_url_path + '/<path:filename>',
                               endpoint='static',
                               view_func=self.app.send_static_file)
         self.request_service = RequestService()
-        # init
-        super(WebFlaskServer, self).__init__()
+        # -------------------------------------------------------------------------------
 
+        # App web hook
+        # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
         @self.app.before_request
         def before_request():
             # 设置无操作60min，session自动过期
@@ -122,15 +138,16 @@ class WebFlaskServer(WebBaseClass):
             """
             no check condition
             no record request condition
-              - apis: rest open apis, special api for blueprints
+              - api: rest open apis, special api for blueprints
               - manage: login in and login out APIs
             """
             # blueprint
-            if request.blueprint in ['apis', 'manage']:
+            if getattr(request, 'blueprint', None) \
+                    and request.blueprint in ['api', 'manage']:
                 return
             # url>path
             if getattr(request, 'path', None) and (
-                request.path.startswith('/apis'),
+                request.path.startswith('/api'),
                 request.path.startswith('/manage'),
             ):
                 return
@@ -180,7 +197,10 @@ class WebFlaskServer(WebBaseClass):
         @self.app.before_first_request
         def before_first_request():
             g._session = get_session()
+        # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
+        # App error handler
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
         @self.app.errorhandler(404)
         def not_found_error(error):
             LOG.error("%s is not found 404" % request.url)
@@ -190,30 +210,34 @@ class WebFlaskServer(WebBaseClass):
         def server_error(error):
             LOG.error("%s is server error 500" % request.url)
             abort(500)
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
         # set favicon
         @self.app.route('/favicon.ico')
         def get_default_favicon():
             return self.app.send_static_file('images/favicon.ico')
 
+        # init
+        super(WebFlaskServer, self).__init__()
+
     def __str__(self):
-        print("WebFlaskServer class")
+        print("WebFlaskServer class.")
 
     def __repr__(self):
         self.__str__()
 
-    def register_blueprint(self, obj_n, obj):
+    def register_blueprint(self, blueprint_n, blueprint):
         """
         view blueprint register
-        :param obj_n: blueprint name
-        :param obj: blueprint object
+        :param blueprint_n: blueprint name
+        :param blueprint: blueprint object
         :return: None
         """
-        if obj:
-            LOG.info('Blueprint %s is register' % obj_n)
-            self.app.register_blueprint(obj)
+        if blueprint:
+            LOG.info('Blueprint %s is register' % blueprint_n)
+            self.app.register_blueprint(blueprint)
 
-    def _autoinit_register_blueprint(self):
+    def _auto_init_register_blueprint(self):
         self.register_blueprint('dashboard', dashboard)
         self.register_blueprint('manage', manage)
         self.register_blueprint('user', user)
@@ -224,11 +248,14 @@ class WebFlaskServer(WebBaseClass):
         self.register_blueprint('system', system)
         self.register_blueprint('auth', auth)
         self.register_blueprint('image', image)
-        self.register_blueprint('apis', apis)
+        self.register_blueprint('api', api)
 
     def init_run(self):
+        """
+        Parent class build-in method
+        """
         LOG.debug('Web server is initializing......')
-        self._autoinit_register_blueprint()
+        self._auto_init_register_blueprint()
         LOG.info('Web server is running......')
 
 

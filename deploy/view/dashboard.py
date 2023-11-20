@@ -47,7 +47,7 @@ from deploy.services.dashboard import DashboardService
 from deploy.services.request import RequestService
 
 
-dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
+dashboard = Blueprint(name='dashboard', import_name=__name__, url_prefix='/dashboard')
 CORS(dashboard, supports_credentials=True)
 
 

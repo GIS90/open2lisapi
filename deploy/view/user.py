@@ -68,7 +68,7 @@ from deploy.utils.watcher import watcher
 from flask import request
 
 
-user = Blueprint('user', __name__, url_prefix='/user')
+user = Blueprint(name='user', import_name=__name__, url_prefix='/user')
 CORS(user, supports_credentials=True)
 
 

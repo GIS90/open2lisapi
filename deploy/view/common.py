@@ -47,7 +47,7 @@ from deploy.utils.watcher import watcher
 from deploy.services.common import CommonService
 
 
-common = Blueprint('common', __name__, url_prefix='/common')
+common = Blueprint(name='common', import_name=__name__, url_prefix='/common')
 CORS(common, supports_credentials=True)
 
 

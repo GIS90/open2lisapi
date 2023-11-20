@@ -43,7 +43,7 @@ from deploy.utils.watcher import watcher
 from deploy.services.search import SearchService
 
 
-search = Blueprint('search', __name__, url_prefix='/search')
+search = Blueprint(name='search', import_name=__name__, url_prefix='/search')
 CORS(search, supports_credentials=True)
 
 

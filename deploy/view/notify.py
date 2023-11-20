@@ -51,7 +51,7 @@ from deploy.utils.watcher import watcher
 from deploy.services.notify import NotifyService
 
 
-notify = Blueprint('notify', __name__, url_prefix='/notify')
+notify = Blueprint(name='notify', import_name=__name__, url_prefix='/notify')
 CORS(notify, supports_credentials=True)
 
 

@@ -43,7 +43,7 @@ from deploy.services.request import RequestService
 from deploy.utils.status_msg import StatusMsgs
 
 
-manage = Blueprint('manage', __name__, url_prefix='/manage')
+manage = Blueprint(name='manage', import_name=__name__, url_prefix='/manage')
 CORS(manage, supports_credentials=True)
 
 NoNameBody = 'NoNameBody'
