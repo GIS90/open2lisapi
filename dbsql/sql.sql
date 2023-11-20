@@ -107,32 +107,33 @@ VALUES
 ------------------------------------------------------------------------------------------------
 
 
-
+-- 系统角色权限表
+------------------------------------------------------------------------------------------------
 -- create role && index
 DROP TABLES IF EXISTS `role`;
 CREATE TABLE `role`  (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
-    `engname` varchar(25) NOT NULL COMMENT '角色英文名称',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
+    `engname` varchar(25) NOT NULL COMMENT '角色英文名称，唯一值',
     `chnname` varchar(35) NOT NULL COMMENT '角色中文名称',
-    `md5_id` varchar(55) NOT NULL COMMENT 'md5值',
+    `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
     `authority` varchar(120) NULL COMMENT '角色权限ID集合，用英文；分割',
     `introduction` text NULL COMMENT '角色描述',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `create_rtx` varchar(25) not null default 'admin' COMMENT '创建操作人',
     `delete_time` timestamp COMMENT '删除时间',
     `delete_rtx` varchar(25) COMMENT '删除操作人',
-    `is_del` bool default False COMMENT '是否已删除',
+    `is_del` bool default False COMMENT '是否删除标识',
 
     PRIMARY KEY (`id`),
     UNIQUE INDEX `role_md5_index`(`md5_id`) USING HASH COMMENT 'md5唯一索引',
     UNIQUE INDEX `role_engname_index`(`engname`) USING HASH COMMENT 'engname唯一索引'
-) COMMENT='角色权限表';
+) COMMENT='系统角色权限表';
 -- insert default role
 insert into
 role(engname, chnname, md5_id,  authority, introduction, create_rtx, is_del)
 VALUES
-('admin', '管理员', '21232f297a57a5a743894a0e4a801fc3', '', '所有功能权限', 'admin', FALSE);
-
+('admin', '管理员', '21232f297a57a5a743894a0e4a801fc3', '', '系统所有功能权限', 'admin', FALSE);
+------------------------------------------------------------------------------------------------
 
 
 
