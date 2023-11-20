@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    ShortCut Bo
 
 base_info:
     __author__ = "PyGo"
@@ -43,14 +44,14 @@ class ShortCutBo(BOBase):
     def __init__(self):
         super(ShortCutBo, self).__init__()
 
+    def __str__(self):
+        return "ShortCut Bo."
+
+    def __repr__(self):
+        return self.__str__()
+
     def new_mode(self):
         return ShortCutModel()
-
-    def execute_sql(self, sql):
-        if not sql:
-            return None
-        q = self.session.execute(sql)
-        return q
 
     def get_model_by_rtx(self, rtx):
         if not rtx:

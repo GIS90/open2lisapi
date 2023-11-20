@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    sysuser_avatar bo
+    SysUserAvatar Bo
 
 base_info:
     __author__ = "PyGo"
@@ -39,19 +39,19 @@ from deploy.bo.bo_base import BOBase
 from deploy.model.sysuser_avatar import SysUserAvatarModel
 
 
-class SysUserAvatarModelBo(BOBase):
+class SysUserAvatarBo(BOBase):
 
     def __init__(self):
-        super(SysUserAvatarModelBo, self).__init__()
+        super(SysUserAvatarBo, self).__init__()
+
+    def __str__(self):
+        return "SysUserAvatar Bo."
+
+    def __repr__(self):
+        return self.__str__()
 
     def new_mode(self):
-        return SysUserAvatarModelBo()
-
-    def execute_sql(self, sql):
-        if not sql:
-            return None
-        q = self.session.execute(sql)
-        return q
+        return SysUserAvatarBo()
 
     def get_all(self, params: dict):
         q = self.session.query(SysUserAvatarModel)

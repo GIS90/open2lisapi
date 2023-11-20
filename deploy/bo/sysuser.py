@@ -3,7 +3,7 @@
 """
 ------------------------------------------------
 describe:
-    the db interact services of sysuser
+    SysUser Bo
 
 base_info:
     __author__ = "PyGo"
@@ -41,14 +41,14 @@ class SysUserBo(BOBase):
     def __init__(self):
         super(SysUserBo, self).__init__()
 
+    def __str__(self):
+        return "SysUser Bo."
+
+    def __repr__(self):
+        return self.__str__()
+
     def new_mode(self):
         return SysUserModel()
-
-    def execute_sql(self, sql):
-        if not sql:
-            return None
-        q = self.session.execute(sql)
-        return q
 
     def get_user_by_params(self, user_id):
         if not user_id:

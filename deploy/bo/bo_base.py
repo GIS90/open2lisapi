@@ -37,6 +37,12 @@ class BOBase(object):
         self.session = get_session()
         self.model = model
 
+    def __str__(self):
+        return "BO Base."
+
+    def __repr__(self):
+        return self.__str__()
+
     def get_model(self):
         return self.model
 
@@ -55,7 +61,14 @@ class BOBase(object):
     def merge_model_no_trans(self, model):
         self.session.merge(model)
 
-
+    def execute_sql(self, sql):
+        """
+        execute sql
+        """
+        if not sql:
+            return None
+        q = self.session.execute(sql)
+        return q
 
 
 

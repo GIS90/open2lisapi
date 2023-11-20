@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    Request Bo
 
 base_info:
     __author__ = "PyGo"
@@ -44,14 +45,14 @@ class RequestBo(BOBase):
     def __init__(self):
         super(RequestBo, self).__init__()
 
+    def __str__(self):
+        return "Request Bo."
+
+    def __repr__(self):
+        return self.__str__()
+
     def new_mode(self):
         return RequestModel()
-
-    def execute_sql(self, sql):
-        if not sql:
-            return None
-        q = self.session.execute(sql)
-        return q
 
     def get_by_rtx(self, params):
         if not params:

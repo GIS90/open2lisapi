@@ -37,7 +37,7 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.utils import d2s, s2d, check_length, auth_rtx_join
 
-from deploy.bo.sysuser_avatar import SysUserAvatarModelBo
+from deploy.bo.sysuser_avatar import  SysUserAvatarBo
 from deploy.bo.sysuser import SysUserBo
 
 
@@ -99,7 +99,7 @@ class ImageService(object):
         """
         super(ImageService, self).__init__()
         # bo
-        self.sysuser_avatar_bo = SysUserAvatarModelBo()
+        self.sysuser_avatar_bo =  SysUserAvatarBo()
         self.sysuser_bo = SysUserBo()
 
     def __str__(self):

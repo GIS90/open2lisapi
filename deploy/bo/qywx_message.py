@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    QywxMessage Bo
 
 base_info:
     __author__ = "PyGo"
@@ -45,14 +46,14 @@ class QywxMessageBo(BOBase):
     def __init__(self):
         super(QywxMessageBo, self).__init__()
 
+    def __str__(self):
+        return "QywxMessage Bo."
+
+    def __repr__(self):
+        return self.__str__()
+
     def new_mode(self):
         return QywxMessageModel()
-
-    def execute_sql(self, sql):
-        if not sql:
-            return None
-        q = self.session.execute(sql)
-        return q
 
     def get_all(self, params: dict):
         q = self.session.query(QywxMessageModel.id,

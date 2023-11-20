@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    OfficePDF Bo
 
 base_info:
     __author__ = "PyGo"
@@ -43,14 +44,14 @@ class OfficePDFBo(BOBase):
     def __init__(self):
         super(OfficePDFBo, self).__init__()
 
+    def __str__(self):
+        return "OfficePDF Bo."
+
+    def __repr__(self):
+        return self.__str__()
+
     def new_mode(self):
         return OfficePDFModel()
-
-    def execute_sql(self, sql):
-        if not sql:
-            return None
-        q = self.session.execute(sql)
-        return q
 
     def get_all(self, params: dict):
         q = self.session.query(OfficePDFModel)

@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    Menu Bo
 
 base_info:
     __author__ = "PyGo"
@@ -44,14 +45,14 @@ class MenuBo(BOBase):
     def __init__(self):
         super(MenuBo, self).__init__()
 
+    def __str__(self):
+        return "Menu Bo."
+
+    def __repr__(self):
+        return self.__str__()
+
     def new_mode(self):
         return MenuModel()
-
-    def execute_sql(self, sql):
-        if not sql:
-            return None
-        q = self.session.execute(sql)
-        return q
 
     def get_all(self, root=False):
         q = self.session.query(MenuModel)
