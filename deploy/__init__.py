@@ -131,7 +131,7 @@ class WebFlaskServer(WebBaseClass):
             # self.app.permanent_session_lifetime = timedelta(minutes=60)
 
             """
-            user was logined in
+            user was logined
             """
             if get_user_id():
                 return
@@ -139,18 +139,21 @@ class WebFlaskServer(WebBaseClass):
             no check condition
             no record request condition
               - api: rest open apis, special api for blueprints
-              - manage: login in and login out APIs
+              - access: login in and login out APIs
+              - user/info: get user information by token
             """
             # blueprint
             if getattr(request, 'blueprint', None) \
-                    and request.blueprint in ['api', 'manage']:
+                    and request.blueprint in ['api', 'access']:
                 return
             # url>path
-            if getattr(request, 'path', None) and (
-                request.path.startswith('/api'),
-                request.path.startswith('/manage'),
-            ):
-                return
+            if getattr(request, 'path', None):
+                if any([
+                    request.path.startswith('/api'),
+                    request.path.startswith('/access'),
+                    request.path.startswith('/user/info')
+                ]):
+                    return
             """
             no check condition
             no record request condition
@@ -175,8 +178,14 @@ class WebFlaskServer(WebBaseClass):
                     """
                     try:
                         self.request_service.add_request(request)  # 加入请求API日志
-                    except: pass
+                    except: 
+                        pass
                     """
+                    # new add check request headers[X-Rtx-Id] is or not equal user model[rtx_id]
+                    if request.headers.get('X-Rtx-Id') != user_model.get('rtx_id'):
+                        return Status(
+                            200, 'failure', u"Token与当前登录用户不符合", {}).json()
+
                     return
             # Other condition, user is required login in
             return Status(
