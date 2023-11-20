@@ -213,15 +213,15 @@ Also, make test will automatically use the virtualenv.
     def _update_pip(self):
         # fix: ModuleNotFoundError: No module named 'pip._internal.cli.main'
         #
-        # one.
+        # method one >
         # = = = = = = = = = = = = = = = =
         # 手动项目root下执行：source .venv/bin/activate;python -m pip install --upgrade pip
         # = = = = = = = = = = = = = = = =
         #
-        # two.
+        # method two >>
         # self._fix_pip_1()
         #
-        # three.
+        # method three >>>
         self.run_command_no_output([self.python, '-m', 'pip', 'install', '--upgrade', 'pip', '--no-warn-script-location'],
                                    shell=False)
 
@@ -240,7 +240,7 @@ Also, make test will automatically use the virtualenv.
         self._pip_install_package('setuptools')
         self._pip_install_package('pbr==3.1.1')
         self._pip_install_requirements()
-        # self._pip_install_core()
+        # self._pip_install_core()  # 禁用项目打包部署
 
 
 def _get_cur_folder():
@@ -298,6 +298,7 @@ if __name__ == '__main__':
     # unique set python command
     # default is python, according to the environment to name
     # local pc have python(2.7) and python3(3.7)
+    # recommend to min python version 3.7
     try:
         main()
         RC = 0
