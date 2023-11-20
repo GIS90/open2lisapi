@@ -78,7 +78,7 @@ from sqlalchemy import (
 )
 
 from sqlalchemy import func
-from deploy.models import base
+from deploy.model import base
 
 
 __all__ = ["ModelTemplate"]

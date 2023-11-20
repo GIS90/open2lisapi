@@ -34,7 +34,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.office_pdf import OfficePDFModel
+from deploy.model.office_pdf import OfficePDFModel
 from deploy.utils.utils import get_now
 
 

@@ -36,7 +36,7 @@ from sqlalchemy import or_
 
 from deploy.utils.utils import get_now
 from deploy.bo.bo_base import BOBase
-from deploy.models.dtalk_message import DtalkMessageModel
+from deploy.model.dtalk_message import DtalkMessageModel
 
 
 class DtalkMessageBo(BOBase):

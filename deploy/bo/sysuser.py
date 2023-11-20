@@ -30,7 +30,7 @@ Life is short, I use python.
 from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.sysuser import SysUserModel
+from deploy.model.sysuser import SysUserModel
 
 from deploy.config import ADMIN
 from deploy.utils.utils import get_now

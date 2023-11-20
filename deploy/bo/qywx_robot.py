@@ -35,7 +35,7 @@ Life is short, I use python.
 from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.qywx_robot import QywxRobotModel
+from deploy.model.qywx_robot import QywxRobotModel
 from deploy.utils.utils import get_now
 
 

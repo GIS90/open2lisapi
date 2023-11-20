@@ -41,7 +41,7 @@ from sqlalchemy import (
         TIMESTAMP,
         Text
 )
-from deploy.models import base
+from deploy.model import base
 
 
 __all__ = ("MenuModel")

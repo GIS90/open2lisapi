@@ -36,8 +36,8 @@ from sqlalchemy import or_
 
 from deploy.utils.utils import get_now
 from deploy.bo.bo_base import BOBase
-from deploy.models.qywx_message import QywxMessageModel
-from deploy.models.enum import EnumModel
+from deploy.model.qywx_message import QywxMessageModel
+from deploy.model.enum import EnumModel
 
 
 class QywxMessageBo(BOBase):

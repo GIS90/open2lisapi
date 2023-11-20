@@ -3,12 +3,12 @@
 """
 ------------------------------------------------
 
-describe:
-    excel-result
+describe: 
+    enum
 
 base_info:
     __author__ = "PyGo"
-    __time__ = "2022/3/29 10:57 下午"
+    __time__ = "2022/4/27 2:44 下午"
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
@@ -31,7 +31,7 @@ Life is short, I use python.
 """
 
 # ------------------------------------------------------------
-# usage: /usr/bin/python excel_result.py
+# usage: /usr/bin/python enum.py
 # ------------------------------------------------------------
 from sqlalchemy import (
         Column,
@@ -41,32 +41,27 @@ from sqlalchemy import (
         TIMESTAMP,
         Text
 )
-from deploy.models import base
+from deploy.model import base
 
 
-__all__ = ("ExcelResultModel")
+__all__ = ("EnumModel")
 
 
-class ExcelResultModel(base.ModelBase):
-    __tablename__ = 'excel_result'
+class EnumModel(base.ModelBase):
+    __tablename__ = 'enum'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(80))
-    store_name = Column(String(100))
+    name = Column(String(35))
     md5_id = Column(String(55))
-    ftype = Column(String(2))
-    rtx_id = Column(String(25))
-    local_url = Column(String(120))
-    store_url = Column(String(120))
-    is_compress = Column(Boolean())
-    nfile = Column(Integer)
-    nsheet = Column(Integer)
-    row = Column(Integer)
-    col = Column(Integer)
-    sheet_names = Column(Text)
-    sheet_columns = Column(Text)
-    headers = Column(Text)
+    key = Column(String(55))
+    value = Column(String(55))
+    description = Column(Text)
+    status = Column(Boolean())
+    create_rtx = Column(String(25))
     create_time = Column(TIMESTAMP)
+    update_rtx = Column(String(25))
+    update_time = Column(TIMESTAMP)
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+    order_id = Column(Integer)

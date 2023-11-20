@@ -4,15 +4,15 @@
 ------------------------------------------------
 
 describe: 
-    request
+    shortcut model
 
 base_info:
     __author__ = "PyGo"
-    __time__ = "2022/3/2 10:45 下午"
+    __time__ = "2022/8/25 21:39"
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2lisapi"
 
 usage:
 
@@ -31,7 +31,7 @@ Life is short, I use python.
 """
 
 # ------------------------------------------------------------
-# usage: /usr/bin/python request.py
+# usage: /usr/bin/python shortcut.py
 # ------------------------------------------------------------
 from sqlalchemy import (
         Column,
@@ -40,30 +40,22 @@ from sqlalchemy import (
         Boolean,
         TIMESTAMP,
         Text,
-        Date,
-        DECIMAL
+        DateTime
 )
-from deploy.models import base
+from deploy.model import base
 
 
-__all__ = ("RequestModel")
+__all__ = ("ShortCutModel")
 
 
-class RequestModel(base.ModelBase):
-    __tablename__ = 'request'
+class ShortCutModel(base.ModelBase):
+    __tablename__ = 'shortcut'
 
     id = Column(Integer, primary_key=True)
     rtx_id = Column(String(25))
-    ip = Column(String(15))
-    blueprint = Column(String(15))
-    apiname = Column(String(25))
-    endpoint = Column(String(41))
-    method = Column(String(10))
-    path = Column(String(45))
-    full_path = Column(String(85))
-    host_url = Column(String(55))
-    url = Column(String(120))
-    cost = Column(DECIMAL(10, 4))
-    create_time = Column(TIMESTAMP())
-    create_date = Column(Date())
+    shortcut = Column(String(120))
+    create_time = Column(TIMESTAMP)
+    update_rtx = Column(String(25))
+    update_time = Column(DateTime)
+    is_del = Column(Boolean())
 

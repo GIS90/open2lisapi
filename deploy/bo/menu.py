@@ -35,7 +35,7 @@ Life is short, I use python.
 from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.menu import MenuModel
+from deploy.model.menu import MenuModel
 from deploy.config import MENU_ROOT_ID, MENU_ONE_LEVEL, MENU_ROOT_LEVEL
 
 

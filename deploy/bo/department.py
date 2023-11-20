@@ -35,7 +35,7 @@ Life is short, I use python.
 from sqlalchemy import distinct, func
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.department import DepartmentModel
+from deploy.model.department import DepartmentModel
 from deploy.config import DEPART_ROOT_ID
 
 

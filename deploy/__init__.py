@@ -56,7 +56,7 @@ from flask import (Flask,
                    )
 
 from deploy.config import VERSION, NAME, SECRET_KEY
-from deploy.models.base import get_session
+from deploy.model.base import get_session
 
 # build-in package
 from deploy.utils.base_class import WebBaseClass

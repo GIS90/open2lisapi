@@ -36,7 +36,7 @@ Life is short, I use python.
 from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.role import RoleModel
+from deploy.model.role import RoleModel
 
 from deploy.utils.utils import get_now
 

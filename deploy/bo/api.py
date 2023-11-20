@@ -41,7 +41,7 @@ Life is short, I use python.
 from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.api import ApiModel
+from deploy.model.api import ApiModel
 
 from deploy.utils.utils import get_now
 

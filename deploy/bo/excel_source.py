@@ -34,8 +34,8 @@ Life is short, I use python.
 # ------------------------------------------------------------
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.excel_source import ExcelSourceModel
-from deploy.models.enum import EnumModel
+from deploy.model.excel_source import ExcelSourceModel
+from deploy.model.enum import EnumModel
 from deploy.utils.utils import get_now
 
 

@@ -4,11 +4,10 @@
 ------------------------------------------------
 
 describe: 
-    enum
 
 base_info:
     __author__ = "PyGo"
-    __time__ = "2022/4/27 2:44 下午"
+    __time__ = "2022/12/21 20:35"
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
@@ -31,7 +30,7 @@ Life is short, I use python.
 """
 
 # ------------------------------------------------------------
-# usage: /usr/bin/python enum.py
+# usage: /usr/bin/python sqlbase.py
 # ------------------------------------------------------------
 from sqlalchemy import (
         Column,
@@ -41,27 +40,30 @@ from sqlalchemy import (
         TIMESTAMP,
         Text
 )
-from deploy.models import base
+from deploy.model import base
 
 
-__all__ = ("EnumModel")
+__all__ = ("SqlbaseModel")
 
 
-class EnumModel(base.ModelBase):
-    __tablename__ = 'enum'
+class SqlbaseModel(base.ModelBase):
+    __tablename__ = 'sqlbase'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(35))
+    rtx_id = Column(String(25))
+    title = Column(String(55))
     md5_id = Column(String(55))
-    key = Column(String(55))
-    value = Column(String(55))
-    description = Column(Text)
-    status = Column(Boolean())
-    create_rtx = Column(String(25))
+    author = Column(String(25))
+    recommend = Column(Integer)
+    database = Column(String(55))
+    summary = Column(String(200))
+    label = Column(String(35))
+    public = Column(Boolean())
+    public_time = Column(TIMESTAMP)
+    html = Column(Text)
+    text = Column(Text)
+    count = Column(Integer)
     create_time = Column(TIMESTAMP)
-    update_rtx = Column(String(25))
-    update_time = Column(TIMESTAMP)
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
-    order_id = Column(Integer)

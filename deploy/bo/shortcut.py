@@ -35,7 +35,7 @@ Life is short, I use python.
 from sqlalchemy import or_
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.shortcut import ShortCutModel
+from deploy.model.shortcut import ShortCutModel
 
 
 class ShortCutBo(BOBase):

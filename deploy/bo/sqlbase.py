@@ -35,8 +35,8 @@ Life is short, I use python.
 from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.sqlbase import SqlbaseModel
-from deploy.models.enum import EnumModel
+from deploy.model.sqlbase import SqlbaseModel
+from deploy.model.enum import EnumModel
 
 from deploy.utils.utils import get_now
 

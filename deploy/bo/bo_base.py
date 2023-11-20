@@ -28,7 +28,7 @@ Life is short, I use python.
 ------------------------------------------------
 """
 
-from deploy.models.base import get_session
+from deploy.model.base import get_session
 
 
 class BOBase(object):

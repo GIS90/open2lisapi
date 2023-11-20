@@ -3,16 +3,15 @@
 """
 ------------------------------------------------
 
-describe:
-    dtalk-message
+describe: 
 
 base_info:
     __author__ = "PyGo"
-    __time__ = "2022/11/09 21:33"
+    __time__ = "2022/3/4 10:45 上午"
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "open2lisapi"
+    __project__ = "twtoolbox_isapi"
 
 usage:
 
@@ -31,7 +30,7 @@ Life is short, I use python.
 """
 
 # ------------------------------------------------------------
-# usage: /usr/bin/python qywx_message.py
+# usage: /usr/bin/python api.py
 # ------------------------------------------------------------
 from sqlalchemy import (
         Column,
@@ -41,29 +40,29 @@ from sqlalchemy import (
         TIMESTAMP,
         Text
 )
-from deploy.models import base
+from deploy.model import base
 
 
-__all__ = ("QywxMessageModel")
+__all__ = ("ApiModel")
 
 
-class QywxMessageModel(base.ModelBase):
-    __tablename__ = 'qywx_message'
+class ApiModel(base.ModelBase):
+    __tablename__ = 'api'
 
     id = Column(Integer, primary_key=True)
-    rtx_id = Column(String(25))
-    title = Column(String(55))
-    content = Column(Text)
-    user = Column(Text)
-    type = Column(String(55))
+    blueprint = Column(String(15))
+    apiname = Column(String(35))
+    endpoint = Column(String(55))
     md5_id = Column(String(55))
-    msg_id = Column(String(64))
-    robot = Column(String(55))
-    count = Column(Integer)
-    last_send_time = Column(TIMESTAMP)
-    create_time = Column(TIMESTAMP)
+    path = Column(String(55))
+    type = Column(String(15))
+    short = Column(String(35))
+    long = Column(String(120))
+    create_time = Column(TIMESTAMP())
+    create_rtx = Column(String(25))
+    delete_time = Column(TIMESTAMP())
     delete_rtx = Column(String(25))
-    delete_time = Column(TIMESTAMP)
+    update_time = Column(TIMESTAMP())
+    update_rtx = Column(String(25))
     is_del = Column(Boolean())
-    is_back = Column(Boolean())
-
+    order_id = Column(Integer)

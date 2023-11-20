@@ -35,7 +35,7 @@ Life is short, I use python.
 from sqlalchemy import or_, distinct
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.enum import EnumModel
+from deploy.model.enum import EnumModel
 from deploy.utils.utils import get_now
 
 

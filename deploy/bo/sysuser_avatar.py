@@ -36,7 +36,7 @@ Life is short, I use python.
 from sqlalchemy import distinct, func
 
 from deploy.bo.bo_base import BOBase
-from deploy.models.sysuser_avatar import SysUserAvatarModel
+from deploy.model.sysuser_avatar import SysUserAvatarModel
 
 
 class SysUserAvatarModelBo(BOBase):

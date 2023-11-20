@@ -4,11 +4,11 @@
 ------------------------------------------------
 
 describe:
-    office pdf
+    dtalk-message
 
 base_info:
     __author__ = "PyGo"
-    __time__ = "2022/6/8 20:15"
+    __time__ = "2022/11/09 21:33"
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
@@ -31,43 +31,39 @@ Life is short, I use python.
 """
 
 # ------------------------------------------------------------
-# usage: /usr/bin/python office.py
+# usage: /usr/bin/python qywx_message.py
 # ------------------------------------------------------------
-
 from sqlalchemy import (
         Column,
         String,
         Integer,
         Boolean,
-        TIMESTAMP
+        TIMESTAMP,
+        Text
 )
-from deploy.models import base
+from deploy.model import base
 
 
-__all__ = ("OfficePDFModel")
+__all__ = ("QywxMessageModel")
 
 
-class OfficePDFModel(base.ModelBase):
-    __tablename__ = 'office_pdf'
+class QywxMessageModel(base.ModelBase):
+    __tablename__ = 'qywx_message'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(80))
-    store_name = Column(String(100))
-    transfer_name = Column(String(100))
-    md5_id = Column(String(55))
     rtx_id = Column(String(25))
-    file_type = Column(String(2))
-    transfer = Column(Boolean())
-    transfer_time = Column(TIMESTAMP)
-    local_url = Column(String(120))
-    store_url = Column(String(120))
-    transfer_url = Column(String(120))
-    mode = Column(Boolean())
-    start = Column(String(6))
-    end = Column(String(6))
-    pages = Column(String(120))
+    title = Column(String(55))
+    content = Column(Text)
+    user = Column(Text)
+    type = Column(String(55))
+    md5_id = Column(String(55))
+    msg_id = Column(String(64))
+    robot = Column(String(55))
+    count = Column(Integer)
+    last_send_time = Column(TIMESTAMP)
     create_time = Column(TIMESTAMP)
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+    is_back = Column(Boolean())
 
