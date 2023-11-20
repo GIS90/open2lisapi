@@ -4,6 +4,9 @@
 ------------------------------------------------
 
 describe: 
+    model class              DB table
+    ---------------------------------------
+    DepartmentModel          department
 
 base_info:
     __author__ = "PyGo"
@@ -14,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.department import DepartmentModel
 
 design:
 
@@ -45,7 +49,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("RequestModel")
+__all__ = ["DepartmentModel"]
 
 
 class DepartmentModel(base.ModelBase):
@@ -69,3 +73,10 @@ class DepartmentModel(base.ModelBase):
     delete_rtx = Column(String(25))
     is_del = Column(Boolean())
     order_id = Column(Integer)
+
+    def __str__(self):
+        return "DepartmentModel Class, relate to DB table: department."
+
+    def __repr__(self):
+        return self.__str__()
+

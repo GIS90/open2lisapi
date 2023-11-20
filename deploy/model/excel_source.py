@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe: 
-    excel-source
+    model class              DB table
+    ---------------------------------------
+    ExcelSourceModel         excel_source
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.excel_source import ExcelSourceModel
 
 design:
 
@@ -44,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("ExcelSourceModel")
+__all__ = ["ExcelSourceModel"]
 
 
 class ExcelSourceModel(base.ModelBase):
@@ -68,3 +71,9 @@ class ExcelSourceModel(base.ModelBase):
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+
+    def __str__(self):
+        return "ExcelSourceModel Class, relate to DB table: excel_source."
+
+    def __repr__(self):
+        return self.__str__()

@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe:
-    dtalk-robot
+    model class              DB table
+    ---------------------------------------
+    QywxRobotModel           qywx_robot
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.qywx_robot import QywxRobotModel
 
 design:
 
@@ -44,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("QywxRobotModel")
+__all__ = ["QywxRobotModel"]
 
 
 class QywxRobotModel(base.ModelBase):
@@ -64,3 +67,8 @@ class QywxRobotModel(base.ModelBase):
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
 
+    def __str__(self):
+        return "QywxRobotModel Class, relate to DB table: qywx_robot."
+
+    def __repr__(self):
+        return self.__str__()

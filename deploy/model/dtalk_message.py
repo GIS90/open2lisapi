@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe:
-    dtalk-message
+    model class              DB table
+    ---------------------------------------
+    DtalkMessageModel        dtalk_message
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.dtalk_message import DtalkMessageModel
 
 design:
 
@@ -44,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("DtalkMessageModel")
+__all__ = ["DtalkMessageModel"]
 
 
 class DtalkMessageModel(base.ModelBase):
@@ -71,3 +74,10 @@ class DtalkMessageModel(base.ModelBase):
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+
+    def __str__(self):
+        return "DtalkMessageModel Class, relate to DB table: dtalk_message."
+
+    def __repr__(self):
+        return self.__str__()
+

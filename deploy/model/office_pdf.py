@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe:
-    office pdf
+    model class              DB table
+    ---------------------------------------
+    OfficePDFModel           office_pdf
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.office_pdf import OfficePDFModel
 
 design:
 
@@ -44,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("OfficePDFModel")
+__all__ = ["OfficePDFModel"]
 
 
 class OfficePDFModel(base.ModelBase):
@@ -71,3 +74,8 @@ class OfficePDFModel(base.ModelBase):
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
 
+    def __str__(self):
+        return "OfficePDFModel Class, relate to DB table: office_pdf."
+
+    def __repr__(self):
+        return self.__str__()

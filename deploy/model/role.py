@@ -60,9 +60,9 @@ class RoleModel(base.ModelBase):
     authority = Column(name="authority", type_=String(120), comment="角色权限ID集合，用英文；分割")
     introduction = Column(name="introduction", type_=Text, comment="角色描述")
     create_time = Column(name="create_time", type_=TIMESTAMP(), nullable=False, comment="创建时间")
-    create_rtx = Column(name="create_rtx", type_=String(25), nullable=False, comment="创建人")
+    create_rtx = Column(name="create_rtx", type_=String(25), nullable=False, comment="创建用户")
     delete_time = Column(name="delete_time", type_=TIMESTAMP(), comment="删除时间")
-    delete_rtx = Column(name="delete_rtx", type_=String(25), comment="删除人")
+    delete_rtx = Column(name="delete_rtx", type_=String(25), comment="删除用户")
     is_del = Column(name="is_del", type_=Boolean(), default=False, comment="是否删除标识")
 
     def __str__(self):

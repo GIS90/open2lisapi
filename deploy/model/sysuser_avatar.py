@@ -4,7 +4,10 @@
 ------------------------------------------------
 
 describe: 
-    sysuser_avatar model
+    model class              DB table
+    ---------------------------------------
+    SysUserAvatarModel       sysuser_avatar
+
 base_info:
     __author__ = "PyGo"
     __time__ = "2023/7/24 07:13"
@@ -14,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.sysuser_avatar import SysUserAvatarModel
 
 design:
 
@@ -43,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("SysUserAvatarModel")
+__all__ = ["SysUserAvatarModel"]
 
 
 class SysUserAvatarModel(base.ModelBase):
@@ -65,4 +69,8 @@ class SysUserAvatarModel(base.ModelBase):
     is_del = Column(Boolean())
     order_id = Column(Integer)
 
+    def __str__(self):
+        return "SysUserAvatarModel Class, relate to DB table: sysuser_avatar."
 
+    def __repr__(self):
+        return self.__str__()

@@ -58,7 +58,7 @@ class ShortCutModel(base.ModelBase):
     rtx_id = Column(name="rtx_id", type_=String(25), nullable=False, comment="用户RTX-ID")
     shortcut = Column(name="shortcut", type_=String(120), comment="角色权限ID集合，用英文；分割")
     create_time = Column(name="create_time", type_=TIMESTAMP, nullable=False, comment="创建时间")
-    update_rtx = Column(name="update_rtx", type_=String(25), comment="最新更新操作人")
+    update_rtx = Column(name="update_rtx", type_=String(25), comment="最新更新用户")
     update_time = Column(name="update_time", type_=DateTime, comment="最新更新时间")
     is_del = Column(name="is_del", type_=Boolean(), default=False, comment="是否删除标识")
 

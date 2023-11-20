@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe:
-    dtalk-message
+    model class              DB table
+    ---------------------------------------
+    QywxMessageModel         qywx_message
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.qywx_message import QywxMessageModel
 
 design:
 
@@ -44,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("QywxMessageModel")
+__all__ = ["QywxMessageModel"]
 
 
 class QywxMessageModel(base.ModelBase):
@@ -67,3 +70,8 @@ class QywxMessageModel(base.ModelBase):
     is_del = Column(Boolean())
     is_back = Column(Boolean())
 
+    def __str__(self):
+        return "QywxMessageModel Class, relate to DB table: qywx_message."
+
+    def __repr__(self):
+        return self.__str__()

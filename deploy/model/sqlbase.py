@@ -4,6 +4,9 @@
 ------------------------------------------------
 
 describe: 
+    model class              DB table
+    ---------------------------------------
+    SqlbaseModel             sqlbase
 
 base_info:
     __author__ = "PyGo"
@@ -14,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.sqlbase import SqlbaseModel
 
 design:
 
@@ -43,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("SqlbaseModel")
+__all__ = ["SqlbaseModel"]
 
 
 class SqlbaseModel(base.ModelBase):
@@ -67,3 +71,9 @@ class SqlbaseModel(base.ModelBase):
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+
+    def __str__(self):
+        return "SqlbaseModel Class, relate to DB table: sqlbase."
+
+    def __repr__(self):
+        return self.__str__()

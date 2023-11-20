@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe:
-    dtalk-robot
+    model class              DB table
+    ---------------------------------------
+    DtalkRobotModel          dtalk_robot
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.dtalk_robot import DtalkRobotModel
 
 design:
 
@@ -44,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("DtalkRobotModel")
+__all__ = ["DtalkRobotModel"]
 
 
 class DtalkRobotModel(base.ModelBase):
@@ -62,4 +65,10 @@ class DtalkRobotModel(base.ModelBase):
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+
+    def __str__(self):
+        return "DtalkRobotModel Class, relate to DB table: dtalk_robot."
+
+    def __repr__(self):
+        return self.__str__()
 

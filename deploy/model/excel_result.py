@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe:
-    excel-result
+    model class              DB table
+    ---------------------------------------
+    ExcelResultModel         excel_result
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.excel_result import ExcelResultModel
 
 design:
 
@@ -44,7 +47,7 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("ExcelResultModel")
+__all__ = ["ExcelResultModel"]
 
 
 class ExcelResultModel(base.ModelBase):
@@ -70,3 +73,9 @@ class ExcelResultModel(base.ModelBase):
     delete_rtx = Column(String(25))
     delete_time = Column(TIMESTAMP)
     is_del = Column(Boolean())
+
+    def __str__(self):
+        return "ExcelResultModel Class, relate to DB table: excel_result."
+
+    def __repr__(self):
+        return self.__str__()
