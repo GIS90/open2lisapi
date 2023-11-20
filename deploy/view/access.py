@@ -3,7 +3,7 @@
 """
 ------------------------------------------------
 describe:
-    the view of manage
+    access view
     主要用于login and logout的api
 
 base_info:
@@ -43,14 +43,14 @@ from deploy.service.request import RequestService
 from deploy.utils.status_msg import StatusMsgs
 
 
-manage = Blueprint(name='manage', import_name=__name__, url_prefix='/manage')
-CORS(manage, supports_credentials=True)
+access = Blueprint(name='access', import_name=__name__, url_prefix='/access')
+CORS(access, supports_credentials=True)
 
 NoNameBody = 'NoNameBody'
 request_service = RequestService()
 
 
-@manage.route('/login/', methods=['GET', 'POST'], strict_slashes=False)
+@access.route('/login/', methods=['GET', 'POST'], strict_slashes=False)
 def login():
     """
     login > login in to system
@@ -106,7 +106,7 @@ def login():
             211, 'failure', StatusMsgs.get(211), {}).json()
 
 
-@manage.route('/logout/', methods=['GET', 'POST'], strict_slashes=False)
+@access.route('/logout/', methods=['GET', 'POST'], strict_slashes=False)
 def logout():
     """
     logout > user login out the system

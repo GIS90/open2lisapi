@@ -68,7 +68,7 @@ from deploy.utils.status_msg import StatusMsgs
 # view
 from deploy.view import user, \
     system, \
-    manage, \
+    access, \
     dashboard, \
     search, \
     notify, \
@@ -238,8 +238,8 @@ class WebFlaskServer(WebBaseClass):
             self.app.register_blueprint(blueprint)
 
     def _auto_init_register_blueprint(self):
+        self.register_blueprint('manage', access)
         self.register_blueprint('dashboard', dashboard)
-        self.register_blueprint('manage', manage)
         self.register_blueprint('user', user)
         self.register_blueprint('common', common)
         self.register_blueprint('search', search)

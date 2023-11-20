@@ -29,7 +29,7 @@ Life is short, I use python.
 """
 from deploy.view.user import user
 from deploy.view.system import system
-from deploy.view.manage import manage
+from deploy.view.access import access
 from deploy.view.dashboard import dashboard
 from deploy.view.search import search
 from deploy.view.notify import notify
