@@ -1,4 +1,4 @@
-------------------------------------------------
+*************************************************************************************
 describe[线上地址]:
     database: opentool
     user: opentool
@@ -32,6 +32,10 @@ base_info:
     __blog__ = "www.pygo2.top"
     __project__ = "open2liapi"
 
+
+*************************************************************************************
+
+
 常用命令:
 远程连接: mysql -h 127.0.0.1 -P 3306  -u root -p
 授权: grant all on *.* to '用户名'@'%' identified by '密码';
@@ -42,10 +46,10 @@ base_info:
 显示当前数据库包含的表: show tables;
 查看数据库字符集: show variables like '%char%';
 查看mysql实例的端口: show variables like 'port';
-用户重命名: RENAME USER '老名'@'%' TO '新名'@'%';
-锁表:  flush tables with read lock;
+用户重命名: rename user '老名'@'%' to '新名'@'%';
+锁表: flush tables with read lock;
 查看当前用户:  select user();
-查看所有用户: SELECT User, Host, Password FROM mysql.user;
+查看所有用户: select User, Host, Password from mysql.user;
 显示表结构和列结构的命令: desc tablename;
 查看master状态: show master status;
 查看slave状态: show slave status ;
@@ -53,38 +57,43 @@ base_info:
 
 导出工具:
     mysqldump
-------------------------------------------------
+
+*************************************************************************************
 
 -- 创建数据库、用户、授权
+------------------------------------------------------------------------------------------------
 create database opentool default character set utf8 collate utf8_general_ci;
 create user 'opentool'@'%' IDENTIFIED BY 'ed39def30b9110d6668013133def82a3';
 grant all on opentool.* to 'opentool';
 flush  privileges;
 
 use opentool;
+------------------------------------------------------------------------------------------------
 
--- create user
+-- 系统用户信息表
+------------------------------------------------------------------------------------------------
+-- create table
 DROP TABLES IF EXISTS `sysuser`;
 CREATE TABLE `sysuser` (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT '自增ID',
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     `rtx_id` varchar(25) not null COMMENT '用户rtx唯一标识',
-    `md5_id` varchar(55) not null COMMENT 'rtx-md5标识',
+    `md5_id` varchar(55) not null COMMENT '用户rtx-md5-id唯一数据标识',
     `fullname` varchar(30) not null COMMENT '用户名称',
     `password` varchar(30) not null COMMENT '用户明文密码',
-    `email` varchar(35)  COMMENT '邮箱',
-    `phone` varchar(15)  COMMENT '电话',
-    `avatar` varchar(120)  COMMENT '头像URL',
+    `email` varchar(35)  COMMENT '用户邮箱',
+    `phone` varchar(15)  COMMENT '用户电话',
+    `avatar` varchar(120)  COMMENT '用户头像地址',
     `introduction` text  COMMENT '用户描述',
-    `role` varchar(80) not null COMMENT '用户角色rtx-id值，关联role表，多角色用;分割',
-    `department` varchar(55) null COMMENT '用户部门md5值，关联department表',
+    `role` varchar(80) not null COMMENT '用户角色engname值，关联role表，多角色用;分割',
+    `department` varchar(55) COMMENT '用户部门md5-id值，关联department表',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `create_rtx` varchar(25) not null default 'admin' COMMENT '创建操作人',
     `delete_time` timestamp COMMENT '删除时间',
     `delete_rtx` varchar(25) COMMENT '删除操作人',
-    `is_del` bool default False COMMENT '是否已删除',
+    `is_del` bool default False COMMENT '是否删除状态：True删除；False未删除',
 
     PRIMARY KEY (`id`)
-) COMMENT='用户基础信息表';
+) COMMENT='系统用户信息表';
 
 -- create index
 CREATE UNIQUE INDEX sysuser_rtx_id_index ON sysuser (`rtx_id`);
@@ -95,7 +104,7 @@ sysuser(rtx_id, md5_id, fullname, `password`, email , phone, avatar, introductio
 VALUES
 ('admin', '21232f297a57a5a743894a0e4a801fc3', '系统管理员', '1234567', 'gaoming971366@163.com', '13051355646',
 'http://pygo2.top/images/article_github.jpg', 'ADMIN系统管理员', 'admin', 'admin', FALSE);
-
+------------------------------------------------------------------------------------------------
 
 
 
