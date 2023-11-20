@@ -216,6 +216,27 @@ VALUES
 ------------------------------------------------------------------------------------------------
 
 
+-- 个人用户快捷入口功能配置
+------------------------------------------------------------------------------------------------
+-- create shortcut
+DROP TABLES IF EXISTS `shortcut`;
+
+CREATE TABLE `shortcut` (
+    `id` int NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
+    `rtx_id` varchar(25) NOT NULL COMMENT '用户RTX-ID',
+    `shortcut` varchar(120) NULL COMMENT '角色权限ID集合，用英文；分割',
+    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_rtx` varchar(25) COMMENT '最新更新操作人',
+    `update_time` datetime COMMENT '最新更新时间',
+    `is_del` bool DEFAULT False COMMENT '是否删除标识',
+
+    PRIMARY KEY (`id`)
+) COMMENT='个人用户快捷入口功能配置';
+
+CREATE UNIQUE INDEX shortcut_index ON shortcut (`rtx_id`);
+------------------------------------------------------------------------------------------------
+
+
 -- 系统API请求记录表
 ------------------------------------------------------------------------------------------------
 -- create request && index
@@ -531,24 +552,6 @@ CREATE TABLE `dtalk_robot`  (
 
 CREATE UNIQUE INDEX dtalk_robot_index ON dtalk_robot (`md5_id`);
 
-
-
--- create shortcut
-DROP TABLES IF EXISTS `shortcut`;
-
-CREATE TABLE `shortcut` (
-    `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
-    `rtx_id` varchar(25) NOT NULL COMMENT '用户RTX-ID',
-    `shortcut` varchar(120) NULL COMMENT '角色权限ID集合，用英文；分割',
-    `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_rtx` varchar(25) COMMENT '更新用户rtx',
-    `update_time` datetime COMMENT '最新更新时间',
-    `is_del` bool DEFAULT False COMMENT '是否删除',
-
-    PRIMARY KEY (`id`)
-) COMMENT='个人用户快捷入口功能配置';
-
-CREATE UNIQUE INDEX shortcut_index ON shortcut (`rtx_id`);
 
 
 -- create department

@@ -4,7 +4,9 @@
 ------------------------------------------------
 
 describe: 
-    shortcut model
+    model class              DB table
+    ---------------------------------------
+    ShortCutModel            shortcut
 
 base_info:
     __author__ = "PyGo"
@@ -15,6 +17,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
+    from deploy.model.shortcut import ShortCutModel
 
 design:
 
@@ -45,17 +48,22 @@ from sqlalchemy import (
 from deploy.model import base
 
 
-__all__ = ("ShortCutModel")
+__all__ = ["ShortCutModel"]
 
 
 class ShortCutModel(base.ModelBase):
     __tablename__ = 'shortcut'
 
-    id = Column(Integer, primary_key=True)
-    rtx_id = Column(String(25))
-    shortcut = Column(String(120))
-    create_time = Column(TIMESTAMP)
-    update_rtx = Column(String(25))
-    update_time = Column(DateTime)
-    is_del = Column(Boolean())
+    id = Column(name="id", type_=Integer,  autoincrement="auto", primary_key=True, comment="主键，自增ID")
+    rtx_id = Column(name="rtx_id", type_=String(25), nullable=False, comment="用户RTX-ID")
+    shortcut = Column(name="shortcut", type_=String(120), comment="角色权限ID集合，用英文；分割")
+    create_time = Column(name="create_time", type_=TIMESTAMP, nullable=False, comment="创建时间")
+    update_rtx = Column(name="update_rtx", type_=String(25), comment="最新更新操作人")
+    update_time = Column(name="update_time", type_=DateTime, comment="最新更新时间")
+    is_del = Column(name="is_del", type_=Boolean(), default=False, comment="是否删除标识")
 
+    def __str__(self):
+        return "ShortCutModel Class, relate to DB table: shortcut."
+
+    def __repr__(self):
+        return self.__str__()
