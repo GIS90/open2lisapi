@@ -3,21 +3,24 @@ describe[线上地址]:
     database: opentool
     user: opentool
     tables:
-        sysuser	用户	用户基础信息表
-        role	角色	用户角色权限表
-        menu	菜单	系统菜单表
-        request	用户请求API记录	用户前端请求后台API记录表
-        api	api	后台API接口说明表
-        enum	枚举表	ENUM枚举表
-        department	部门	部门架构信息表
-        excel_source	Excel源文件	Excel原始文件表
-        excel_result	Excel成果文件	Excel转换成果记录表
-        office_pdf	PDF文件表	PDF转WORD文档转换记录表
-        dtalk_message	钉钉消息	钉钉消息记录表
-        dtalk_robot	钉钉机器人	钉钉消息机器人配置表
-        shortcut	快捷入口	Dashboard快捷功能入口
-        qywx_message	企业微信消息	企业微信消息记录表
-        qywx_robot	企业微信机器人	企业微信消息机器人配置表
+        ID   ENG_NAME        CHN_NAME          DESC
+        ----------------------------------------------------------------
+         1    sysuser        用户               用户基础信息表
+         2    role           角色               用户角色权限表
+         3    menu           菜单               系统菜单表
+         4    request        用户请求API记录     用户前端请求后台API记录表
+         5    api            api               后台API接口说明表
+         6    enum           枚举表             ENUM枚举表
+         7    department     部门               部门架构信息表
+         8    excel_source   Excel源文件        Excel原始文件表
+         9    excel_result   Excel成果文件      Excel转换成果记录表
+        10    office_pdf     PDF文件表          PDF转WORD文档转换记录表
+        11    dtalk_message  钉钉消息 q         钉钉消息记录表
+        12    dtalk_robot    钉钉机器人         钉钉消息机器人配置表
+        13    shortcut       快捷入口           Dashboard快捷功能入口
+        11    qywx_message   企业微信消息        企业微信消息记录表
+        12    qywx_robot     企业微信机器人      企业微信消息机器人配置表
+        13    sqlbase        SQL仓库            SQL仓库信息明细表
 
 
 usage:
@@ -307,7 +310,7 @@ SELECT
 *
 FROM (
 SELECT
-	CONCAT("('", `name`, "', '", `md5_id`, "', '", `key`, "', '", `value`, "', '", `description`, "', ", `status`, ", '", `create_rtx`, "', ", `order_id`, "),")
+ CONCAT("('", `name`, "', '", `md5_id`, "', '", `key`, "', '", `value`, "', '", `description`, "', ", `status`, ", '", `create_rtx`, "', ", `order_id`, "),")
 FROM enum
 WHERE is_del != 1
 ORDER BY `name`, order_id
