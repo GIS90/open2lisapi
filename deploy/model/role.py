@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    Python                   DB
+    model class              DB table
     ---------------------------------------
     RoleModel                role
 
