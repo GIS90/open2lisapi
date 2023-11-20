@@ -245,8 +245,8 @@ delete from request;
 ------------------------------------------------------------------------------------------------
 
 
-
-
+-- API接口说明表
+------------------------------------------------------------------------------------------------
 -- create api mapping && index
 DROP TABLES IF EXISTS `api`;
 CREATE TABLE `api`  (
@@ -254,18 +254,18 @@ CREATE TABLE `api`  (
     `blueprint` varchar(25) NOT NULL COMMENT 'API接口blueprint',
     `apiname` varchar(35) NOT NULL COMMENT 'API接口View方法名称',
     `endpoint` varchar(65) NOT NULL COMMENT 'API接口endpoint',
-    `md5_id` varchar(55) NOT NULL COMMENT 'MD5',
+    `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
     `path` varchar(65) NOT NULL COMMENT 'API接口path，与request表关联',
     `type` varchar(55) NOT NULL default 'success' COMMENT 'API接口类型：primary登录/success数据获取/warning/danger退出/info新增/更新/删除数据',
     `short` varchar(55) NULL COMMENT 'API接口简述',
     `long` varchar(120) NULL COMMENT 'API接口详细描述',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `create_rtx` varchar(25) not null default 'admin' COMMENT '创建操作人',
     `delete_time` timestamp COMMENT '删除时间',
     `delete_rtx` varchar(25) COMMENT '删除操作人',
     `update_time` timestamp COMMENT '最近修改时间',
     `update_rtx` varchar(25) COMMENT '最近修改操作人',
-    `is_del` bool default FALSE COMMENT '是否已删除',
+    `is_del` bool default FALSE COMMENT '是否删除标识',
     `order_id` int default 1 NULL COMMENT '顺序ID',
 
     PRIMARY KEY (`id`),
@@ -275,7 +275,7 @@ CREATE TABLE `api`  (
 delete from api;
 -- insert data
 -- SQL见开发进度表->后台API
-
+------------------------------------------------------------------------------------------------
 
 
 
