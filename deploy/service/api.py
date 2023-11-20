@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    api service
 
 base_info:
     __author__ = "PyGo"
@@ -41,9 +42,9 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 
 
-class ApisService(object):
+class ApiService(object):
     """
-    apis service
+    api service
     """
 
     API_KEY = "R4uejriAnLKV8x1IghtNa7gQ"

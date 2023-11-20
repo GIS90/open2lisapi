@@ -43,7 +43,7 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.watcher import watcher
-from deploy.services.info import InfoService
+from deploy.service.info import InfoService
 
 
 system = Blueprint(name='system', import_name=__name__, url_prefix='/system')

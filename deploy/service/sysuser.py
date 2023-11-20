@@ -3,7 +3,7 @@
 """
 ------------------------------------------------
 describe:
-    the services of sysuser
+    sysuser service
 
 base_info:
     __author__ = "PyGo"
@@ -11,7 +11,7 @@ base_info:
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2lisapi"
 
 usage:
 
@@ -30,7 +30,7 @@ Life is short, I use python.
 from deploy.bo.sysuser import SysUserBo
 from deploy.bo.menu import MenuBo
 from deploy.bo.role import RoleBo
-from deploy.services.menu import MenuService
+from deploy.service.menu import MenuService
 from deploy.utils.utils import d2s, get_now, check_length
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs

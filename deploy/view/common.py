@@ -44,7 +44,7 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 # from deploy.utils.utils import timeer   # change to use watcher
 from deploy.utils.watcher import watcher
-from deploy.services.common import CommonService
+from deploy.service.common import CommonService
 
 
 common = Blueprint(name='common', import_name=__name__, url_prefix='/common')

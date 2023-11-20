@@ -41,7 +41,7 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 # from deploy.utils.utils import timeer   # change to use watcher
 from deploy.utils.watcher import watcher
-from deploy.services.office import OfficeService
+from deploy.service.office import OfficeService
 
 
 office = Blueprint(name='office', import_name=__name__, url_prefix='/office')

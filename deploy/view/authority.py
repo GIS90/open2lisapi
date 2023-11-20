@@ -45,7 +45,7 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 # from deploy.utils.utils import timeer   # change to use watcher
 from deploy.utils.watcher import watcher
-from deploy.services.authority import AuthorityService
+from deploy.service.authority import AuthorityService
 
 
 auth = Blueprint(name='auth', import_name=__name__, url_prefix='/auth')

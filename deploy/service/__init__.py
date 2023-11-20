@@ -3,7 +3,7 @@
 """
 ------------------------------------------------
 describe:
-    
+    services
 
 base_info:
     __author__ = "PyGo"
@@ -11,7 +11,7 @@ base_info:
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2lisapi"
 
 usage:
 
@@ -27,9 +27,6 @@ Enjoy the good life everyday！！!
 Life is short, I use python.
 ------------------------------------------------
 """
-
-if __name__ == '__main__':
-    pass
 
 
 

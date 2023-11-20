@@ -40,7 +40,7 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.watcher import watcher
-from deploy.services.image import ImageService
+from deploy.service.image import ImageService
 
 
 image = Blueprint(name='image', import_name=__name__, url_prefix='/image')

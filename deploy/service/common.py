@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    common service
 
 base_info:
     __author__ = "PyGo"
@@ -38,8 +39,8 @@ from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
 from deploy.delibs.file_lib import FileLib
 from deploy.delibs.store_lib import StoreLib
-from deploy.services.office import OfficeService
-from deploy.services.notify import NotifyService
+from deploy.service.office import OfficeService
+from deploy.service.notify import NotifyService
 from deploy.delibs.image_lib import ImageLib
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, OFFICE_STORE_BK

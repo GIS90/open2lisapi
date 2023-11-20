@@ -43,8 +43,8 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.decorators import timer
 from deploy.utils.watcher import watcher
-from deploy.services.dashboard import DashboardService
-from deploy.services.request import RequestService
+from deploy.service.dashboard import DashboardService
+from deploy.service.request import RequestService
 
 
 dashboard = Blueprint(name='dashboard', import_name=__name__, url_prefix='/dashboard')

@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe:
-    authority services
+    authority service
 
 base_info:
     __author__ = "PyGo"

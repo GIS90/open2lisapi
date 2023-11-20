@@ -38,8 +38,8 @@ from flask_cors import CORS
 from deploy.utils.logger import logger as LOG
 from deploy.utils.utils import get_user_id
 from deploy.utils.status import Status
-from deploy.services.sysuser import SysUserService
-from deploy.services.request import RequestService
+from deploy.service.sysuser import SysUserService
+from deploy.service.request import RequestService
 from deploy.utils.status_msg import StatusMsgs
 
 

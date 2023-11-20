@@ -48,7 +48,7 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 # from deploy.utils.utils import timeer   # change to use watcher
 from deploy.utils.watcher import watcher
-from deploy.services.notify import NotifyService
+from deploy.service.notify import NotifyService
 
 
 notify = Blueprint(name='notify', import_name=__name__, url_prefix='/notify')

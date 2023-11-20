@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    dashboard service
 
 base_info:
     __author__ = "PyGo"

@@ -40,7 +40,7 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.watcher import watcher
-from deploy.services.search import SearchService
+from deploy.service.search import SearchService
 
 
 search = Blueprint(name='search', import_name=__name__, url_prefix='/search')

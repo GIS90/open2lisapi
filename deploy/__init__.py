@@ -79,8 +79,8 @@ from deploy.view import user, \
     api
 
 # service
-from deploy.services.sysuser import SysUserService
-from deploy.services.request import RequestService
+from deploy.service.sysuser import SysUserService
+from deploy.service.request import RequestService
 
 
 app = Flask(__name__)

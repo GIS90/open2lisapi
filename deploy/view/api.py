@@ -35,7 +35,7 @@ Life is short, I use python.
 from flask import Blueprint, request
 from flask_cors import CORS
 
-from deploy.services.apis import ApisService
+from deploy.service.api import ApiService
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
@@ -59,7 +59,7 @@ def demo():
     try:
         # 参数
         params = request.get_json() or {}
-        return ApisService().demo(params)
+        return ApiService().demo(params)
     except Exception as e:
         LOG.error("api>demo is error: %s" % e)
         return Status(501, 'failure',

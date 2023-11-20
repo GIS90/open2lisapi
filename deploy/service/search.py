@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe:
+    search service
 
 base_info:
     __author__ = "PyGo"

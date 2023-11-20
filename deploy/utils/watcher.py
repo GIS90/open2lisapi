@@ -43,7 +43,7 @@ from pprint import pprint
 
 from deploy.utils.logger import logger as LOG
 from deploy.utils.utils import get_rtx_id
-from deploy.services.request import RequestService
+from deploy.service.request import RequestService
 
 
 # 声明一个全局RequestService对象
