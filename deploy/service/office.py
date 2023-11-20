@@ -41,9 +41,9 @@ from itertools import groupby
 
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.status import Status
-from deploy.delibs.file_lib import FileLib
-from deploy.delibs.store_lib import StoreLib
-from deploy.delibs.excel_lib import ExcelLib
+from deploy.delib.file_lib import FileLib
+from deploy.delib.store_lib import StoreLib
+from deploy.delib.excel_lib import ExcelLib
 from deploy.bo.excel_source import ExcelSourceBo
 from deploy.bo.excel_result import ExcelResultBo
 from deploy.bo.enum import EnumBo

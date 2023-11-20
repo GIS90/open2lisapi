@@ -30,7 +30,7 @@ urllib3.disable_warnings()
 
 class HttpLibApi(object):
     """
-    http lib api
+    http-lib-api class
     """
     def __init__(self, root, username='', password='', headers=None,
                  is_try=3, timeout=120):

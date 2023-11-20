@@ -47,7 +47,7 @@ from deploy.utils.status_msg import StatusMsgs
 
 class ImageLib(object):
     """
-    image lib
+    image-lib class
     """
     ALLOWED_EXTENSIONS = [
             '.png',

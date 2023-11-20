@@ -54,7 +54,7 @@ from deploy.utils.enums import *
 
 class ExcelLib(object):
     """
-    excel lib
+    excel-lib class
     """
 
     DEFAULT_PREFIX = '.xlsx'

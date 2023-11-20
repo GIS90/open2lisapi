@@ -95,7 +95,7 @@ import requests
 import json
 import os
 
-from deploy.delibs.http_lib import HttpLibApi
+from deploy.delib.http_lib import HttpLibApi
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 from deploy.config import QYWX_BASE_URL, QYWX_SEND_MESSAGE, \
@@ -105,7 +105,7 @@ from deploy.utils.utils import get_file_size
 
 class QYWXLib(object):
     """
-    QYWX class
+    QYWX-lib class
     """
 
     types = [

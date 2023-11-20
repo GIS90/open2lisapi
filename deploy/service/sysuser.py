@@ -38,8 +38,8 @@ from deploy.utils.logger import logger as LOG
 from deploy.config import ADMIN, O_NOBN, \
     STORE_SPACE_NAME, STORE_BASE_URL, \
     USER_DEFAULT_AVATAR
-from deploy.delibs.store_lib import StoreLib
-from deploy.delibs.image_lib import ImageLib
+from deploy.delib.store_lib import StoreLib
+from deploy.delib.image_lib import ImageLib
 
 
 class SysUserService(object):

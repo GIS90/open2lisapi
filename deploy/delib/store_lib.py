@@ -91,7 +91,7 @@ from deploy.utils.status_msg import StatusMsgs
 
 class StoreLib(object):
     """
-    store lib in utils
+    store-lib class
 
     单密钥
     多空间

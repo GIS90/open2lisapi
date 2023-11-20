@@ -38,7 +38,7 @@ import json
 import time
 import random
 
-from deploy.delibs.excel_lib import ExcelLib
+from deploy.delib.excel_lib import ExcelLib
 from deploy.utils.utils import get_now, d2s, check_length, md5, auth_rtx_join
 from deploy.bo.dtalk_message import DtalkMessageBo
 from deploy.bo.dtalk_robot import DtalkRobotBo
@@ -50,10 +50,10 @@ from deploy.utils.status_msg import StatusMsgs
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
     STORE_BASE_URL, STORE_SPACE_NAME, \
     DTALK_CONTROL, DTALK_INTERVAL, DTALK_ADD_IMAGE, AUTH_NUM
-from deploy.delibs.store_lib import StoreLib
-from deploy.delibs.dtalk_lib import DtalkLib
-from deploy.delibs.qywx_lib import QYWXLib
-from deploy.delibs.file_lib import FileLib
+from deploy.delib.store_lib import StoreLib
+from deploy.delib.dtalk_lib import DtalkLib
+from deploy.delib.qywx_lib import QYWXLib
+from deploy.delib.file_lib import FileLib
 
 
 class NotifyService(object):

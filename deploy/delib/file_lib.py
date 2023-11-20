@@ -40,7 +40,7 @@ from deploy.utils.status_msg import StatusMsgs
 
 class FileLib(object):
     """
-    file lib class
+    file-lib class
     """
 
     # file extension format
