@@ -139,7 +139,8 @@ VALUES
 ------------------------------------------------------------------------------------------------
 
 
-
+-- 系统菜单表
+------------------------------------------------------------------------------------------------
 -- create menu && index
 -- ID设置AUTO_INCREMENT，不可设置默认值
 DROP TABLES IF EXISTS `menu`;
@@ -149,21 +150,21 @@ CREATE TABLE `menu`  (
     `path` varchar(35) NOT NULL COMMENT '路由path，全小写字母',
     `title` varchar(25) NOT NULL COMMENT '菜单名称',
     `pid` int NOT NULL COMMENT '父ID',
-    `level` int default 1 NOT NULL COMMENT '级别',
-    `md5_id` varchar(55) NOT NULL COMMENT 'md5值',
-    `component` varchar(25) NOT NULL COMMENT '路由组件，与router mappings映射',
+    `level` int default 1 NOT NULL COMMENT '菜单级别',
+    `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
+    `component` varchar(25) NOT NULL COMMENT '路由组件，与Vue router mappings映射',
     `hidden` bool default False COMMENT '是否在SideBar显示，默认为false',
     `redirect` varchar(35) COMMENT '菜单重定向，主要用于URL一级菜单跳转',
-    `icon` varchar(25) COMMENT '图标',
-    `cache` bool default true COMMENT '页面是否进行cache，默认True缓存',
+    `icon` varchar(25) COMMENT '菜单图标',
+    `cache` bool default true COMMENT '页面是否进行cache，默认true缓存',
     `affix` bool default false  COMMENT '是否在tags-view固定，默认false',
     `breadcrumb` bool default true COMMENT '是否breadcrumb中显示，默认true',
     `order_id` int default 1 COMMENT '排序ID',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `create_rtx` varchar(25) not null default 'admin' COMMENT '创建操作人',
     `delete_time` timestamp COMMENT '删除时间',
     `delete_rtx` varchar(25) COMMENT '删除操作人',
-    `is_del` bool default False COMMENT '是否已删除',
+    `is_del` bool default False COMMENT '是否删除标识',
     `is_shortcut` bool default True COMMENT 'Dashboard快捷入口是否显示',
 
     PRIMARY KEY (`id`),
@@ -173,6 +174,7 @@ CREATE TABLE `menu`  (
 
 -- insert default menu
 delete from menu;
+
 insert into
     menu(id, `title`, `name`, `path`, `pid`, `level`, `md5_id`, `component`, `hidden`, `redirect`, `icon`, `cache`, `affix`, `breadcrumb`, `order_id`, `create_rtx`, `is_del`, `is_shortcut`)
 VALUES
@@ -211,10 +213,11 @@ VALUES
 (24, '个人设置', 'Setter', '/setter', 1, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'c-setter', TRUE, FALSE, TRUE, 2000, 'admin', FALSE, FALSE),
 (25, '个人中心', 'SetterProfile', 'profile', 24, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setterProfile', FALSE, '', 'i_user', TRUE, FALSE, TRUE, 2001, 'admin', FALSE, TRUE),
 (26, '系统向导', 'SetterGuide', 'guide', 24, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setterGuide', FALSE, '', 'guide', TRUE, FALSE, TRUE, 2002, 'admin', FALSE, TRUE);
+------------------------------------------------------------------------------------------------
 
 
-
-
+-- 系统API请求记录表
+------------------------------------------------------------------------------------------------
 -- create request && index
 DROP TABLES IF EXISTS `request`;
 CREATE TABLE `request`  (
