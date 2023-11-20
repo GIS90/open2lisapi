@@ -295,7 +295,7 @@ class OfficeService(object):
         self.sysuser_bo = SysUserBo()
 
     def __str__(self):
-        print("OfficeService class")
+        print("OfficeService class.")
 
     def __repr__(self):
         self.__str__()

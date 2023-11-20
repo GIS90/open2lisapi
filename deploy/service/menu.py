@@ -89,7 +89,7 @@ class MenuService(object):
         self.menu_bo = MenuBo()
 
     def __str__(self):
-        print("MenuService class")
+        print("MenuService class.")
 
     def __repr__(self):
         self.__str__()

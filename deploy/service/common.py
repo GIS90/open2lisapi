@@ -94,7 +94,7 @@ class CommonService(object):
         self.notify_service = NotifyService()
 
     def __str__(self):
-        print("CommonService class")
+        print("CommonService class.")
 
     def __repr__(self):
         self.__str__()

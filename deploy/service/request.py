@@ -85,7 +85,7 @@ class RequestService(object):
         self.request_bo = RequestBo()
 
     def __str__(self):
-        print("RequestService class")
+        print("RequestService class.")
 
     def __repr__(self):
         self.__str__()

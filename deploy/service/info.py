@@ -424,7 +424,7 @@ class InfoService(object):
         self.request_bo = RequestBo()
 
     def __str__(self):
-        print("InfoService class")
+        print("InfoService class.")
 
     def __repr__(self):
         self.__str__()

@@ -238,7 +238,7 @@ class SearchService(object):
         self.enum_bo = EnumBo()
 
     def __str__(self):
-        print("SearchService class")
+        print("SearchService class.")
 
     def __repr__(self):
         self.__str__()

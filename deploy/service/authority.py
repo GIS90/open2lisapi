@@ -323,7 +323,7 @@ class AuthorityService(object):
         self.enum_bo = EnumBo()
 
     def __str__(self):
-        print("AuthorityService class")
+        print("AuthorityService class.")
 
     def __repr__(self):
         self.__str__()

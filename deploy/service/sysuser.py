@@ -73,7 +73,7 @@ class SysUserService(object):
         self.image_lib = ImageLib()
 
     def __str__(self):
-        print("SysUserService class")
+        print("SysUserService class.")
 
     def __repr__(self):
         self.__str__()

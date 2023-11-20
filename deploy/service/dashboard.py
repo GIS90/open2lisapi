@@ -109,7 +109,7 @@ class DashboardService(object):
         self.shortcut_bo = ShortCutBo()
 
     def __str__(self):
-        print("DashboardService class")
+        print("DashboardService class.")
 
     def __repr__(self):
         self.__str__()

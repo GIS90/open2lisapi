@@ -103,7 +103,7 @@ class ImageService(object):
         self.sysuser_bo = SysUserBo()
 
     def __str__(self):
-        print("ImageService class")
+        print("ImageService class.")
 
     def __repr__(self):
         self.__str__()
