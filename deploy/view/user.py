@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe:
-    login user views
+    login user view
     登录用户相关的API
     主要有：
         info: 用户基础信息

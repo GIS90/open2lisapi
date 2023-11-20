@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe:
-    authority views
+    authority view
     权限管理
         - 用户管理
         - 角色管理

@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe:
-    common apis
+    common view
     通用API模块
     - upload 上传单文件
     - upload 多文件上传

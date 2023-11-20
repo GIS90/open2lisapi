@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    notify views
+    notify view
     通知模块
 
 content：

@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe: 
-    bashboard apis
+    bashboard view
     - pan: 初始化Dashboard Pan
 
 base_info:
