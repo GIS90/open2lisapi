@@ -3,7 +3,7 @@
 """
 ------------------------------------------------
 describe:
-    Python                   DB
+    model class              DB table
     ---------------------------------------
     SysUserModel             sysuser
 
