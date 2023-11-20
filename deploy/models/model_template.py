@@ -24,7 +24,7 @@ usage:
     from deploy.models.model_template import ModelTemplate
 
 design:
-  > sqlalchemy ORM type relation:
+    > sqlalchemy ORM type relation:
     数据类型         Python数据类型           说明
     ==================================================
     Integer         int                     普通整形
@@ -41,6 +41,9 @@ design:
     Text            str                     文本类型
     LongText        str                     长文本类型
 
+    > TIMESTAMP && DateTime对比：
+    timestamp支持的范围是1970-01-01 00:00:01 ～ 2038-01-19 03:14:07
+    datetime支持的范围是0000-00-00 00:00:00 ～ 9999-12-31 23:59:59
 
 reference urls:
 
