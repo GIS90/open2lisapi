@@ -92,11 +92,11 @@ class ModelTemplate(base.ModelBase):
     md5_id = Column(name="md5_id", type_=String(55), unique=True, nullable=False, comment="唯一标识：MD5-ID")
 
     create_time = Column(name="create_time", type_=TIMESTAMP(), nullable=False, comment="创建时间")
-    create_rtx = Column(name="create_rtx", type_=String(25), nullable=False, comment="创建人")
+    create_rtx = Column(name="create_rtx", type_=String(25), nullable=False, comment="创建用户")
     update_time = Column(name="update_time", type_=TIMESTAMP(), comment="最新更新时间")
-    update_rtx = Column(name="update_rtx", type_=String(25), comment="最后更新人")
+    update_rtx = Column(name="update_rtx", type_=String(25), comment="最新更新用户")
     delete_time = Column(name="delete_time", type_=TIMESTAMP(), comment="删除时间")
-    delete_rtx = Column(name="delete_rtx", type_=String(25), comment="删除人")
+    delete_rtx = Column(name="delete_rtx", type_=String(25), comment="删除用户")
 
     is_del = Column(name="is_del", type_=Boolean(), default=False, comment="是否删除标识")
     order_id = Column(name="order_id", type_=Integer, comment="排序ID")
