@@ -153,7 +153,8 @@ Column属性：
         Optional data dictionary which will be populated into the attr:`.SchemaItem.info` attribute of this object.
     --------------------------------------------------------------------------------------------------------------
     > nullable [是否可为空]:
-        默认为false，insert...values插入数据表字段可为空
+        默认为true，insert...values插入数据表字段可为空
+        如果为false，代表not null
     --------------------------------------------------------------------------------------------------------------
     > onupdate [onupdate]:
         用于update语句中的列的默认值
