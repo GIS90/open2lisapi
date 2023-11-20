@@ -278,31 +278,35 @@ delete from api;
 ------------------------------------------------------------------------------------------------
 
 
-
+-- ENUM枚举表
+------------------------------------------------------------------------------------------------
 -- create enum mapping && index
 DROP TABLES IF EXISTS `enum`;
 CREATE TABLE `enum`  (
     `id` int NOT NULL AUTO_INCREMENT COMMENT ' 主键，自增ID',
     `name` varchar(35) NOT NULL COMMENT '枚举名称',
-    `md5_id` varchar(55) NOT NULL COMMENT '枚举md5-id，以name为md5',
+    `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
     `key` varchar(55) NOT NULL COMMENT '枚举子集对应的key',
     `value` varchar(55) NOT NULL COMMENT '枚举子集对应的value',
     `description` text COMMENT '枚举子集对应的value说明',
     `status` bool default TRUE COMMENT '状态',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
-    `create_rtx` varchar(25) default 'admin' COMMENT '创建人',
+    `create_rtx` varchar(25) default 'admin' COMMENT '创建操作人',
     `update_time` timestamp COMMENT '最近更新时间',
     `update_rtx` varchar(25) COMMENT '最近更新操作人',
     `delete_time` timestamp COMMENT '删除时间',
     `delete_rtx` varchar(25) COMMENT '删除操作人',
-    `is_del` bool default FALSE COMMENT '是否已删除',
+    `is_del` bool default FALSE COMMENT '是否删除标识',
     `order_id` int NULL COMMENT '顺序ID',
 
     PRIMARY KEY (`id`),
     UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
 ) COMMENT='ENUM枚举表';
+
 -- delete
 delete from enum;
+
+-- insert data
 /*
 -- insert sql
 SELECT
@@ -325,7 +329,6 @@ SELECT
 FROM enum e
 WHERE e.is_del <> 1;
 */
--- insert data
 insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`) VALUES
 ('bool-type', '9dfa56939efce58a64ec76651bfb1320', '1', '是', '布尔型枚举值：True', 1, 'admin', 1),
 ('bool-type', '47191a26aa630c57701f6034b9fa495a', '0', '否', '布尔型枚举值：False', 1, 'admin', 2),
@@ -374,7 +377,7 @@ insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `cre
 ('db-type', '358841380e96a757c6293278a1e76528', 'Memcache', 'Memcache', '数据库类型 > 非关系型数据库 > Memcache', 1, 'admin', 8),
 ('db-type', 'ae5816aea7485d94c4bf782e8f9fa2c7', 'MongoDb', 'MongoDb', '数据库类型 > 非关系型数据库 > MongoDb', 1, 'admin', 9),
 ('db-type', 'c9c0821ca988ca2fd7c8c10d9198058f', 'HBase', 'HBase', '数据库类型 > 非关系型数据库 > HBase', 1, 'admin', 10);
-
+------------------------------------------------------------------------------------------------
 
 
 
