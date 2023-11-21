@@ -63,6 +63,10 @@ from deploy.config import DEBUG
 
 
 def get_cur_folder():
+    """
+    get current folder
+    :return: abs path
+    """
     if getattr(sys, "frozen", False):
         return os.path.dirname(os.path.abspath(__file__))
     else:
