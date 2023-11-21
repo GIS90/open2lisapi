@@ -317,7 +317,7 @@ def user_detail():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/user_del_m/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_del_m/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def user_batch_delete():
     """
@@ -325,7 +325,7 @@ def user_batch_delete():
     post request and json parameters
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -339,7 +339,7 @@ def user_batch_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/user_status/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_status/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def user_status():
     """
@@ -347,7 +347,7 @@ def user_status():
     post request and json parameters
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
