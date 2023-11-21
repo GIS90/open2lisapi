@@ -39,3 +39,17 @@ from deploy.view.common import common
 from deploy.view.authority import auth
 from deploy.view.api import api
 
+
+add_routers = [
+    {"name": "user", "route": user},
+    {"name": "system", "route": system},
+    {"name": "access", "route": access},
+    {"name": "dashboard", "route": dashboard},
+    {"name": "search", "route": search},
+    {"name": "notify", "route": notify},
+    {"name": "office", "route": office},
+    {"name": "image", "route": image},
+    {"name": "common", "route": common},
+    {"name": "auth", "route": auth},
+    {"name": "api", "route": api},
+]

@@ -66,18 +66,7 @@ from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs
 
 # view
-from deploy.view import user, \
-    system, \
-    access, \
-    dashboard, \
-    search, \
-    notify, \
-    office, \
-    image, \
-    common, \
-    auth, \
-    api
-
+from deploy.view import add_routers
 # service
 from deploy.service.sysuser import SysUserService
 from deploy.service.request import RequestService
@@ -247,17 +236,9 @@ class WebFlaskServer(WebBaseClass):
             self.app.register_blueprint(blueprint)
 
     def _auto_init_register_blueprint(self):
-        self.register_blueprint('manage', access)
-        self.register_blueprint('dashboard', dashboard)
-        self.register_blueprint('user', user)
-        self.register_blueprint('common', common)
-        self.register_blueprint('search', search)
-        self.register_blueprint('office', office)
-        self.register_blueprint('notify', notify)
-        self.register_blueprint('system', system)
-        self.register_blueprint('auth', auth)
-        self.register_blueprint('image', image)
-        self.register_blueprint('api', api)
+        for route in add_routers:
+            if not route: continue
+            self.register_blueprint(route.get('name'), route.get('route'))
 
     def init_run(self):
         """
