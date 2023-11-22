@@ -152,11 +152,42 @@ mysqldump
 ### 工具类方法
 
   - install_env.py项目一键式环境部署，前提服务器上有python3、pip，直接执行这个脚本即可
-  - deploy>utils>utils.py 为工具方法，任何python项目都适合使用
-  - deploy>utils>base_class.py 单例
-  - deploy>utils>command.py 命令行执行命令
+  - deploy>utils>base_class.py 基类
+  - deploy>utils>command.py 命令行
+  - deploy>utils>decorator.py 装饰器
+  - deploy>utils>enum.py 枚举
+  - deploy>utils>exception.py 异常类
   - deploy>utils>logger.py 日志
+  - deploy>utils>status.py **API response JSON**
+  - deploy>utils>status_msg.py **API response JSON message**
+  - deploy>utils>utils.py 工具方法，任何Python（version：3）项目都适合使用
   - deploy>utils>watcher.py 监控打点
+ 
+### delib封装包
+
+  - deploy>delib>dtalk_lib.py   
+    DingTalk Api class, it use to push message  
+    采用单例模式的DingApi类，主要用请求dingTalk openApi来操作DingDing进行发消息等操作  
+    目前，只支持机器人推送消息操作  
+    类添加了is_avail对access token进行判断是否可用，如果不可用中止程序
+  - deploy>delib>excel_lib.py   
+    Excel表读取、写入工具  
+    使用了xlrd、xlwt、openpyxl，Excel表格处理包进行开发的lib工具包
+  - deploy>delib>file_lib.py   
+    文件处理包(the file dealing lib)  
+    静态工具包，适用于任何项目以及脚本
+  - deploy>delib>http_lib.py    
+    HTTP请求工具，基于requests
+  - deploy>delib>image_lib.py    
+    图片处理
+  - deploy>delib>qywx_lib.py    
+    企业微信消息通知  
+    腾讯企业微信官网提供一整套WebHook API接口，内容相当丰富，可以实现内部、第三方等各种各样的功能
+  - deploy>delib>store_lib.py    
+    对象存储  
+    使用了七牛（qiniu.com）面对对象存储，注册免费使用10G空间
+
+
 
 > ## 开发特定点
 
