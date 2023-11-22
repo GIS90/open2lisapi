@@ -110,14 +110,14 @@ def sqlbase_add_init():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@search.route('/sqlbase_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@search.route('/sqlbase_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def sqlbase_delete():
     """
     delete one sqlbase data by md5 from sqlbase table
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -131,14 +131,14 @@ def sqlbase_delete():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@search.route('/sqlbase_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@search.route('/sqlbase_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def sqlbase_deletes():
     """
     delete many sqlbase data by md5 list from sqlbase table
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
