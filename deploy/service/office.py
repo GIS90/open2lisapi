@@ -54,7 +54,7 @@ from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, \
     OFFICE_LIMIT, OFFICE_STORE_BK, \
     SHEET_NAME_LIMIT, SHEET_NUM_LIMIT
 from deploy.utils.utils import get_now, d2s, md5, check_length, auth_rtx_join
-from deploy.utils.enums import *
+from deploy.utils.enum import *
 
 
 class OfficeService(object):

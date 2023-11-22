@@ -49,7 +49,7 @@ from deploy.utils.utils import filename2md5, \
 from deploy.utils.utils import get_now
 from deploy.config import STORE_CACHE
 from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.enums import *
+from deploy.utils.enum import *
 
 
 class ExcelLib(object):

@@ -44,7 +44,7 @@ from deploy.service.notify import NotifyService
 from deploy.delib.image_lib import ImageLib
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, OFFICE_STORE_BK
-from deploy.utils.enums import *
+from deploy.utils.enum import *
 from deploy.utils.utils import get_now
 
 
