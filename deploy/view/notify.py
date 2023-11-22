@@ -75,7 +75,7 @@ def dtalk_list():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/dtalk_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/dtalk_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_delete():
     """
@@ -83,7 +83,7 @@ def dtalk_delete():
     delete one dtalk data by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -97,7 +97,7 @@ def dtalk_delete():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/dtalk_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/dtalk_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_deletes():
     """
@@ -105,7 +105,7 @@ def dtalk_deletes():
     delete many dtalk data by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -228,14 +228,14 @@ def dtalk_robot_add():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/dtalk_robot_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/dtalk_robot_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_robot_delete():
     """
     delete one dtalk robot data by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -249,14 +249,14 @@ def dtalk_robot_delete():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/dtalk_robot_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/dtalk_robot_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dtalk_robot_deletes():
     """
     delete many dtalk robot data by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -443,14 +443,14 @@ def qywx_robot_add():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/qywx_robot_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/qywx_robot_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_robot_delete():
     """
     delete one qywx robot data by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -464,14 +464,14 @@ def qywx_robot_delete():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/qywx_robot_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/qywx_robot_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_robot_deletes():
     """
     delete many qywx robot data by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -595,14 +595,14 @@ def qywx_list():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/qywx_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/qywx_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_delete():
     """
     delete one qywx message data by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -616,14 +616,14 @@ def qywx_delete():
                       StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@notify.route('/qywx_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/qywx_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def qywx_deletes():
     """
     delete many qywx message data by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
