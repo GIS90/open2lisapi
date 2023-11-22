@@ -4,7 +4,7 @@
 ------------------------------------------------
 
 describe:
-    Decorators
+    Decorator
 
 base_info:
     __author__ = "PyGo"
