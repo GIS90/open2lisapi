@@ -140,7 +140,7 @@ def role_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/role_del_m/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_del_m/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def role_batch_delete():
     """
@@ -148,7 +148,7 @@ def role_batch_delete():
     post request and json parameters
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -162,7 +162,7 @@ def role_batch_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@auth.route('/role_del/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_del/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def role_delete():
     """
@@ -171,7 +171,7 @@ def role_delete():
     post request and json parameters
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
