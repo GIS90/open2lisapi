@@ -90,14 +90,14 @@ def dict_status():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@system.route('/dict_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_delete():
     """
     information > delete one dict data by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
     try:
@@ -110,14 +110,14 @@ def dict_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@system.route('/dict_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def dict_deletes():
     """
     information > delete many dict data by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
     try:
@@ -289,14 +289,14 @@ def api_list():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@system.route('/api_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_delete():
     """
     information > delete one api data by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
     try:
@@ -309,14 +309,14 @@ def api_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@system.route('/api_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def api_deletes():
     """
     information > delete many api data by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
     try:
