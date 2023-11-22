@@ -481,22 +481,22 @@ def depart_add():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@system.route('/depart_remove/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
-def depart_remove():
+def depart_delete():
     """
-    remove department by node md5-id
+    delete department by node md5-id
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
     try:
         # 参数
         params = request.get_json() or {}
-        return InfoService().depart_remove(params)
+        return InfoService().depart_delete(params)
     except Exception as e:
-        LOG.error("info>depart remove is error: %s" % e)
+        LOG.error("info>depart delete is error: %s" % e)
         return Status(501, 'failure',
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 

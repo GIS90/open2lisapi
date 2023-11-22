@@ -1900,9 +1900,9 @@ class InfoService(object):
             100, 'success', StatusMsgs.get(100), new_node
         ).json()
 
-    def depart_remove(self, params: dict) -> dict:
+    def depart_delete(self, params: dict) -> dict:
         """
-        remove department by node md5-id
+        delete department by node md5-id
         params is dict
         """
         # ====================== parameters check ======================
