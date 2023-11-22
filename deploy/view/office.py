@@ -93,14 +93,14 @@ def excel_source_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@office.route('/excel_source_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_source_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def excel_source_delete():
     """
     delete one excel source excel file by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -114,14 +114,14 @@ def excel_source_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@office.route('/excel_source_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_source_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def excel_source_deletes():
     """
     delete many excel source excel file by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -201,14 +201,14 @@ def excel_result_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@office.route('/excel_result_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_result_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def excel_result_delete():
     """
     delete one excel result excel file by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -222,7 +222,7 @@ def excel_result_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@office.route('/excel_result_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_result_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def excel_result_deletes():
     """
@@ -230,7 +230,7 @@ def excel_result_deletes():
     parameter list is List type
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -377,14 +377,14 @@ def office_pdf_update():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@office.route('/office_pdf_delete/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/office_pdf_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def office_pdf_delete():
     """
     delete one office pdf file by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
@@ -398,14 +398,14 @@ def office_pdf_delete():
                       StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
 
 
-@office.route('/office_pdf_deletes/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/office_pdf_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
 def office_pdf_deletes():
     """
     delete many office pdf file by md5 list
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method in ['GET', 'POST']:
         return Status(
             211, 'failure', StatusMsgs.get(211), {}).json()
 
