@@ -70,10 +70,10 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
   - dev 测试环境
   - prod 线上环境
 
-每套配置文件夹下有3个配置文件，config与gunicorn进行绑定：
-  - config：项目的db、mail、log等项目开发用的所有配置，这里的log记录项目的log，关于项目相关的配置都可以在此文件进行配置
-  - gunicorn：项目启动时所需要的IP、port、log、进程数量等配置
-  - supervisor: 项目进程管理的配置信息
+每套配置文件夹下有2个配置文件：
+  - config.yaml：项目的db、mail、log等项目开发用的所有配置，这里的log记录项目的log，关于项目相关的配置都可以在此文件进行配置
+  - gunicorn：项目启动时所需要的IP、port、log、进程数量等配置   
+supervisor: 项目进程管理的配置信息，单独一个，部署到线上
 
 .yaml格式的配置文件是有deploy/config.py进行解析的，如果在config.yaml配置文件中添加配置信息，需要在此文件进行解析添加，**建议添加配置默认值**。
 
