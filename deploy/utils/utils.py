@@ -182,7 +182,7 @@ def get_user_id():
     get current request link user rtx id
     :return: rtx id or None
     """
-    return session.get('user-id') or session.get('rtx-id')
+    return session.get('rtx-id') or session.get('user_id')
 
 
 def get_real_ip(request):
