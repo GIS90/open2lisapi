@@ -63,13 +63,12 @@ from deploy.utils.base_class import WebBaseClass
 from deploy.utils.logger import logger as LOG
 from deploy.utils.utils import get_user_id, get_real_ip
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 
 # view
 from deploy.view import add_routers
 # service
 from deploy.service.sysuser import SysUserService
-from deploy.service.request import RequestService
 
 
 app = Flask(__name__)
@@ -108,7 +107,7 @@ class WebFlaskServer(WebBaseClass):
         self.app.add_url_rule(self.app.static_url_path + '/<path:filename>',
                               endpoint='static',
                               view_func=self.app.send_static_file)
-        self.request_service = RequestService()
+        self.sysuser_service = SysUserService()
         # -------------------------------------------------------------------------------
 
         # App web hook
@@ -120,7 +119,7 @@ class WebFlaskServer(WebBaseClass):
             # self.app.permanent_session_lifetime = timedelta(minutes=60)
 
             """
-            user was logined
+            user was login
             """
             if get_user_id():
                 return
@@ -160,25 +159,17 @@ class WebFlaskServer(WebBaseClass):
             otherwise >>>>> no access
             """
             if request.headers.get('X-Token'):      # legal request
-                user_model = SysUserService().\
-                    get_user_by_token(request.headers.get('X-Token'))   # legal user
+                user_model = self.sysuser_service.get_user_by_token(request.headers.get('X-Token'))   # legal user
                 if user_model:
-                    # change watcher to hit point
-                    """
-                    try:
-                        self.request_service.add_request(request)  # 加入请求API日志
-                    except: 
-                        pass
-                    """
                     # new add check request headers[X-Rtx-Id] is or not equal user model[rtx_id]
                     if request.headers.get('X-Rtx-Id') != user_model.get('rtx_id'):
                         return Status(
-                            200, 'failure', u"Token与当前登录用户不符合", {}).json()
+                            205, StatusEnum.FAILURE.value, "Token与当前登录用户不符合", {}).json()
 
                     return
             # Other condition, user is required login in
             return Status(
-                200, 'failure', StatusMsgs.get(200) or u'用户未登录', {}).json()
+                200, StatusEnum.FAILURE.value, StatusMsgs.get(200) or u'用户未登录', {}).json()
 
         """
         @self.app.after_request
