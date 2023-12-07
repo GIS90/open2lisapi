@@ -185,7 +185,7 @@ class ImageService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_page_comm_attrs and v:
+            if k not in self.req_page_comm_attrs:
                 return Status(
                     401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
