@@ -6,8 +6,9 @@
 describe:
     common view
     通用API模块
-    - upload 上传单文件
-    - upload 多文件上传
+        - 上传单文件[file_upload]
+        - 多文件上传[file_uploads]
+        - 富文本编辑器图片上传[image_wangeditor]
 
 base_info:
     __author__ = "PyGo"
@@ -39,11 +40,10 @@ Life is short, I use python.
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 
-from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
-# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.watcher import watcher
+from deploy.utils.decorator import watch_except
 from deploy.service.common import CommonService
 
 
@@ -53,86 +53,78 @@ CORS(common, supports_credentials=True)
 
 @common.route('/file_upload/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def file_upload():
     """
     one file upload to server(file store object)
     :return: json data
 
-    前端form表单上传文件input name：files
+    前端form表单单文件上传
+    input name：files
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.form
-        # 文件
-        files = request.files
-        if not files or (files and not files.get('files')):
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
+    # FORM表单参数
+    params = request.form
+    # 文件
+    files = request.files
+    if not files or (files and not files.get('files')):
+        return Status(
+            450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
 
-        return CommonService().file_upload(params, request.files.get('files'))
-    except Exception as e:
-        LOG.error("common>file upload is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    return CommonService().file_upload(params, request.files.get('files'))
 
 
 @common.route('/file_uploads/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def file_uploads():
     """
     many file upload to server(file store object)
     :return: json data
 
-    前端form表单上传文件input name：files
+    前端form表单多文件上传
+    input name：files
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.form
-        # 文件
-        files = request.files
-        if not files:
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
+    # FORM表单参数
+    params = request.form
+    # 文件
+    files = request.files
+    if not files:
+        return Status(
+            450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
 
-        return CommonService().file_uploads(params, files)
-    except Exception as e:
-        LOG.error("common>file uploads is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    return CommonService().file_uploads(params, files)
 
 
 @common.route('/image_wangeditor/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def image_wangeditor():
     """
     one image wang editor upload to server(file store object)
     :return: json data
 
-    前端form表单上传文件input name：files
+    富文本编辑器图片上传[单]
+    input name：files
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.form
-        # 文件
-        files = request.files
-        if not files or (files and not files.get('files')):
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
+    # FORM表单参数
+    params = request.form
+    # 文件
+    files = request.files
+    if not files or (files and not files.get('files')):
+        return Status(
+            450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
 
-        return CommonService().image_wangeditor(params, request.files.get('files'))
-    except Exception as e:
-        LOG.error("common>image wang editor upload is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    return CommonService().image_wangeditor(params, request.files.get('files'))
+

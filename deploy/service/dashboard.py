@@ -43,7 +43,7 @@ from deploy.bo.menu import MenuBo
 from deploy.bo.role import RoleBo
 from deploy.bo.shortcut import ShortCutBo
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.config import ADMIN
 
 
@@ -118,20 +118,20 @@ class DashboardService(object):
         """
         dashboard pan chart data
         contain:
-        pan:
-            - user 用户
+            - user 用户数
             - click 点击率
+            - operate 使用率
         """
         # ================= parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_pan_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -140,13 +140,14 @@ class DashboardService(object):
             if not k: continue
             if k not in self.req_pan_attrs:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # ---------------- parameter initialize ----------------
         rtx_id = new_params.get('rtx_id')
+        # 本日时间段数据
         now_date = get_now(format="%Y-%m-%d")
         date_params = {
             "start_time": "%s 00:00:00" % now_date,
@@ -172,7 +173,7 @@ class DashboardService(object):
         }
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), ret_res_json
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), ret_res_json
         ).json()
 
     @staticmethod
@@ -204,13 +205,13 @@ class DashboardService(object):
         # ================= parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_pan_chart_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -219,17 +220,19 @@ class DashboardService(object):
             if not k: continue
             if k not in self.req_pan_chart_attrs:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'type' and v not in ['user', 'click', 'operate']:
                 return Status(
-                    213, 'failure', u'请求参数%s值不合法' % k, {}).json()
+                    404, StatusEnum.FAILURE.value, '请求参数%s值不合法' % k, {}).json()
             new_params[k] = str(v)
+
         # ---------------- parameter initialize ----------------
         rtx_id = new_params.get('rtx_id')
         _type = new_params.get('type')
+        # 本周
         local_week = get_day_week_date(get_now_date())
         date_params = {
             "start_date": local_week.get('start_week_date'),
@@ -302,7 +305,7 @@ class DashboardService(object):
             'data': list(_ret_week_dict.values())
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), _ret_d
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _ret_d
         ).json()
 
     def _get_index_one(self):
@@ -315,7 +318,9 @@ class DashboardService(object):
             'office.office_pdf_to': "PDF转WORD",
             'notify.dtalk_send': "钉钉绩效",
             'notify.qywx_send': "企微通知",
-            'search.sqlbase_add': "SQL仓库"
+            'search.sqlbase_add': "SQL仓库",
+            # 'auth.user_add': "用户管理",
+            # 'auth.role_add': "角色管理",
         }
         # <<<<<<<<<<<<<<<<<< get all func rank >>>>>>>>>>>>>>>>>>>
         _res = self.request_bo.get_func_rank(params={'func_names': list(func_names.keys())})
@@ -333,7 +338,7 @@ class DashboardService(object):
         _ret_res = list()
         for k, v in _ret_dict.items():
             if not k: continue
-            _ret_res.append({"name": func_names.get(k), "value": v})
+            _ret_res.append({"name": func_names.get(k), "value": v or 0})   # 默认0次
         _ret_data = {
             'data': _ret_res,
             'legend': list(func_names.values()),
@@ -418,13 +423,13 @@ class DashboardService(object):
         # ================= parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_index_chart_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -433,10 +438,10 @@ class DashboardService(object):
             if not k: continue
             if k not in self.req_index_chart_attrs:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # ---------------- parameter initialize ----------------
         rtx_id = new_params.get('rtx_id')
@@ -454,7 +459,7 @@ class DashboardService(object):
 
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), ret_res_json
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), ret_res_json
         ).json()
 
     def shortcut(self, params: dict) -> dict:
@@ -479,13 +484,13 @@ class DashboardService(object):
         # ================= 1 - parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_shortcut_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -494,10 +499,10 @@ class DashboardService(object):
             if not k: continue
             if k not in self.req_shortcut_attrs:     # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # >>>>>>>>> 定义结果数据
@@ -538,7 +543,7 @@ class DashboardService(object):
                     break
             # return data
             return Status(
-                100, 'success', StatusMsgs.get(100), ret_res_json).json()
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), ret_res_json).json()
 
         """ <<<<<<<<<<<<<<<<<<<<<<<<<<< 情况二 >>>>>>>>>>>>>>>>>>>>>>>>>>>"""
         # -------------------- 4.2.1 - check user and roles --------------------
@@ -547,11 +552,11 @@ class DashboardService(object):
         # user model is not exist
         if not user:
             return Status(
-                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
+                202, StatusEnum.FAILURE.value, '用户未注册', {}).json()
         # user model is deleted
         if user.is_del:
             return Status(
-                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
+                203, StatusEnum.FAILURE.value, '用户已注销', {}).json()
         # 判断是否管理员，如果是管理员是全部菜单权限
         # 多角色，if包含管理员，直接是管理员权限
         roles = str(user.role).split(';') if user.role else []  # 分割多角色
@@ -591,7 +596,7 @@ class DashboardService(object):
                 break
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), ret_res_json).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), ret_res_json).json()
 
     def shortcut_edit(self, params: dict) -> dict:
         """
@@ -608,13 +613,13 @@ class DashboardService(object):
         # ================= 1 - parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_shortcut_edit_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -623,10 +628,10 @@ class DashboardService(object):
             if not k: continue
             if k not in self.req_shortcut_edit_attrs:  # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:  # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # -------------------- 2 - check user data and roles --------------------
         rtx_id = new_params.get('rtx_id').strip()  # 去空格
@@ -635,11 +640,11 @@ class DashboardService(object):
         # user model is not exist
         if not user:
             return Status(
-                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
+                202, StatusEnum.FAILURE.value, '用户未注册', {}).json()
         # user model is deleted
         if user.is_del:
             return Status(
-                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
+                203, StatusEnum.FAILURE.value, '用户已注销', {}).json()
         # 判断是否管理员，如果是管理员是全部菜单权限
         # 多角色，if包含管理员，直接是管理员权限
         roles = str(user.role).split(';') if user.role else []  # 分割多角色
@@ -703,7 +708,9 @@ class DashboardService(object):
                     pass
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100),
+            100,
+            StatusEnum.SUCCESS.value,
+            StatusMsgs.get(100),
             {"select": select, "unselect": unselect}
         ).json()
 
@@ -721,13 +728,13 @@ class DashboardService(object):
         # ================= 1 - parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_shortcut_save_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -736,17 +743,17 @@ class DashboardService(object):
             if not k: continue
             if k not in self.req_shortcut_save_attrs:  # illegal key
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:  # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'select':
                 if not isinstance(v, list):     # select参数类型检查
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 if len(v) > 15:         # select参数长度检查，最大设置15个
                     return Status(
-                        213, 'failure', u'超出设置上限，最多设置15个', {}).json()
+                        405, StatusEnum.FAILURE.value, '快捷入口最多设置15个', {}).json()
                 new_params[k] = ';'.join(v)  # 格式化成字符串存储
                 new_params['select_list'] = v
             else:
@@ -759,11 +766,11 @@ class DashboardService(object):
         # user model is not exist
         if not user:
             return Status(
-                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}).json()
+                202, StatusEnum.FAILURE.value, '用户未注册', {}).json()
         # user model is deleted
         if user.is_del:
             return Status(
-                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}).json()
+                203, StatusEnum.FAILURE.value, '用户已注销', {}).json()
         # 判断是否管理员，如果是管理员是全部菜单权限
         # 多角色，if包含管理员，直接是管理员权限
         roles = str(user.role).split(';') if user.role else []  # 分割多角色
@@ -805,5 +812,5 @@ class DashboardService(object):
             self.shortcut_bo.merge_model(shortcut)
             # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), {}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}
         ).json()

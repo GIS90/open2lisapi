@@ -39,7 +39,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python enums.py
 # ------------------------------------------------------------
-from enum import Enum
+from enum import Enum, unique
 
 
 # Excel拆分枚举
@@ -53,6 +53,7 @@ BOOL = ['0', '1']
 # ==============================
 # 文件类型
 # ==============================
+@unique
 class FileTypeEnum(Enum):
     EXCEL_MERGE = 1
     EXCEL_SPLIT = 2

@@ -189,6 +189,17 @@ mysqldump
     使用了七牛（qiniu.com）面对对象存储，注册免费使用10G空间
 
 
+### API请求参数类型
+
+  - json  
+    request.get_json()
+  - form  
+    request.form
+  - 查询参数  
+    request.args
+  - 文件  
+    request.files
+
 
 > ## 开发特定点
 

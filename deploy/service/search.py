@@ -43,8 +43,9 @@ from deploy.bo.enum import EnumBo
 
 from deploy.config import OFFICE_LIMIT
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.utils import d2s, get_now, md5, check_length, s2d, auth_rtx_join
+from deploy.utils.logger import logger as LOG
 
 
 class SearchService(object):
@@ -322,42 +323,42 @@ class SearchService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_sqlbase_list_attrs and v:  # is illegal parameter
+            if k not in self.req_sqlbase_list_attrs:  # is illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k in self.req_sqlbase_list_search_list_types:    # 处理列表参数
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s为列表类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             if k in self.req_sqlbase_list_search_time_types and v:      # 处理时间查询参数，str类型
                 if not isinstance(v, str):
                     return Status(
-                        213, 'failure', u'请求参数%s为字符串类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s为字符串类型' % k, {}).json()
                 if v:
                     try:
                         s2d(v)
                     except:
                         return Status(
-                            213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
+                            404, StatusEnum.FAILURE.value, '请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
 
             if k in self.req_sqlbase_list_search_like_types and v:      # like 查询参数
                 v = '%' + str(v) + '%'
             elif k in self.req_sqlbase_list_search_int_types and v:      # int类型查询参数
                 if not str(v).isdigit():
                     return Status(
-                        213, 'failure', u'请求参数%s为数字类型' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s为数字类型' % k, {}).json()
                 v = int(v)
             elif k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
@@ -375,7 +376,7 @@ class SearchService(object):
         # 追加数据库类型，关联enum表
         new_params['enum_name'] = 'db-type'
         res, total = self.sqlbase_bo.get_all(new_params)
-        """ all user k-v list"""
+        # all user k-v list
         user_res, _ = self.sysuser_bo.get_all({}, is_admin=True, is_del=True)
         user_list = list()
         for _d in user_res:
@@ -392,9 +393,9 @@ class SearchService(object):
         database_list = self._group_database_types()
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101),
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101),
                 {'list': [], 'total': 0, 'user': user_list, 'database': database_list}).json()
-        # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
+        # - - - - - - - - - -  return data - - - - - - - - - -
         """ sqlbase list """
         new_res = list()
         n = 1 + new_params.get('offset')
@@ -409,7 +410,7 @@ class SearchService(object):
                 n += 1
                 
         return Status(
-            100, 'success', StatusMsgs.get(100),
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
             {
                 'list': new_res,
                 'total': total,
@@ -426,13 +427,13 @@ class SearchService(object):
         # ===== check parameters && format parameters ======
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_sqlbase_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -441,18 +442,18 @@ class SearchService(object):
             # check: not allow parameters
             if k not in self.req_sqlbase_add_attrs:
                 return Status(
-                    213, 'failure', '请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in self.req_sqlbase_edit_no_need_attrs:  # is not null
                 return Status(
-                    214, 'failure', '请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
         # parameters length check
         for _key, _value in self.req_sqlbase_edit_ck_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
         try:
             # create new model
             new_model = self.sqlbase_bo.new_mode()
@@ -466,11 +467,11 @@ class SearchService(object):
                 setattr(new_model, key, value)
             else:
                 self.sqlbase_bo.add_model(new_model)
-        except:
+        except Exception as error:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
         return Status(
-            100, 'success', StatusMsgs.get(100), {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json()
 
     def _group_database_types(self) -> list:
         """
@@ -517,13 +518,13 @@ class SearchService(object):
         # ================== parameters check && format ==================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_add_init_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -531,10 +532,10 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_add_init_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k or StatusMsgs.get(214), {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
@@ -545,21 +546,13 @@ class SearchService(object):
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
         # enum: all database type
-        """
-        # 非分组型数据库类型枚举
-        database_res = self.enum_bo.get_model_by_name(name='db-type')
-        database_list = list()
-        for _d in database_res:
-            if not _d: continue
-            database_list.append({'key': _d.key, 'value': _d.value})
-        """
         database_list = self._group_database_types()
         _res = {
             'user': user_list,
             'database': database_list
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), _res).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
 
     def sqlbase_delete(self, params: dict) -> json:
         """
@@ -569,13 +562,13 @@ class SearchService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -583,10 +576,10 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k or StatusMsgs.get(214), {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -594,17 +587,18 @@ class SearchService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 权限账户
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # <update data> 软删除
         try:
             model.is_del = True
@@ -613,9 +607,9 @@ class SearchService(object):
             self.sqlbase_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def sqlbase_deletes(self, params: dict) -> json:
@@ -626,13 +620,13 @@ class SearchService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -640,30 +634,31 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k or StatusMsgs.get(214), {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
         # 权限账号
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
             res = self.sqlbase_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
+
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
+            else Status(508, StatusEnum.FAILURE.value,
                         "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
@@ -675,13 +670,13 @@ class SearchService(object):
         # ================== parameters check && format ==================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -689,25 +684,25 @@ class SearchService(object):
             if not k: continue
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         _type = new_params.get('type')
         if _type not in ['edit', 'view']:
             return Status(
-                213, 'failure', u'请求参数type不合法', {}).json()
+                404, StatusEnum.FAILURE.value, '请求参数type不合法', {}).json()
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.sqlbase_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
 
         """ =============== return data =============== """
         # enum: all users
@@ -717,21 +712,13 @@ class SearchService(object):
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
         # enum: all database type
-        """
-        # 非分组型数据库类型枚举
-        database_res = self.enum_bo.get_model_by_name(name='db-type')
-        database_list = list()
-        for _d in database_res:
-            if not _d: continue
-            database_list.append({'key': _d.key, 'value': _d.value})
-        """
         database_list = self._group_database_types()
         _res = {
             'user': user_list,
             'database': database_list,
             'detail': self._sqlbase_model_to_dict(model, _type='detail')
         }
-        """ 浏览文章增加次数 """
+        # 浏览文章增加次数，try防止发生数据库更新异常
         if _type == 'view':
             try:
                 setattr(model, 'count', model.count + 1)
@@ -739,7 +726,7 @@ class SearchService(object):
             except:
                 pass
         return Status(
-            100, 'success', StatusMsgs.get(100), _res).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
 
     def sqlbase_update(self, params: dict) -> json:
         """
@@ -758,64 +745,64 @@ class SearchService(object):
         # ====================== parameters check and format ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_md5_necessary_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_sqlbase_update_attrs and v:      # 不合法参数
+            if k not in self.req_sqlbase_update_attrs:      # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in self.req_sqlbase_edit_no_need_attrs:  # is not null
                 return Status(
-                    214, 'failure', '请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # check: length
         for _key, _value in self.req_sqlbase_edit_ck_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.sqlbase_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 权限账户
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         # --------------------------------------- update model --------------------------------------
-        for key, value in new_params.items():
-            if not key: continue
-            # 不更新属性
-            if key in self.req_sqlbase_no_update_attrs: continue
-            setattr(model, key, value)
         try:
+            for key, value in new_params.items():
+                if not key: continue
+                # 不更新属性
+                if key in self.req_sqlbase_no_update_attrs: continue
+                setattr(model, key, value)
             self.sqlbase_bo.merge_model(model)
             return Status(
-                100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}).json()
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': model.md5_id}).json()
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
 
     def share_list(self, params: dict) -> json:
         """
@@ -825,43 +812,43 @@ class SearchService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_share_list_attrs and v:  # is illegal parameter
+            if k not in self.req_share_list_attrs:  # is illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k or StatusMsgs.get(213), {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
 
             if k in self.req_share_list_search_list_types:    # 处理列表参数
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s为列表类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             if k in self.req_share_list_search_time_types and v:      # 处理时间查询参数，str类型
                 if not isinstance(v, str):
                     return Status(
-                        213, 'failure', u'请求参数%s为字符串类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s为字符串类型' % k, {}).json()
                 if v:
                     try:
                         s2d(v)
                     except:
                         return Status(
-                            213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
+                            404, StatusEnum.FAILURE.value, '请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
 
             if k in self.req_share_list_search_like_types and v:      # like 查询参数
                 v = '%' + str(v) + '%'
             elif k in self.req_share_list_search_int_types and v:      # int类型查询参数
                 if not str(v).isdigit():
                     return Status(
-                        213, 'failure', u'请求参数%s为数字类型' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s为数字类型' % k, {}).json()
                 v = int(v)
             elif k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
@@ -917,5 +904,6 @@ class SearchService(object):
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total, 'user': user_list}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
+            {'list': new_res, 'total': total, 'user': user_list}
         ).json()

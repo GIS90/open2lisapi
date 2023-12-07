@@ -34,8 +34,9 @@ from pdf2docx import Converter
 
 from deploy.utils.utils import filename2md5, \
     get_now, mk_dirs, md5
-from deploy.config import STORE_CACHE
+from deploy.config import STORE_CACHE, DEBUG
 from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.logger import logger as LOG
 
 
 class FileLib(object):
@@ -73,8 +74,16 @@ class FileLib(object):
         """
         initialize parameters
         """
+        if DEBUG:
+            LOG.debug("FileLib class start initialize.")
         self.default_doc_prefix = '.docx'
         self.cpu_count = self._get_cpu_count()
+
+    def __str__(self):
+        return "FileLib Class."
+
+    def __repr__(self):
+        return self.__str__()
 
     @staticmethod
     def format_res(status_id: int, message: str, data: json) -> dict:
@@ -117,7 +126,7 @@ class FileLib(object):
             }
         """
         if not file:
-            return False, {'message': 'Not found file'}
+            return False, {'message': '缺少上传文件'}
 
         # 文件存储初始化
         now_date = get_now(format="%Y%m%d")
@@ -146,8 +155,8 @@ class FileLib(object):
                           'store_name': '%s/%s' % (now_date, file_name),
                           'path': os.path.join(real_store_dir, file_name),
                           'message': 'success'}
-        except:
-            return False, {'message': '文件存储Exception发生错误'}
+        except Exception as error:
+            return False, {'message': '文件存储发生异常：%s' % error}
 
     def _pdf2word(self, cmd5: str,
                   pdf_file: str, word_name: str,
@@ -180,16 +189,17 @@ class FileLib(object):
         """
         # check pdf file
         if not pdf_file or not os.path.exists(pdf_file):
-            return self.format_res(101, 'PDF文件不存在', {'md5': cmd5})
+            return self.format_res(451, 'PDF文件不存在', {'md5': cmd5})
         if not os.path.isfile(pdf_file):
-            return self.format_res(102, 'PDF文件不是一个正常PDF文件', {'md5': cmd5})
+            return self.format_res(455, 'PDF文件内容不支持', {'md5': cmd5})
         pdf_path, pdf_name = os.path.split(pdf_file)
         pdf_names = os.path.splitext(pdf_name)
         if len(pdf_names) < 2 or pdf_names[1] not in self.DPF_EXTENSIONS:
-            return self.format_res(103, 'PDF文件格式不正确', {'md5': cmd5})
+            return self.format_res(454, 'PDF文件格式不正确', {'md5': cmd5})
+
         # check start page && end page
         if start and end and start > end:
-            return self.format_res(104, '结束页不允许小于开始页', {'md5': cmd5})
+            return self.format_res(404, '结束页不允许小于开始页', {'md5': cmd5})
         # check word file name
         if word_name:
             word_names = os.path.splitext(word_name)
@@ -367,7 +377,7 @@ class FileLib(object):
         }
         """
         if not pdf_list:
-            return self.format_res(101, '缺少pdf_list参数', [])
+            return self.format_res(400, '缺少pdf_list参数', [])
         # to execute convert method by is_multi_processing value
         return self.__pdf2word_by_multi_processing(pdf_list) if is_multi_processing \
             else self.__pdf2word_no_multi_processing(pdf_list)

@@ -13,7 +13,7 @@ base_info:
     __version__ = "v.1.0.0"
     __mail__ = "gaoming971366@163.com"
     __blog__ = "www.pygo2.top"
-    __project__ = "twtoolbox_isapi"
+    __project__ = "open2lisapi"
 
 usage:
     image_lib = ImageLib()
@@ -41,8 +41,9 @@ from PIL import Image
 
 from deploy.utils.utils import filename2md5, \
     get_now, mk_dirs
-from deploy.config import STORE_CACHE, IMAGE_QUALITY, IMAGE_WIDTH
+from deploy.config import STORE_CACHE, IMAGE_QUALITY, IMAGE_WIDTH, DEBUG
 from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.logger import logger as LOG
 
 
 class ImageLib(object):
@@ -64,9 +65,17 @@ class ImageLib(object):
         初始化参数
         暂无实例化参数，都从配置文件中进行获取
         """
+        if DEBUG:
+            LOG.debug("ImageLib class start initialize.")
         self.cache = STORE_CACHE
         self.quality = IMAGE_QUALITY
         self.width = IMAGE_WIDTH
+
+    def __str__(self):
+        return "ImageLib Class."
+
+    def __repr__(self):
+        return self.__str__()
 
     @staticmethod
     def format_res(status_id: int, message: str, data: dict) -> dict:
@@ -96,7 +105,8 @@ class ImageLib(object):
         查看图片的基础信息
         image_file: image file
         """
-        if not image_file or not os.path.exists(image_file):
+        if not image_file \
+                or not os.path.exists(image_file):
             return {}
 
         img = Image.open(image_file)
@@ -116,8 +126,7 @@ class ImageLib(object):
         """
         if not image_file:
             return self.format_res(
-                216, '文件不存在', {}
-            )
+                450, '缺少上传文件', {})
 
         try:
             # ================= 文件存储初始化 =================
@@ -137,11 +146,12 @@ class ImageLib(object):
                 h_size = int(float(small_img.size[1]) * float(w_percent))
                 small_img = small_img.resize((IMAGE_WIDTH, h_size), Image.ANTIALIAS)
                 small_img.save(image_real_file, quality=IMAGE_QUALITY)
-            return self.format_res(100, 'success',
-                                   {'name': store_name_md5,
-                                    'file': os.path.join(real_store_dir, store_name_md5)})
-        except:
-            return self.format_res(998, '图片存储失败', {})
+            return self.format_res(100,
+                                   'success',
+                                   {'name': store_name_md5, 'file': os.path.join(real_store_dir, store_name_md5)}
+                                   )
+        except Exception as error:
+            return self.format_res(456, '图片存储失败：%s' % str(error), {})
 
     def update_size(self, image_file, length=280, width=280):
         """
@@ -150,7 +160,7 @@ class ImageLib(object):
         if not image_file or \
                 not os.path.exists(image_file):
             return self.format_res(
-                216, '文件不存在', {})
+                451, '文件不存在', {})
 
         try:
             image_dir, image_name = os.path.split(image_file)
@@ -162,7 +172,7 @@ class ImageLib(object):
             upsize_image.save(out_image_file)
             return self.format_res(
                 100, 'success', {'md5': out_file_md5, 'name': out_file_name})
-        except:
+        except Exception as error:
             return self.format_res(
-                998, '图片更新大小失败', {})
+                999, '图片更新大小失败：%s' % str(error), {})
 

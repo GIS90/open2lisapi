@@ -5,6 +5,9 @@
 
 describe: 
     search view
+      - SQL仓库[sqlbase]
+      - 知识分享[share]
+      - 羊毛工具[sheep]
 
 base_info:
     __author__ = "PyGo"
@@ -38,9 +41,10 @@ from flask_cors import CORS, cross_origin
 
 from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.watcher import watcher
 from deploy.service.search import SearchService
+from deploy.utils.decorator import watch_except
 
 
 search = Blueprint(name='search', import_name=__name__, url_prefix='/search')
@@ -49,6 +53,7 @@ CORS(search, supports_credentials=True)
 
 @search.route('/sqlbase_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def sqlbase_list():
     """
     get sqlbase list from db table sqlbase by parameters
@@ -56,20 +61,16 @@ def sqlbase_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().sqlbase_list(params)
-    except Exception as e:
-        LOG.error("search>sqlbase list is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().sqlbase_list(params)
 
 
 @search.route('/sqlbase_add/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def sqlbase_add():
     """
     add new data to db table sqlbase, new data is dict object
@@ -77,20 +78,16 @@ def sqlbase_add():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().sqlbase_add(params)
-    except Exception as e:
-        LOG.error("search>sqlbase add is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().sqlbase_add(params)
 
 
 @search.route('/sqlbase_add_init/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def sqlbase_add_init():
     """
     sqlbase add data initialize enum list
@@ -98,20 +95,16 @@ def sqlbase_add_init():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().sqlbase_add_init(params)
-    except Exception as e:
-        LOG.error("search>sqlbase add init is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().sqlbase_add_init(params)
 
 
 @search.route('/sqlbase_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def sqlbase_delete():
     """
     delete one sqlbase data by md5 from sqlbase table
@@ -119,20 +112,16 @@ def sqlbase_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().sqlbase_delete(params)
-    except Exception as e:
-        LOG.error("search>delete one sqlbase is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().sqlbase_delete(params)
 
 
 @search.route('/sqlbase_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def sqlbase_deletes():
     """
     delete many sqlbase data by md5 list from sqlbase table
@@ -140,20 +129,16 @@ def sqlbase_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().sqlbase_deletes(params)
-    except Exception as e:
-        LOG.error("search>delete many sqlbase is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().sqlbase_deletes(params)
 
 
 @search.route('/sqlbase_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def sqlbase_detail():
     """
     get the latest sqlbase detail information by md5
@@ -161,20 +146,16 @@ def sqlbase_detail():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().sqlbase_detail(params)
-    except Exception as e:
-        LOG.error("search>sqlbase detail is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().sqlbase_detail(params)
 
 
 @search.route('/sqlbase_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def sqlbase_update():
     """
     update sqlbase message information by data md5, contain:
@@ -191,20 +172,16 @@ def sqlbase_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().sqlbase_update(params)
-    except Exception as e:
-        LOG.error("search>sqlbase update is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or '服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().sqlbase_update(params)
 
 
 @search.route('/share_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def share_list():
     """
     get share data list from db table share by parameters
@@ -212,14 +189,9 @@ def share_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SearchService().share_list(params)
-    except Exception as e:
-        LOG.error("search>share list is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return SearchService().share_list(params)
 

@@ -38,7 +38,7 @@ from deploy.utils.utils import get_now, get_real_ip, \
     get_rtx_id, d2s
 from deploy.config import USER_DEFAULT_TIMELINE, OFFICE_LIMIT
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 
 
 class RequestService(object):
@@ -204,22 +204,22 @@ class RequestService(object):
         # >>>>>>>>>>>>>>>>> no parameters <<<<<<<<<<<<<<<<<<
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数', {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_list_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # check parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_list_attrs and v:
+            if k not in self.req_list_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -230,18 +230,11 @@ class RequestService(object):
                 v = str(v)
             new_params[k] = v
 
-        # 加上计算时间
-        # import datetime
-        # start = datetime.datetime.now()
+        # - - - - - - - - - - - timeline result - - - - - - - - - -
         res, total = self.request_bo.get_by_rtx(new_params)
-        # end = datetime.datetime.now()
-        # print('=' * 30)
-        # print((end-start).seconds)
-        # print(total)
-        # print('=' * 30)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'timeline': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'timeline': [], 'total': 0}).json()
 
         data_list = list()
         for d in res:
@@ -250,8 +243,7 @@ class RequestService(object):
             if _d: data_list.append(_d)
 
         return Status(
-            100, 'success',
-            StatusMsgs.get(100), {'timeline': data_list, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'timeline': data_list, 'total': total}
         ).json()
 
 

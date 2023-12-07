@@ -4,7 +4,9 @@
 ------------------------------------------------
 describe:
     access view
-    主要用于login and logout的api
+    主要用于用户系统的login and logout api
+      - 登录[login]
+      - 退出[logout]
 
 base_info:
     __author__ = "PyGo"
@@ -41,6 +43,7 @@ from deploy.utils.status import Status
 from deploy.service.sysuser import SysUserService
 from deploy.service.request import RequestService
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
+from deploy.utils.decorator import watch_except
 
 
 access = Blueprint(name='access', import_name=__name__, url_prefix='/access')
@@ -51,6 +54,7 @@ request_service = RequestService()
 
 
 @access.route('/login/', methods=['GET', 'POST'], strict_slashes=False)
+@watch_except
 def login():
     """
     login > login in to system
@@ -63,10 +67,10 @@ def login():
         user_pwd = data_json.get('password')    # 登录密码
         if not rtx_id:
             return Status(
-                400, StatusEnum.FAILURE.VALUE, '缺少username请求参数', {}).json()
+                400, StatusEnum.FAILURE.value, '缺少username请求参数', {}).json()
         if not user_pwd:
             return Status(
-                400, StatusEnum.FAILURE.VALUE, '缺少password请求参数', {}).json()
+                400, StatusEnum.FAILURE.value, '缺少password请求参数', {}).json()
 
         # >>>>>>>>>>>>>>>>>>>>> start login <<<<<<<<<<<<<<<<<<<<<
         start = datetime.now()      # start time
@@ -76,20 +80,20 @@ def login():
         # user is not exist
         if not user_model:
             return Status(
-                202, StatusEnum.FAILURE.VALUE, '用户未注册，请联系管理员注册', {}).json()
+                202, StatusEnum.FAILURE.value, '用户未注册，请联系管理员注册', {}).json()
         # user is deleted
         if user_model.get('is_del'):
             return Status(
-                203, StatusEnum.FAILURE.VALUE, '用户已注销，不允许登录系统', {}).json()
+                203, StatusEnum.FAILURE.value, '用户已注销，不允许登录系统', {}).json()
         # check password
+        # TODO密码加密验证
         if user_model.get('password') != user_pwd:
             return Status(
-                204, StatusEnum.FAILURE.VALUE, '密码不正确，请重新输入密码', {}
-            ).json()
+                204, StatusEnum.FAILURE.value, '密码不正确，请重新输入密码', {}).json()
         # check is or not exist token
         if not user_model.get('md5_id'):
             return Status(
-                999, StatusEnum.FAILURE.VALUE, '用户Token初始化失败，请联系管理员', {}).json()
+                999, StatusEnum.FAILURE.value, '用户Token初始化失败，请联系管理员', {}).json()
 
         """ user is login success"""
         rtx_id = user_model.get('rtx_id') or rtx_id
@@ -101,14 +105,15 @@ def login():
         # watcher打点 >>>>>>>>> request
         request_service.add_request(request=request, cost=cost, rtx=rtx_id)
         return Status(
-            100, StatusEnum.SUCCESS.VALUE, StatusMsgs.get(100), {'token': user_model.get('md5_id')}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'token': user_model.get('md5_id')}).json()
     else:
         # 不支持其他请求
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
 
 @access.route('/logout/', methods=['GET', 'POST'], strict_slashes=False)
+@watch_except
 def logout():
     """
     logout > user login out the system
@@ -124,7 +129,7 @@ def logout():
     # watcher打点 >>>>>>>>> request
     request_service.add_request(request=request, cost=cost, rtx=rtx_id)
     return Status(
-        100, StatusEnum.SUCCESS.VALUE, StatusMsgs.get(100), {}).json()
+        100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json()
 
 
 # TODO 用jwt模式

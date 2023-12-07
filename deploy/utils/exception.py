@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    exception
 
 base_info:
     __author__ = "PyGo"

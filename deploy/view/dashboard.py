@@ -5,7 +5,8 @@
 
 describe: 
     bashboard view
-    - pan: 初始化Dashboard Pan
+    - 图表[chart]
+    - 功能快捷键[shortcut]
 
 base_info:
     __author__ = "PyGo"
@@ -34,17 +35,14 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python dashboard.py
 # ------------------------------------------------------------
-from datetime import datetime
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 
-from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
-from deploy.utils.decorator import timer
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
+from deploy.utils.decorator import watch_except
 from deploy.utils.watcher import watcher
 from deploy.service.dashboard import DashboardService
-from deploy.service.request import RequestService
 
 
 dashboard = Blueprint(name='dashboard', import_name=__name__, url_prefix='/dashboard')
@@ -53,6 +51,7 @@ CORS(dashboard, supports_credentials=True)
 
 @dashboard.route('/pan/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def pan():
     """
     dashboard pan chart data
@@ -60,21 +59,16 @@ def pan():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        res = DashboardService().pan(params)
-        return res
-    except Exception as e:
-        LOG.error("dashboard>pan is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return DashboardService().pan(params)
 
 
 @dashboard.route('/pan_chart/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def pan_chart():
     """
     dashboard pan chart data
@@ -82,21 +76,16 @@ def pan_chart():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        res = DashboardService().pan_chart(params)
-        return res
-    except Exception as e:
-        LOG.error("dashboard>pan chart is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return DashboardService().pan_chart(params)
 
 
 @dashboard.route('/index/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def index():
     """
     dashboard index chart data initialize
@@ -104,21 +93,16 @@ def index():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
-    res = DashboardService().index(params)
-    try:
-        return res
-    except Exception as e:
-        LOG.error("dashboard>index is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    return DashboardService().index(params)
 
 
 @dashboard.route('/shortcut/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def shortcut():
     """
     dashboard short cut data
@@ -126,20 +110,16 @@ def shortcut():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return DashboardService().shortcut(params)
-    except Exception as e:
-        LOG.error("dashboard>shortcut is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return DashboardService().shortcut(params)
 
 
 @dashboard.route('/shortcut_edit/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def shortcut_edit():
     """
     dashboard short cut edit data list
@@ -147,20 +127,16 @@ def shortcut_edit():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return DashboardService().shortcut_edit(params)
-    except Exception as e:
-        LOG.error("dashboard>shortcut edit is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return DashboardService().shortcut_edit(params)
 
 
 @dashboard.route('/shortcut_save/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def shortcut_save():
     """
     dashboard short cut edit data save
@@ -168,13 +144,9 @@ def shortcut_save():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return DashboardService().shortcut_save(params)
-    except Exception as e:
-        LOG.error("dashboard>shortcut save is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return DashboardService().shortcut_save(params)
+

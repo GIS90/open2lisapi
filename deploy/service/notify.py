@@ -46,7 +46,7 @@ from deploy.bo.qywx_message import QywxMessageBo
 from deploy.bo.qywx_robot import QywxRobotBo
 from deploy.bo.enum import EnumBo
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
     STORE_BASE_URL, STORE_SPACE_NAME, \
     DTALK_CONTROL, DTALK_INTERVAL, DTALK_ADD_IMAGE, AUTH_NUM
@@ -54,6 +54,7 @@ from deploy.delib.store_lib import StoreLib
 from deploy.delib.dtalk_lib import DtalkLib
 from deploy.delib.qywx_lib import QYWXLib
 from deploy.delib.file_lib import FileLib
+from deploy.utils.logger import logger as LOG
 
 
 class NotifyService(object):
@@ -684,21 +685,21 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_page_comm_attrs and v:
+            if k not in self.req_page_comm_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -708,14 +709,14 @@ class NotifyService(object):
             new_params[k] = v
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
 
         # <get data>
         res, total = self.dtalk_bo.get_all(new_params)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ================= 遍历数据 ==================
         new_res = list()
         n = 1 + new_params.get('offset')
@@ -727,7 +728,7 @@ class NotifyService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
     def dtalk_delete(self, params: dict):
@@ -738,13 +739,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -752,10 +753,10 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -763,17 +764,18 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 权限账号
-        if rtx_id not in auth_rtx_join([model.rtx_id]):
+        if rtx_id not in auth_rtx_join(model.rtx_id):
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # <update data> 软删除
         try:
             model.is_del = True
@@ -782,9 +784,9 @@ class NotifyService(object):
             self.dtalk_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dtalk_deletes(self, params: dict):
@@ -795,13 +797,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -809,32 +811,33 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+
         # **************** 管理员获取ALL数据 *****************
          # 特权账号
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
             res = self.dtalk_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
 
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
-                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+            else Status(508, StatusEnum.FAILURE.value,
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def dtalk_detail(self, params: dict):
@@ -845,13 +848,13 @@ class NotifyService(object):
         # ================== parameters check && format ==================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -859,30 +862,32 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
+
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 权限账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # return
         return Status(
-            100, 'success', StatusMsgs.get(100), self._dtalk_model_to_dict(model, _type='detail')
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), self._dtalk_model_to_dict(model, _type='detail')
         ).json()
 
     def dtalk_update(self, params: dict):
@@ -896,50 +901,50 @@ class NotifyService(object):
         # ====================== parameters check and format ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dtalk_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # >>>>>>>>>>> new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_dtalk_update_attrs and v:      # 不合法参数
+            if k not in self.req_dtalk_update_attrs:      # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k in self.req_dtalk_update_need_attrs:       # value check, is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'name':      # check name and length
                 new_names = os.path.splitext(str(v))
                 if new_names[-1] not in self.EXCEL_FORMAT:
                     return Status(
-                        217, 'failure', u'文件格式只支持.xls、.xlsx', {}).json()
+                        404, StatusEnum.FAILURE.value, '文件格式只支持.xls、.xlsx', {}).json()
                 if not check_length(v, 80):  # check: length
                     return Status(
-                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                        405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'title' and v:
                 if not check_length(v, 50):  # check: length
                     return Status(
-                        213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                        405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'set_sheet':
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 v = ';'.join(v)
             elif k == 'column':
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s数据类型为LIST' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 if len(v) < 2:
                     if not isinstance(v, list):
                         return Status(
-                            213, 'failure', u'请求参数%s数据至少选择2列' % k, {}).json()
+                            404, StatusEnum.FAILURE.value, '请求参数%s数据至少选择2列' % k, {}).json()
                 v = v
             else:
                 v = str(v)
@@ -950,48 +955,50 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
-        if rtx_id not in auth_rtx_join([model.rtx_id]):
+        if rtx_id not in auth_rtx_join(model.rtx_id):
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         # update
-        # <update file real name>
-        if str(new_params.get('name')) != str(model.file_name):
-            res = self._update_real_file_name(model, new_params.get('name'))
-            if res:
-                model.file_name = res.get('name')
-                model.file_local_url = res.get('local_url')
-                model.file_store_url = res.get('store_url')
-        model.title = new_params.get('title')
-        model.set_sheet = new_params.get('set_sheet')
-        # sheet设置
-        cur_sheet = str(new_params.get('cur_sheet'))
-        model.cur_sheet = cur_sheet
-        # sheet title
-        title_json = json.loads(model.set_title) if model.set_title else {}
-        title_json[cur_sheet] = new_params.get('title') or ""
-        model.set_title = json.dumps(title_json)
-        # sheet column
-        set_column_json = json.loads(model.set_column)
-        if new_params.get('column'):
-            set_column_json[cur_sheet] = new_params.get('column')
-            model.set_column = json.dumps(set_column_json)
         try:
+            # <update file real name>
+            if str(new_params.get('name')) != str(model.file_name):
+                res = self._update_real_file_name(model, new_params.get('name'))
+                if res:
+                    model.file_name = res.get('name')
+                    model.file_local_url = res.get('local_url')
+                    model.file_store_url = res.get('store_url')
+            model.title = new_params.get('title')
+            model.set_sheet = new_params.get('set_sheet')
+            # sheet设置
+            cur_sheet = str(new_params.get('cur_sheet'))
+            model.cur_sheet = cur_sheet
+            # sheet title
+            title_json = json.loads(model.set_title) if model.set_title else {}
+            title_json[cur_sheet] = new_params.get('title') or ""
+            model.set_title = json.dumps(title_json)
+            # sheet column
+            set_column_json = json.loads(model.set_column)
+            if new_params.get('column'):
+                set_column_json[cur_sheet] = new_params.get('column')
+                model.set_column = json.dumps(set_column_json)
+
+            # 更新模型
             self.dtalk_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dtalk_change_sheet(self, params: dict):
@@ -1002,14 +1009,13 @@ class NotifyService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_change_sheet_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # -------------------------- check parameters --------------------------
@@ -1018,27 +1024,27 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_change_sheet_attrs:    # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # check value is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         model = self.dtalk_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         ######################### get data
         cur_sheet = str(new_params.get('sheet')) if new_params.get('sheet') else "0"
@@ -1060,7 +1066,7 @@ class NotifyService(object):
             'md5': new_params.get('md5')
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), data
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), data
         ).json()
 
     def _dtalk_robot_model_to_dict(self, model, _type='list'):
@@ -1154,21 +1160,21 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_page_comm_attrs and v:
+            if k not in self.req_page_comm_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -1176,16 +1182,18 @@ class NotifyService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
         rtx_id = new_params.get('rtx_id')
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # <get data>
         res, total = self.dtalk_robot_bo.get_all(new_params)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+
         # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
         new_res = list()
         n = 1 + new_params.get('offset')
@@ -1200,7 +1208,7 @@ class NotifyService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
     def dtalk_robot_add(self, params: dict):
@@ -1215,13 +1223,13 @@ class NotifyService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.dtalk_robot_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         #################### check parameters ====================
@@ -1231,15 +1239,15 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.dtalk_robot_add_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['select']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # type check
             if k == 'select' and not isinstance(v, bool):
                 return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = str(v) if k not in ['select'] else v
 
         # check: length
@@ -1247,7 +1255,7 @@ class NotifyService(object):
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # check key and secret is or not repeat
         if new_params.get('key') and new_params.get('secret'):
@@ -1256,7 +1264,7 @@ class NotifyService(object):
                     secret=new_params.get('secret'),
                     rtx_id=new_params.get('rtx_id')):
                 return Status(
-                    213, 'failure', 'KEY与SECRET已存在，请勿重复添加', {}).json()
+                    502, StatusEnum.FAILURE.value, '数据已存在，不允许新增', {}).json()
         # select default
         if new_params.get('select'):
             self.dtalk_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
@@ -1278,10 +1286,10 @@ class NotifyService(object):
             self.dtalk_robot_bo.add_model(new_model)
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}).json()
 
     def dtalk_robot_delete(self, params: dict):
         """
@@ -1291,13 +1299,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -1305,10 +1313,10 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -1316,17 +1324,17 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
         try:
             # <update data>
             model.is_del = True
@@ -1335,10 +1343,10 @@ class NotifyService(object):
             self.dtalk_robot_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dtalk_robot_deletes(self, params: dict):
@@ -1349,13 +1357,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -1363,32 +1371,32 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v: # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list': # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
             res = self.dtalk_robot_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
 
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
-                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+            else Status(508, StatusEnum.FAILURE.value,
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def dtalk_robot_detail(self, params: dict):
@@ -1399,13 +1407,13 @@ class NotifyService(object):
         # no parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1414,30 +1422,32 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
+
         # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
         model = self.dtalk_robot_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), self._dtalk_robot_model_to_dict(model, _type='detail')
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), self._dtalk_robot_model_to_dict(model, _type='detail')
         ).json()
 
     def dtalk_robot_update(self, params: dict):
@@ -1452,13 +1462,13 @@ class NotifyService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dtalk_robot_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         #################### check parameters ====================
@@ -1468,15 +1478,15 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_dtalk_robot_update_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['select']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # check: type
             if k == 'select' and not isinstance(v, bool):
                 return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = str(v) if k not in ['select'] else v
 
         # check: length
@@ -1484,24 +1494,24 @@ class NotifyService(object):
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # ========= check data ???????????
         model = self.dtalk_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         # select default
         if new_params.get('select'):
@@ -1516,9 +1526,10 @@ class NotifyService(object):
             self.dtalk_robot_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dtalk_robot_select(self, params: dict) -> json:
@@ -1528,13 +1539,13 @@ class NotifyService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dtalk_robot_select_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         #################### check parameters ====================
@@ -1544,15 +1555,15 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_dtalk_robot_select_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k != 'select':
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # check: type
             if k == 'select' and not isinstance(v, bool):
                 return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = str(v) if k != 'select' else v
 
         # ========= check data
@@ -1560,21 +1571,21 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
         # status
         if new_params.get('select') != model.select:
             return Status(
-                310, 'failure', '数据状态不一致，请刷新再设置' or StatusMsgs.get(310), {}).json()
+                404, StatusEnum.FAILURE.value, '数据状态不一致，请刷新再设置', {}).json()
 
         # select set
         """
@@ -1588,7 +1599,7 @@ class NotifyService(object):
             model.select = True
             self.dtalk_robot_bo.merge_model(model)
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dtalk_send_init(self, params: dict) -> json:
@@ -1600,13 +1611,13 @@ class NotifyService(object):
         # > no
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dtalk_send_init_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # > check
@@ -1615,10 +1626,10 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_dtalk_send_init_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # ------------------------ dtalk data ------------------------
         dtalk_model = self.dtalk_bo.get_model_by_md5(new_params.get('md5'))
@@ -1633,12 +1644,13 @@ class NotifyService(object):
             if json_sheet_names:
                 for k, v in json_sheet_names.items():
                     sheet_names.append({'key': k, 'value': v})
+
         # ========================= dtalk robot data =========================
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
-        if rtx_id in auth_rtx_join([]):
-            robot_models = self.dtalk_robot_bo.get_model_by_rtx('')
+        if rtx_id in auth_rtx_join():
+            robot_models = self.dtalk_robot_bo.get_model_by_rtx(None)
         else:
             robot_models = self.dtalk_robot_bo.get_model_by_rtx(rtx_id)
         # dtalk robot model
@@ -1658,7 +1670,7 @@ class NotifyService(object):
             'robot_enums': robot_enums
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), _result
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _result
         ).json()
 
     def _dtalk_get_excel_data(self, excel_file: str, sheet_index: int = 0, columns: list = []) -> json:
@@ -1764,13 +1776,13 @@ class NotifyService(object):
         # <<< no parameters >>>
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dtalk_send_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # ====================check parameters ====================
@@ -1779,13 +1791,13 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_dtalk_send_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # check value is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'sheet' and not isinstance(v, list):        # check sheet type
                 return Status(
-                    210, 'failure', u'请求参数%s为类型为List' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             new_params[k] = str(v) if k != 'sheet' else v
 
         """ dtalk check: get dtalk model from dtalk_message table """
@@ -1793,43 +1805,43 @@ class NotifyService(object):
         # not exist
         if not dtalk_model:
             return Status(
-                302, 'failure', 'dtalk数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '钉钉数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if dtalk_model and dtalk_model.is_del:
             return Status(
-                302, 'failure', 'dtalk数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '钉钉数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([dtalk_model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
         """ dtalk robot check: get dtalk robot model from dtalk_robot table """
         robot_model = self.dtalk_robot_bo.get_model_by_key_rtx(key=new_params.get('robot'), rtx=new_params.get('rtx_id'))
         if not robot_model:
             return Status(
-                302, 'failure', 'robot数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '机器人数据不存在', {"key": new_params.get('robot')}).json()
         # deleted
         if robot_model and robot_model.is_del:
             return Status(
-                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '机器人数据已删除，不允许操作', {"key": new_params.get('robot')}).json()
         # not key or not secret
         if not robot_model.key or not robot_model.secret:
             return Status(
-                214, 'failure', "缺少key或者secret，请完善配置信息", {}).json()
+                505, StatusEnum.FAILURE.value, "缺少key或者secret，请完善机器人配置信息", {}).json()
 
         # <<<<<< check template file and refer parameters >>>>>
         dtalk_file = dtalk_model.file_local_url
         if not dtalk_file or not os.path.exists(dtalk_file) \
                 or not os.path.isfile(dtalk_file):
             return Status(
-                302, 'failure', '文件不存在，请删除重新上传' or StatusMsgs.get(226), {}).json()
+                451, StatusEnum.FAILURE.value, '文件不存在，请重新上传', {}).json()
         # -------------------------------- check end --------------------------------
         ####### dtalk api test to ping #######
         dtalk_api = DtalkLib(app_key=robot_model.key, app_secret=robot_model.secret)
         if not dtalk_api.is_avail():
             return Status(
-                499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
+                903, StatusEnum.FAILURE.value, '钉钉Token初始化失败，请检查KEY或SECRET是否配置正确', {}).json()
         # =================================== start run, for循环 =====================================================
         set_columns_json = json.loads(dtalk_model.set_column) if dtalk_model.set_column else {}
         set_titles_json = json.loads(dtalk_model.set_title) if dtalk_model.set_title else {}
@@ -1898,11 +1910,9 @@ class NotifyService(object):
                 if not _d: continue
                 if not _d.get('ok'): _ret_flag = False
                 _ret_message += '【%s】：%s' % (str(_d.get('sheet')) or "Sheet", _d.get('message'))
-        # if not _ret_flag:
-        #     return Status(
-        #         101, 'success', _ret_message, {}).json()
+
         return Status(
-            100, 'success', _ret_message, {}).json()
+            100, StatusEnum.SUCCESS.value, _ret_message, {}).json()
 
     def dtalk_robot_ping(self, params: dict) -> dict:
         """
@@ -1912,13 +1922,13 @@ class NotifyService(object):
         # ==================== parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dtalk_robot_ping_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -1928,11 +1938,11 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_dtalk_robot_ping_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<<<<<< get data >>>>>>>>>>>>>>>>>>>>>
@@ -1940,32 +1950,33 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
         # not key or not secret
         if not model.key or not model.secret:
             return Status(
-                214, 'failure', "缺少KEY或SECRET，请完善配置信息", {}).json()
+                505, StatusEnum.FAILURE.value, "缺少key或者secret，请完善机器人配置信息", {}).json()
+
         # <<<<<<<<<<<<<<<<<<<<< ping >>>>>>>>>>>>>>>>>>>>>
         # ping test
         # 初始化DtalkLib类
         dtalk_api = DtalkLib(app_key=model.key, app_secret=model.secret)
         if not dtalk_api.is_avail():
             return Status(
-                499, 'failure', 'DingAPI初始化失败，请检查KEY或SECRET是否配置正确' or StatusMsgs.get(499), {}).json()
+                903, StatusEnum.FAILURE.value, 'PING失败，请检查配置', {}).json()
         # 关闭DtalkLib
         dtalk_api.close()
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def qywx_robot_list(self, params: dict):
@@ -1977,21 +1988,21 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_page_comm_attrs and v:
+            if k not in self.req_page_comm_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -1999,16 +2010,17 @@ class NotifyService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
         rtx_id = new_params.get('rtx_id')
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # <get data>
         res, total = self.qywx_robot_bo.get_all(new_params)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ////////////////// return data \\\\\\\\\\\\\\\\\\\\\
         new_res = list()
         n = 1 + new_params.get('offset')
@@ -2023,7 +2035,7 @@ class NotifyService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
     def qywx_robot_add(self, params: dict):
@@ -2040,13 +2052,13 @@ class NotifyService(object):
         # >>>>>>>>> no parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.qywx_robot_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         #################### check parameters ====================
@@ -2056,22 +2068,22 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.qywx_robot_add_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['select']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # special check: bool
             if k == 'select' and not isinstance(v, bool):
                 return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = str(v) if k not in ['select'] else v
         # check: length
         for _key, _value in self.qywx_robot_attrs_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # check key and secret is or not repeat
         if new_params.get('key') and new_params.get('secret') and new_params.get('agent'):
@@ -2081,7 +2093,8 @@ class NotifyService(object):
                     agent=new_params.get('agent'),
                     rtx_id=new_params.get('rtx_id')):
                 return Status(
-                    213, 'failure', '机器人已存在，请勿重复添加', {}).json()
+                    502, StatusEnum.FAILURE.value, '数据已存在，不允许新增', {}).json()
+
         # select default
         if new_params.get('select'):
             self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
@@ -2103,10 +2116,10 @@ class NotifyService(object):
         try:
             self.qywx_robot_bo.add_model(new_model)
             return Status(
-                100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}).json()
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': md5_id}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
 
     def qywx_robot_delete(self, params: dict):
         """
@@ -2116,13 +2129,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -2131,11 +2144,11 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -2143,17 +2156,17 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
         # <update data>
         try:
             model.is_del = True
@@ -2162,10 +2175,10 @@ class NotifyService(object):
             self.qywx_robot_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def qywx_robot_deletes(self, params: dict):
@@ -2176,13 +2189,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -2190,32 +2203,32 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
             res = self.qywx_robot_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
 
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
-                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+            else Status(508, StatusEnum.FAILURE.value,
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def qywx_robot_detail(self, params: dict):
@@ -2226,13 +2239,13 @@ class NotifyService(object):
         # no parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -2242,31 +2255,33 @@ class NotifyService(object):
             # illegal
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # not null value
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
+
         # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
         model = self.qywx_robot_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), self._qywx_robot_model_to_dict(model, _type='detail')
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), self._qywx_robot_model_to_dict(model, _type='detail')
         ).json()
 
     def qywx_robot_update(self, params: dict):
@@ -2282,13 +2297,13 @@ class NotifyService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_robot_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         #################### check parameters ====================
@@ -2298,39 +2313,40 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_qywx_robot_update_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['select']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # special check: bool
             if k == 'select' and not isinstance(v, bool):
                 return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = str(v) if k != 'select' else v
         # check: length
         for _key, _value in self.qywx_robot_attrs_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # ========= check data
         model = self.qywx_robot_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # select default
         if new_params.get('select'):
             self.qywx_robot_bo.update_unselect_by_rtx(rtx_id=new_params.get('rtx_id'))
@@ -2345,10 +2361,10 @@ class NotifyService(object):
             self.qywx_robot_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def qywx_robot_select(self, params: dict):
@@ -2358,13 +2374,13 @@ class NotifyService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_robot_select_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         #################### check parameters ====================
@@ -2374,14 +2390,14 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_qywx_robot_select_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['select']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'select' and not isinstance(v, bool):
                 return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = str(v) if k not in ['select']\
                 else v
 
@@ -2390,21 +2406,22 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                310, 'failure', StatusMsgs.get(310), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # status
         if new_params.get('select') != model.select:
             return Status(
-                310, 'failure', '数据状态不一致，请刷新再设置' or StatusMsgs.get(310), {}).json()
+                404, StatusEnum.FAILURE.value, '数据状态不一致，请刷新再设置', {}).json()
 
         # select set
         """
@@ -2418,7 +2435,7 @@ class NotifyService(object):
             model.select = True
             self.qywx_robot_bo.merge_model(model)
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def qywx_robot_ping(self, params: dict) -> dict:
@@ -2429,13 +2446,13 @@ class NotifyService(object):
         # ==================== parameters check and format ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_robot_ping_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -2445,11 +2462,11 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_qywx_robot_ping_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<<<<<< get data >>>>>>>>>>>>>>>>>>>>>
@@ -2457,32 +2474,33 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
         # not key or not secret
         if not model.key \
                 or not model.secret \
                 or not model.agent:
             return Status(
-                214, 'failure', "缺少KEY或SECRET，请完善配置信息", {}).json()
+                404, StatusEnum.FAILURE.value, "缺少key或者secret，请完善机器人配置信息", {}).json()
 
         # --------------------------------------- get token from 企业微信  --------------------------------------
         # ping test
         qywx_lib = QYWXLib(corp_id=model.key, secret=model.secret, agent_id=model.agent)
         if not qywx_lib.check_token():
             return Status(
-                499, 'failure', 'PING失败，请检查配置' or StatusMsgs.get(499), {}).json()
+                902, StatusEnum.FAILURE.value, 'PING失败，请检查配置', {}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def __format_qywx_content(self, f_type, q_type, q_content):
@@ -2573,21 +2591,21 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_page_comm_attrs and v:
+            if k not in self.req_page_comm_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else OFFICE_LIMIT
             elif k == 'offset':
@@ -2595,9 +2613,10 @@ class NotifyService(object):
             else:
                 v = str(v) if v else ''
             new_params[k] = v
+
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
 
         # <get data>
@@ -2605,7 +2624,7 @@ class NotifyService(object):
         res, total = self.qywx_bo.get_all(new_params)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # ================= 遍历数据 ==================
         new_res = list()
         n = 1 + new_params.get('offset')
@@ -2617,7 +2636,7 @@ class NotifyService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
     def qywx_delete(self, params: dict):
@@ -2628,13 +2647,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -2642,10 +2661,10 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -2653,17 +2672,17 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
         try:
             # <update data> 软删除
             model.is_del = True
@@ -2672,10 +2691,10 @@ class NotifyService(object):
             self.qywx_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def qywx_deletes(self, params: dict):
@@ -2686,13 +2705,13 @@ class NotifyService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -2700,32 +2719,32 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
         # **************** 管理员获取ALL数据 *****************
         # 特权账号
-        if new_params.get('rtx_id') in auth_rtx_join([]):
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # << batch delete >>
         try:
             res = self.qywx_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
 
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
-                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res) or StatusMsgs.get(303),
+            else Status(508, StatusEnum.FAILURE.value,
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
     def qywx_detail(self, params: dict):
@@ -2736,13 +2755,13 @@ class NotifyService(object):
         # ================== parameters check && format ==================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -2750,29 +2769,30 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
 
-        """ ************ return data ************ """
+        """ ************ check auth ************ """
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         """  return data """
         # enum: qywx-type
         enums = self.enum_bo.get_model_by_name('qywx-type')
@@ -2783,8 +2803,8 @@ class NotifyService(object):
 
         # >>>>>> robot列表
         # 特权账号 + 数据账号
-        if rtx_id in auth_rtx_join([]):
-            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        if rtx_id in auth_rtx_join():
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=None)
         else:
             robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
         robot_res = list()
@@ -2803,7 +2823,7 @@ class NotifyService(object):
             'robot_lists': robot_res
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), _res).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
 
     def qywx_update(self, params: dict):
         """
@@ -2819,50 +2839,50 @@ class NotifyService(object):
         # ====================== parameters check and format ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_qywx_update_attrs and v:      # 不合法参数
+            if k not in self.req_qywx_update_attrs:      # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
             # check: length
         for _key, _value in self.req_qywx_add_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         # --------------------------------------- update model --------------------------------------
         try:
@@ -2873,10 +2893,10 @@ class NotifyService(object):
             model.robot = new_params.get('robot')
             self.qywx_bo.merge_model(model)
             return Status(
-                100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}).json()
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': model.md5_id}).json()
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {'md5': model.md5_id}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
 
     def qywx_add(self, params: dict) -> json:
         """
@@ -2885,13 +2905,13 @@ class NotifyService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         #################### check parameters ====================
@@ -2901,25 +2921,25 @@ class NotifyService(object):
             # check: not allow parameters
             if k not in self.req_qywx_add_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # check: length
         for _key, _value in self.req_qywx_add_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # 判断robot是否存在
         robot = new_params.get('robot')
         robot_model = self.qywx_robot_bo.get_model_by_md5(md5=robot)
         if not robot_model:
             return Status(
-                213, 'failure', u'机器人不存在，请重新选择', {}).json()
+                501, StatusEnum.FAILURE.value, '机器人不存在，请重新选择', {}).json()
 
         # --------------------------------------- add model --------------------------------------
         new_model = self.qywx_bo.new_mode()
@@ -2947,10 +2967,10 @@ class NotifyService(object):
         try:
             self.qywx_bo.add_model(new_model)
             return Status(
-                100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}).json()
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {'md5': md5_id}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
 
     def qywx_add_init(self, params: dict) -> json:
         """
@@ -2964,8 +2984,9 @@ class NotifyService(object):
         rtx_id = params.get('rtx_id')
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少请求参数rtx' or StatusMsgs.get(212), {}).json()
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
 
+        rtx_id = str(rtx_id).strip()    # 去空格
         """   return data   """
         # >>>>>> 企业微信类型
         enums = self.enum_bo.get_model_by_name('qywx-type')
@@ -2975,8 +2996,8 @@ class NotifyService(object):
             type_res.append({'label': str(e.value), 'value': str(e.key)})
         # >>>>>> robot列表
         # 特权账号 + 数据账号
-        if rtx_id in auth_rtx_join([]):
-            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        if rtx_id in auth_rtx_join():
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=None)
         else:
             robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
         robot_res = list()
@@ -2995,7 +3016,7 @@ class NotifyService(object):
             'robot_lists': robot_res
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), _res
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res
         ).json()
 
     def qywx_send_init(self, params: dict):
@@ -3006,13 +3027,13 @@ class NotifyService(object):
         # ================== parameters check && format ==================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -3020,27 +3041,29 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
+
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
         model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         """  return data """
         # return data: enum list
         enums = self.enum_bo.get_model_by_name('qywx-type')
@@ -3051,8 +3074,8 @@ class NotifyService(object):
         # return data: robot list
         # authority【管理员具有所有数据权限】所有robots
         # 特权账号 + 数据账号
-        if rtx_id in auth_rtx_join([]):
-            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        if rtx_id in auth_rtx_join():
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=None)
         else:
             robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
         robot_res = list()
@@ -3070,7 +3093,7 @@ class NotifyService(object):
             'robot_lists': robot_res                # 机器人枚举
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), _res).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
 
     def qywx_send(self, params: dict):
         """
@@ -3083,14 +3106,14 @@ class NotifyService(object):
         # ====================== parameters check and format ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
 
         # **********************************************************************
         # temp参数默认值，如果无temp参数默认为False，否则传入为True
         temp = params.get('temp') or False
         if not isinstance(temp, bool):
             return Status(
-                213, 'failure', u'temp参数支持BOOLEAN类型', {}).json()
+                402, StatusEnum.FAILURE.value, 'temp参数支持BOOLEAN类型', {}).json()
         if 'temp' in params.keys():
             params.pop('temp')
         # temp为True，无需md5参数；为False，必须md5参数
@@ -3105,31 +3128,31 @@ class NotifyService(object):
         for _attr in _necessary_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_qywx_send_attrs and v:      # 不合法参数
+            if k not in self.req_qywx_send_attrs:      # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in self.req_qywx_send_temp_send_attrs:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'user':     # user参数特殊性检查，不允许中文；分号
                 if str(v).find('；') > -1:
                     return Status(
-                        213, 'failure', u'请求参数%s分号为英文' % k, {}).json()
+                        404, StatusEnum.FAILURE.value, '请求参数%s分号为英文' % k, {}).json()
             new_params[k] = str(v)
         # check: length
         for _key, _value in self.req_qywx_add_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
@@ -3139,51 +3162,57 @@ class NotifyService(object):
         if not temp:
             if not new_params.get('md5'):
                 return Status(
-                    213, 'failure', u'缺少md5参数', {}).json()
+                    4002, StatusEnum.FAILURE.value, '缺少MD5请求参数', {}).json()
             # model校验是否可用数据
             model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
             # not exist
             if not model:
                 return Status(
-                    302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                    501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
             # deleted
             if model and model.is_del:
                 return Status(
-                    302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                    503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
             # 特权账号 + 数据账号
-            if rtx_id not in auth_rtx_join([model.rtx_id]):
+            if rtx_id not in auth_rtx_join(model.rtx_id):
                 return Status(
-                    309, 'failure', StatusMsgs.get(309), {}).json()
+                    504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
         # <<<<<<<<<<<<<<<<< qyex_meesgae robot model >>>>>>>>>>>>>>>>>>>>
         # robot【传入参数】
         robot = new_params.get('robot')
         robot_model = self.qywx_robot_bo.get_model_by_md5(robot)
         if not robot_model:
             return Status(
-                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '机器人不存在，请配置', {}).json()
         # deleted
         if robot_model.is_del:
             return Status(
-                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '机器人已删除，请配置', {}).json()
         # not key or not secret or not agent
         if not robot_model.key \
                 or not robot_model.secret \
                 or not robot_model.agent:
             return Status(
-                214, 'failure', "请完善机器人配置信息", {}).json()
+                505, StatusEnum.FAILURE.value, "请完善机器人配置信息", {}).json()
+
         # --------------------------------------- send --------------------------------------
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
-                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+                903, StatusEnum.FAILURE.value, '企业微信机器人Token初始化失败', {}).json()
         # <<<<<<<<<<<<<<<<< 消息内容 >>>>>>>>>>>>>>>>>>
         # user用户列表【传入参数】
         to_user = new_params.get('user').split(';')
+        to_user_format = list()
+        for u in to_user:
+            if not u: continue
+            to_user_format.append(u.strip())    # 去空格
         # 消息类型【传入参数】
         send_type = str(new_params.get('type'))
         if send_type not in qywx_lib.types:
             return Status(
-                213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+                404, StatusEnum.FAILURE.value, '企业微信暂不支持此类型消息', {}).json()
 
         # if send_type in qywx_lib.temp_upload_types:
         #     # TODO 需要处理附件media_id与robot的权限
@@ -3194,22 +3223,27 @@ class NotifyService(object):
             content = new_params.get('content')
             if send_type in ['text', 'markdown']:    # text, markdown消息
                 new_content['data'] = content
-                _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
+                _q_res = qywx_lib.send(to_user=to_user_format, content=new_content, stype=send_type)
             elif send_type in qywx_lib.temp_upload_types:  # 'image voice video file
                 json_content = json.loads(content)
                 new_content['data'] = json_content.get('media_id')
-                _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
+                _q_res = qywx_lib.send(to_user=to_user_format, content=new_content, stype=send_type)
             else:
                 return Status(
-                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+                    404, StatusEnum.FAILURE.value, '企业微信暂不支持此类型消息', {}).json()
 
             _q_res_json = json.loads(_q_res)
             if _q_res_json.get('status_id') != 100:
                 return Status(
-                    480, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
-        except Exception as e:
+                    _q_res_json.get('status_id') or 900,
+                    StatusEnum.FAILURE.value,
+                    _q_res_json.get('message') or '企业微信发送消息失败',
+                    {}
+                ).json()
+        except Exception as error:
+            LOG.error("qywx_send occur exception: %s" % error)
             return Status(
-                499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()
+                900, StatusEnum.FAILURE.value, '企业微信发送消息异常：%s' % error, {}).json()
         try:
             # --------------------------------------- update model --------------------------------------
             # 非临时通知update
@@ -3235,7 +3269,7 @@ class NotifyService(object):
                 new_model.content = new_params.get('content')
                 new_model.user = new_params.get('user')
                 new_model.type = new_params.get('type')
-                new_model.count = 0  # 默认发送次数为0
+                new_model.count = 1  # 临时消息默认发送次数为1
                 md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
                 new_model.md5_id = md5_id
                 """
@@ -3254,9 +3288,10 @@ class NotifyService(object):
                 self.qywx_bo.add_model(new_model)
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
+
         return Status(
-            100, 'success', '成功', {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json()
 
     def qywx_send_init_temp(self, params: dict):
         """
@@ -3268,13 +3303,13 @@ class NotifyService(object):
         # ================== parameters check && format ==================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_send_temp_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -3282,11 +3317,12 @@ class NotifyService(object):
             if not k: continue
             if k not in self.req_send_temp_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
+
         # <<<<<<<<<<<<<<<<< return data >>>>>>>>>>>>>>>>>>>>
         # qywx type
         enums = self.enum_bo.get_model_by_name('qywx-type')
@@ -3298,8 +3334,8 @@ class NotifyService(object):
         # >>>>>> robot列表
         # 特权账号 + 数据账号
         rtx_id = new_params.get('rtx_id')
-        if rtx_id in auth_rtx_join([]):
-            robots = self.qywx_robot_bo.get_model_by_rtx(rtx='')
+        if rtx_id in auth_rtx_join():
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=None)
         else:
             robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
         robot_res = list()
@@ -3319,7 +3355,7 @@ class NotifyService(object):
             'robot_lists': robot_res
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), _res).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
 
     def qywx_send_temp(self, params: dict):
         """
@@ -3332,84 +3368,94 @@ class NotifyService(object):
         # ====================== parameters check and format ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_send_temp_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_qywx_send_temp_attrs and v:      # 不合法参数
+            if k not in self.req_qywx_send_temp_attrs:      # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'user':     # user参数特殊性检查，不允许中文；分号
                 if str(v).find('；') > -1:
                     return Status(
-                        213, 'failure', u'请求参数%s分号为英文' % k, {}).json()
+                        404, StatusEnum.FAILURE.value, '请求参数%s分号为英文' % k, {}).json()
             new_params[k] = str(v)
         # check: length
         for _key, _value in self.req_qywx_add_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # <<<<<<<<<<<<<<<<< qyex_meesgae robot model >>>>>>>>>>>>>>>>>>>>
         robot_model = self.qywx_robot_bo.get_model_by_md5(new_params.get('robot'))
         if not robot_model:
             return Status(
-                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '机器人不存在，请配置', {}).json()
         # deleted
         if robot_model.is_del:
             return Status(
-                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '机器人已删除，请配置', {}).json()
         # not key or not secret or not agent
         if not robot_model.key \
                 or not robot_model.secret \
                 or not robot_model.agent:
             return Status(
-                214, 'failure', "请完善机器人配置信息", {}).json()
+                505, StatusEnum.FAILURE.value, "请完善机器人配置信息", {}).json()
+
         # --------------------------------------- send --------------------------------------
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
-                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+                903, StatusEnum.FAILURE.value, '企业微信机器人Token初始化失败', {}).json()
         try:
             # user用户列表
             to_user = new_params.get('user').split(';')
+            to_user_format = list()
+            for u in to_user:
+                if not u: continue
+                to_user_format.append(u.strip())  # 去空格
             # 消息类型
             send_type = str(new_params.get('type'))
             if send_type not in qywx_lib.types:
                 return Status(
-                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+                    404, StatusEnum.FAILURE.value, '企业微信暂不支持此类型消息', {}).json()
             # 消息内容
             new_content = dict()
             if send_type in ['text', 'markdown']:  # text, markdown消息
                 new_content['data'] = new_params.get('content')
-                _q_res = qywx_lib.send(to_user=to_user, content=new_content, stype=send_type)
+                _q_res = qywx_lib.send(to_user=to_user_format, content=new_content, stype=send_type)
             else:
                 return Status(
-                    213, 'failure', '企业微信暂不支持此类型消息', {}).json()
+                    404, StatusEnum.FAILURE.value, '企业微信暂不支持此类型消息', {}).json()
             # <<<<<<<<<<<<<<<<< 临时发送不记录 >>>>>>>>>>>>>>>>>>>>
             _q_res_json = json.loads(_q_res)
             if _q_res_json.get('status_id') != 100:
                 return Status(
-                    480, 'failure', '企业微信发送消息发送故障：%s' % _q_res_json.get('message'), {}).json()
-        except Exception as e:
+                    _q_res_json.get('status_id') or 900,
+                    StatusEnum.FAILURE.value,
+                    _q_res_json.get('message') or '企业微信发送临时消息失败',
+                    {}
+                ).json()
+        except Exception as error:
+            LOG.error("qywx_send_temp occur exception: " % error)
             return Status(
-                499, 'failure', '企业微信发送消息发送故障：%s' % e, {}).json()
+                900, 'failure', '企业微信发送临时消息异常：%s' % error, {}).json()
         return Status(
-            100, 'success', '成功', {}).json()
+            100, StatusEnum.FAILURE.value, StatusMsgs.get(100), {}).json()
 
     def qywx_sendback(self, params: dict):
         """
@@ -3419,26 +3465,26 @@ class NotifyService(object):
         # ====================== parameters check and format ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_backsend_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_qywx_backsend_attrs and v:      # 不合法参数
+            if k not in self.req_qywx_backsend_attrs:      # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
@@ -3446,64 +3492,72 @@ class NotifyService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # is not send
         if model and not model.msg_id:
             return Status(
-                308, 'failure', '消息未发送，不允许撤销', {}).json()
+                404, StatusEnum.FAILURE.value, '消息未发送，不允许撤销', {"md5": new_params.get('md5')}).json()
         # not robot
         if model and not model.robot:
             return Status(
-                308, 'failure', '消息未设置消息机器人，不允许撤销', {}).json()
+                404, StatusEnum.FAILURE.value, '消息未设置机器人，不允许撤销', {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         # <<<<<<<<<<<<<<<<< qyex_meesgae robot model >>>>>>>>>>>>>>>>>>>>
         robot_model = self.qywx_robot_bo.get_model_by_md5(model.robot)
         if not robot_model:
             return Status(
-                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '机器人不存在，请配置', {}).json()
         # deleted
         if robot_model.is_del:
             return Status(
-                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '机器人已删除，请配置', {}).json()
         # not key or not secret or not agent
         if not robot_model.key \
                 or not robot_model.secret \
                 or not robot_model.agent:
             return Status(
-                214, 'failure', "请完善机器人配置信息", {}).json()
+                505, StatusEnum.FAILURE.value, "请完善机器人配置信息", {}).json()
+
         # --------------------------------------- 撤销消息 --------------------------------------
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
-                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+                903, StatusEnum.FAILURE.value, '企业微信机器人Token初始化失败', {}).json()
         try:
             _q_res = qywx_lib.sendback(message_id=model.msg_id)
             _q_res_json = json.loads(_q_res)
             if _q_res_json.get('status_id') != 100:
                 return Status(
-                    480, 'failure', '企业微信撤销消息故障：%s' % _q_res_json.get('message'), {}).json()
-        except Exception as e:
+                    _q_res_json.get('status_id') or 900,
+                    StatusEnum.FAILURE.value,
+                    _q_res_json.get('message') or '企业微信撤销消息失败',
+                    {}
+                ).json()
+        except Exception as error:
+            LOG.error("qywx_sendback occur exception: %s" % error)
             return Status(
-                499, 'failure', '企业微信撤销消息故障：%s' % e, {}).json()
+                900, StatusEnum.FAILURE.value, '企业微信撤销消息异常：%s' % error, {}).json()
+
         # --------------------------------------- update model --------------------------------------
+        # 更新撤销状态
         try:
             model.is_back = True
             self.qywx_bo.merge_model(model)
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'md5': model.md5_id}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
         return Status(
-            100, 'success', '成功', {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}).json()
 
     def qywx_temp_upload(self, params, upload_file) -> dict:
         """
@@ -3526,29 +3580,29 @@ class NotifyService(object):
         # ====================== parameters check and format ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         if not upload_file:
             return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
+                450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_qywx_temp_upload_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_qywx_temp_upload_attrs and v:  # 不合法参数
+            if k not in self.req_qywx_temp_upload_attrs:  # 不合法参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # <<<<<<<<<<<<<<<<< robot model >>>>>>>>>>>>>>>>>>>>
@@ -3556,23 +3610,23 @@ class NotifyService(object):
         robot_model = self.qywx_robot_bo.get_model_by_md5(robot)
         if not robot_model:
             return Status(
-                302, 'failure', '机器人配置不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '机器人不存在，请先配置机器人在进行附件上传', {}).json()
         # deleted
         if robot_model.is_del:
             return Status(
-                302, 'failure', 'robot数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '机器人已删除，请先配置机器人在进行附件上传', {}).json()
         # not key or not secret or not agent
         if not robot_model.key \
                 or not robot_model.secret \
                 or not robot_model.agent:
             return Status(
-                214, 'failure', "请完善机器人配置信息", {}).json()
+                505, StatusEnum.FAILURE.value, "机器人信息缺失，请完善配置信息", {}).json()
         # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
         # 特权账号 + 数据账号
         if rtx_id not in auth_rtx_join([getattr(robot_model, 'rtx_id')]):
             return Status(
-                309, 'failure', StatusMsgs.get(309), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         upload_name = getattr(upload_file, 'filename')  # file public object
 
@@ -3583,7 +3637,7 @@ class NotifyService(object):
             upload_file, compress=False, is_md5_store_name=False)
         if not is_ok:
             return Status(
-                220, 'failure', StatusMsgs.get(220), {}).json()
+                456, StatusEnum.FAILURE.value, "文件本地存储失败", {}).json()
         # get local file real store name
         if not upload_name:
             upload_name = os.path.split(store_msg.get('store_name'))[-1]
@@ -3591,25 +3645,37 @@ class NotifyService(object):
         local_file = store_msg.get('path')
         if not os.path.exists(local_file) or not os.path.isfile(local_file):
             return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
+                451, StatusEnum.FAILURE.value, "文件不存在", {}).json()
+
         # ================================= store to tencent =================================
         qywx_lib = QYWXLib(corp_id=robot_model.key, secret=robot_model.secret, agent_id=robot_model.agent)
         if not qywx_lib.check_token():
             return Status(
-                480, 'failure', '企业微信机器人token初始化失败' or StatusMsgs.get(499), {}).json()
+                903, StatusEnum.FAILURE.value, '企业微信机器人Token初始化失败', {}).json()
         # upload type judge
         upload_type = new_params.get('type')
         if upload_type not in qywx_lib.temp_upload_types:
             return Status(
-                213, 'failure', u'type消息类型不支持', {}).json()
+                404, StatusEnum.FAILURE.value, 'type消息类型不支持', {}).json()
 
-        temp_upload_res = qywx_lib.temp_upload(upload_type=upload_type,
-                                               upload_name=upload_name,
-                                               upload_file=local_file)
-        temp_upload_res_json = json.loads(temp_upload_res)
-        # bad request
-        if temp_upload_res_json.get('status_id') != 100:
-            return temp_upload_res
+        try:
+            temp_upload_res = qywx_lib.temp_upload(upload_type=upload_type,
+                                                   upload_name=upload_name,
+                                                   upload_file=local_file)
+            temp_upload_res_json = json.loads(temp_upload_res)
+            # bad request
+            if temp_upload_res_json.get('status_id') != 100:
+                return Status(
+                    temp_upload_res_json.get('status_id') or 900,
+                    StatusEnum.FAILURE.value,
+                    temp_upload_res_json.get('message') or '企业微信上传文件失败',
+                    {}
+                ).json()
+        except Exception as error:
+            LOG.error("qywx_temp_upload occur exception: %s" % error)
+            return Status(
+                900, StatusEnum.FAILURE.value, '企业微信上传文件异常：%s' % error, {}).json()
+
         # return data
         data = {'name': upload_name}
         if temp_upload_res_json.get('data'):
@@ -3617,5 +3683,5 @@ class NotifyService(object):
                 if temp_upload_res_json.get('data').get(k):
                     data[k] = temp_upload_res_json.get('data').get(k)
         return Status(
-            100, 'success', '成功', data).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), data).json()
 

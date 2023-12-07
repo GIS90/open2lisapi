@@ -46,8 +46,8 @@ import sys
 import json
 import requests
 
-from deploy.utils.base_class import Singleton
 from deploy.utils.status import Status
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.config import DTALK_TOKEN_URL, DTALK_BASE_URL, DEBUG
 from deploy.utils.logger import logger as LOG
 
@@ -58,7 +58,7 @@ from alibabacloud_tea_util import models as util_models
 from alibabacloud_tea_util.client import Client as UtilClient
 
 
-class DtalkLib(Singleton):
+class DtalkLib(object):
     """
     dingTalk Api class
     """
@@ -73,6 +73,12 @@ class DtalkLib(Singleton):
         self.msg_type = 'sampleMarkdown'
         self.access_token = self.get_token()
         self.client = self.create_client()
+
+    def __str__(self):
+        return "DtalkLib Class."
+
+    def __repr__(self):
+        return self.__str__()
 
     def is_avail(self):
         """
@@ -108,9 +114,9 @@ class DtalkLib(Singleton):
                 if json_res and json_res.get("errcode") == 0:
                     return json_res.get("access_token")
         except Exception as e:
-            LOG.error('Initialize dingTalk openApi access token occur error: %s' % e)
+            LOG.error('[DingTalk]Initialize dingTalk openApi access token occur error: %s' % e)
             return ''
-        LOG.error('Initialize dingTalk openApi get access token failure, please try again later.')
+        LOG.error('[DingTalk]Initialize dingTalk openApi get access token failure, please try again later.')
         return ''
 
     @staticmethod
@@ -140,7 +146,8 @@ class DtalkLib(Singleton):
         # check access token && parameters
         if not self.access_token:
             return Status(
-                202, "failure", "Not found access token.", {}).status_body
+                903, StatusEnum.FAILURE.value, "[DingTalk]TOKEN初始化失败", {}).status_body
+
         batch_send_otoheaders = dingtalkrobot__1__0_models.BatchSendOTOHeaders()
         batch_send_otoheaders.x_acs_dingtalk_access_token = self.access_token
         batch_send_otorequest = dingtalkrobot__1__0_models.BatchSendOTORequest(
@@ -157,9 +164,9 @@ class DtalkLib(Singleton):
                 'control': response.body.flow_controlled_staff_id_list or []
             }
             return Status(
-                100, "success", "成功", json_resp).status_body
-        except Exception as e:
-            msg = 'DingTalk send message to [%s] occur error: %s' % (to_id, e)
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), json_resp).status_body
+        except Exception as error:
+            msg = '[DingTalk]发送信息 [%s] 异常: %s' % (to_id, error)
             LOG.error(msg)
             return Status(
-                601, "failure", msg, {}).status_body
+                902, StatusEnum.FAILURE.value, msg, {}).status_body

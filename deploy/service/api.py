@@ -39,7 +39,7 @@ import datetime
 
 
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 
 
 class ApiService(object):
@@ -62,11 +62,15 @@ class ApiService(object):
     def __repr__(self):
         self.__str__()
 
-    def demo(self, params: dict) -> dict:
+    def api_demo(self, params: dict) -> dict:
         """
         api: demo
         :return: json data
         """
         return Status(
-            100, 'success', StatusMsgs.get(100), {}).json()
+            100,
+            StatusEnum.SUCCESS.value,
+            StatusMsgs.get(100),
+            {"key1": "value1", "key2": "value2", "key3": "value3"}
+        ).json()
 

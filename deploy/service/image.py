@@ -34,10 +34,10 @@ Life is short, I use python.
 # usage: /usr/bin/python image.py
 # ------------------------------------------------------------
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.utils import d2s, s2d, check_length, auth_rtx_join
 
-from deploy.bo.sysuser_avatar import  SysUserAvatarBo
+from deploy.bo.sysuser_avatar import SysUserAvatarBo
 from deploy.bo.sysuser import SysUserBo
 
 
@@ -172,13 +172,13 @@ class ImageService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -187,7 +187,7 @@ class ImageService(object):
             if not k: continue
             if k not in self.req_page_comm_attrs and v:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else self.PAGE_LIMIT
             elif k == 'offset':
@@ -204,7 +204,7 @@ class ImageService(object):
         # no data
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         new_res = list()
         n = 1 + new_params.get('offset')
@@ -216,7 +216,7 @@ class ImageService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total, 'rtx_id': rtx_id}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total, 'rtx_id': rtx_id}
         ).json()
 
     def profile_avatar_set(self, params: dict) -> dict:
@@ -228,13 +228,13 @@ class ImageService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_profile_avatar_set_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -244,25 +244,25 @@ class ImageService(object):
             # check: not allow parameters
             if k not in self.req_profile_avatar_set_attrs:
                 return Status(
-                    213, 'failure', '请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:  # is not null
                 return Status(
-                    214, 'failure', '请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
         # parameters length check
         for _key, _value in self.req_profile_avatar_set_ck_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # **************** <get avatar data> *****************
         avatar_model = self.sysuser_avatar_bo.get_model_by_md5(new_params.get('avatar'))
         # check
         if not avatar_model or not avatar_model.url:
             return Status(
-                302, 'failure', "图片不存在，请重新选择" or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, "图片不存在，请重新选择", {}).json()
 
         # **************** <get sysuser data> *****************
         rtx_id = new_params.get('rtx_id')
@@ -270,20 +270,22 @@ class ImageService(object):
         # check
         if not user_model:
             return Status(
-                302, 'failure', u'用户%s不存在' % rtx_id, {}).json()
+                501, StatusEnum.FAILURE.value, '用户%s不存在' % rtx_id, {}).json()
         # authority【管理员具有所有数据权限】
         # 权限账户
         if rtx_id not in auth_rtx_join([user_model.rtx_id]):
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {}).json()
 
         # <<<<<<<<<<<<< update user avatar >>>>>>>>>>>>>
         try:
             setattr(user_model, 'avatar', avatar_model.url)
             self.sysuser_bo.merge_model(user_model)
             return Status(
-                100, 'success', StatusMsgs.get(100), {'rtx_id': rtx_id, 'avatar': avatar_model.url}).json()
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': rtx_id, 'avatar': avatar_model.url}
+            ).json()
         except:
             return Status(
-                450, 'failure', StatusMsgs.get(450), {'rtx_id': rtx_id}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'rtx_id': rtx_id}
+            ).json()
 

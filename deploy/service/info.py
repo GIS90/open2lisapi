@@ -46,7 +46,7 @@ from deploy.bo.request import RequestBo
 
 # utils
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.utils import d2s, get_now, check_length, md5, s2d
 from deploy.config import DEPART_ROOT_ID, DEPART_ROOT_PID
 
@@ -581,22 +581,22 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_page_comm_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_page_comm_attrs and v:
+            if k not in self.req_page_comm_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else self.PAGE_LIMIT
             elif k == 'offset':
@@ -610,7 +610,8 @@ class InfoService(object):
         # no data
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         new_res = list()
         n = 1 + new_params.get('offset')
@@ -622,7 +623,7 @@ class InfoService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
     def dict_status(self, params: dict) -> dict:
@@ -637,13 +638,13 @@ class InfoService(object):
         # not parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dict_status_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # ================= parameters check and format =================
@@ -652,14 +653,14 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_dict_status_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k != 'status':     # value check, is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'status':   # status check: 只允许为bool类型
                 if not isinstance(v, bool):
                     return Status(
-                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
                 new_params[k] = v
             else:
                 new_params[k] = str(v)
@@ -668,11 +669,11 @@ class InfoService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', '数据已删除，不允许设置' or StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # ----------- change status -----------
         try:
             model.status = new_params.get('status')
@@ -681,9 +682,10 @@ class InfoService(object):
             self.enum_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dict_delete(self, params: dict) -> dict:
@@ -694,13 +696,13 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -709,10 +711,10 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -720,11 +722,11 @@ class InfoService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # <update data>
         try:
             setattr(model, 'is_del', True)
@@ -733,9 +735,10 @@ class InfoService(object):
             self.enum_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+               602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dict_deletes(self, params: dict) -> dict:
@@ -746,13 +749,13 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new format parameter
@@ -761,14 +764,14 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:     # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
@@ -777,11 +780,11 @@ class InfoService(object):
             res = self.enum_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+               602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
 
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
+            else Status(508, StatusEnum.FAILURE.value,
                         "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
@@ -793,13 +796,13 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dict_disables_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new format parameter
@@ -808,14 +811,14 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_dict_disables_attrs:     # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
@@ -824,11 +827,11 @@ class InfoService(object):
             res = self.enum_bo.batch_disable_by_md5(params=new_params)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {}).json()
 
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
+            else Status(603, StatusEnum.FAILURE.value,
                         "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
@@ -840,13 +843,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -855,24 +858,25 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_detail_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
         model = self.enum_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), self._enum_model_to_dict(model, _type='detail')
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
+            self._enum_model_to_dict(model, _type='detail')
         ).json()
 
     def dict_update(self, params: dict):
@@ -888,13 +892,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dict_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -903,13 +907,13 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_dict_update_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k in self.req_dict_update_need_attrs:  # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'status' and not isinstance(v, bool):
                 return Status(
-                    213, 'failure', u'请求参数%s为Boolean类型' % k, {}).json()
+                    402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -917,24 +921,24 @@ class InfoService(object):
             new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
-                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+                402, StatusEnum.FAILURE.value, '请求参数order_id只允许为数字类型', {}).json()
         # parameters check length
         for _key, _value in self.req_dict_update_check_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # ========= check data
         model = self.enum_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # --------------------------------------- update model --------------------------------------
         try:
             # model.key = new_params.get('key')     # 禁用key更新
@@ -945,10 +949,10 @@ class InfoService(object):
             self.enum_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
         
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def dict_names(self, params: dict):
@@ -959,13 +963,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dict_names_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -974,17 +978,17 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_dict_names_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
         models = self.enum_bo.enum_group_by_name()
         # no data
         if not models:
             return Status(
-                100, 'success', StatusMsgs.get(100), []).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), []).json()
         names = list()
         # 格式化
         for _m in models:
@@ -992,7 +996,7 @@ class InfoService(object):
             names.append({'label': _m[0], 'value': _m[0]})
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), names
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), names
         ).json()
 
     def dict_add(self, params: dict):
@@ -1014,13 +1018,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_dict_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1029,10 +1033,10 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_dict_add_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k in self.req_dict_add_need_attrs:       # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -1040,46 +1044,46 @@ class InfoService(object):
             new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
-                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+                402, StatusEnum.FAILURE.value, '请求参数order_id只允许为数字类型', {}).json()
         # type类型特殊检查【新增 && 维护】
         _type = new_params.get('type')
         if _type not in [1, 2, '1', '2']:
             return Status(
-                213, 'failure', u'请求参数type不允许', {}).json()
+                404, StatusEnum.FAILURE.value, '请求参数type不允许', {}).json()
         # parameters check length
         for _key, _value in self.req_dict_add_check_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # <<<<<<<<<<<<<<< 模型类型判断 >>>>>>>>>>>>>>>>>
         """
         类型：
-            type=1：纯新增
-            type=1：维护新增，已有name
+            type=1：新增
+            type=2：维护，已有name
         """
         _type = int(new_params.get('type'))
         models = self.enum_bo.get_add_model_by_name(name=new_params.get('name'))
         """ type=1：纯新增 校验name不允许存在 """
         if _type == 1 and models:
             return Status(
-                301, 'failure', "枚举RTX已存在，请更换" or StatusMsgs.get(301), {}).json()
+                502, StatusEnum.FAILURE.value, "枚举RTX已存在，请重新填写", {}).json()
         """ type=2：维护新增 校验name需要存在 """
         if _type == 2 and not models:
             return Status(
-                302, 'failure', "枚举RTX不存在，请重新选择" or StatusMsgs.get(301), {}).json()
+                501, StatusEnum.FAILURE.value, "枚举RTX不存在，请重新选择", {}).json()
         if _type == 2:
             _m = self.enum_bo.get_model_by_name_key(name=new_params.get('name'), key=new_params.get('key'))
             if _m:
                 return Status(
-                    301, 'failure', "数据已存在，请修改Key" or StatusMsgs.get(301), {}).json()
+                    502, StatusEnum.FAILURE.value, "数据已存在，请修改Key", {}).json()
         """ md5 检验 """
         md5_id = md5('%s-%s-%s' % (new_params.get('name'), new_params.get('key'), get_now()))
         model_md5 = self.enum_bo.get_model_by_md5(md5_id)
         if model_md5:
             return Status(
-                301, 'failure', "数据已存在，请更换MD5" or StatusMsgs.get(301), {}).json()
+                502, StatusEnum.FAILURE.value, "数据已存在，请修改枚举值", {}).json()
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< add model >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         try:
             new_model = self.enum_bo.new_mode()
@@ -1094,10 +1098,10 @@ class InfoService(object):
             self.enum_bo.add_model(new_model)
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {'md5': md5_id}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}
         ).json()
 
     def api_list(self, params: dict) -> dict:
@@ -1109,36 +1113,36 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_api_list_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_api_list_attrs and v:
+            if k not in self.req_api_list_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k in self.req_api_list_search_list_types:    # 处理列表参数
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s为列表类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             if k in self.req_api_list_search_time_types and v:      # 处理时间查询参数，str类型
                 if not isinstance(v, str):
                     return Status(
-                        213, 'failure', u'请求参数%s为字符串类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s为字符串类型' % k, {}).json()
                 if v:
                     try:
                         s2d(v)
                     except:
                         return Status(
-                            213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
+                            404, StatusEnum.FAILURE.value, '请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
 
             if k in self.req_api_list_search_like_types and v:      # like 查询参数
                 v = '%' + str(v) + '%'
@@ -1169,7 +1173,7 @@ class InfoService(object):
         # no data
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101),
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101),
                 {'list': [], 'total': 0, 'user': user_list, 'type': type_list}
             ).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
@@ -1183,7 +1187,7 @@ class InfoService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100),
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
             {'list': new_res, 'total': total, 'user': user_list, 'type': type_list}
         ).json()
 
@@ -1195,13 +1199,13 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -1210,10 +1214,10 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -1221,11 +1225,11 @@ class InfoService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # < update data >
         try:
             setattr(model, 'is_del', True)
@@ -1234,9 +1238,9 @@ class InfoService(object):
             self.api_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def api_deletes(self, params: dict) -> dict:
@@ -1247,13 +1251,13 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new format parameter
@@ -1262,14 +1266,14 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_deletes_attrs:     # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:   # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # check type
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
@@ -1278,10 +1282,11 @@ class InfoService(object):
             res = self.api_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
+
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
+            else Status(508, StatusEnum.FAILURE.value,
                         "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
                         {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
 
@@ -1293,13 +1298,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1308,21 +1313,21 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_detail_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
         model = self.api_bo.get_model_by_md5(md5_id=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '数据已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # -------------- return data -----------------
         # type list
         type_models = self.enum_bo.get_model_by_name(name='api-type')
@@ -1338,7 +1343,7 @@ class InfoService(object):
         }
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), _res
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res
         ).json()
 
     def api_add(self, params: dict):
@@ -1362,13 +1367,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_api_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1377,10 +1382,10 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_api_add_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k in self.req_api_add_need_attrs:       # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -1388,20 +1393,21 @@ class InfoService(object):
             new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
-                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+                402, StatusEnum.FAILURE.value, '请求参数order_id只允许为数字类型', {}).json()
         # parameters check length
         for _key, _value in self.req_api_add_ck_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # <<<<<<<<<<<<<<< md5模型判断 >>>>>>>>>>>>>>>>>
         md5_id = md5('%s-%s' % (new_params.get('blueprint'), new_params.get('apiname')))
         model_md5 = self.api_bo.get_model_by_md5(md5_id)
         if model_md5:
             return Status(
-                301, 'failure', "数据已存在" or StatusMsgs.get(301), {}).json()
+                501, StatusEnum.FAILURE.value, "数据已存在", {}).json()
+
         # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< add model >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         try:
             new_model = self.api_bo.new_mode()
@@ -1424,10 +1430,10 @@ class InfoService(object):
             self.api_bo.add_model(new_model)
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {'md5': new_params.get('md5')}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': md5_id}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}).json()
 
     def api_update(self, params: dict):
         """
@@ -1446,13 +1452,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_api_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1461,10 +1467,10 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_api_update_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k in self.req_api_add_need_attrs:       # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -1472,24 +1478,25 @@ class InfoService(object):
             new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
-                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+                402, StatusEnum.FAILURE.value, '请求参数order_id只允许为数字类型', {}).json()
         # parameters check length
         for _key, _value in self.req_api_add_ck_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # <<<<<<<<<<<<<<< check data >>>>>>>>>>>>>>>>>
         model = self.api_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                304, 'failure', StatusMsgs.get(304), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+
         # --------------------------------------- update model --------------------------------------
         rtx_id = new_params.get('rtx_id')
         new_params.pop('rtx_id')
@@ -1508,9 +1515,10 @@ class InfoService(object):
             self.api_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def api_types(self, params: dict):
@@ -1521,13 +1529,13 @@ class InfoService(object):
         # ----------------- check and format --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_api_types_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1536,17 +1544,19 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_api_types_attrs:  # illegal parameter
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # parameter is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
+
         # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
         models = self.enum_bo.get_model_by_name(name='api-type')
         # no data
         if not models:
             return Status(
-                100, 'success', StatusMsgs.get(100), []).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), []).json()
+
         _res = list()
         # 格式化
         for _m in models:
@@ -1554,7 +1564,7 @@ class InfoService(object):
             _res.append({'key': _m.key, 'value': _m.value})
         # return data
         return Status(
-            100, 'success', StatusMsgs.get(100), _res).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
 
     def _depart_model_to_dict(self, model, _type='list'):
         """
@@ -1633,22 +1643,22 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_depart_list_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_depart_list_attrs and v:
+            if k not in self.req_depart_list_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             new_params[k] = str(v).strip()
 
         rtx_id = new_params.get('rtx_id')
@@ -1656,13 +1666,15 @@ class InfoService(object):
         user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
         if not user_model:
             return Status(
-                302, 'failure', u'用户%s不存在' % rtx_id, {}).json()
+                202, StatusEnum.FAILURE.value, '用户%s不存在' % rtx_id, {}).json()
+
         # **************** <get data> *****************
         res = self.depart_bo.get_all(root=True)
         # no data
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'max_id': self.DEPART_ROOT_ID, 'tree': []}
+            ).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         # new_res_dict = dict()   # 所有节点信息：{ 节点id: 节点, 节点id: 节点 }
         all_nodes = list()   # 根所有的children节点信息：[{ id: id, name: name },{ id: id, name: name } ]
@@ -1683,7 +1695,7 @@ class InfoService(object):
         """
         nodes_tree = self._nodes_tree(all_nodes, self.DEPART_ROOT_PID)  # 从根节点开始显示
         return Status(
-            100, 'success', StatusMsgs.get(100), {'max_id': _max_id, 'tree': nodes_tree}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'max_id': _max_id, 'tree': nodes_tree}
         ).json()
 
     def _nodes_array(self, all_nodes, node_list=[]):
@@ -1701,40 +1713,42 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_depart_update_tree_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_depart_update_tree_attrs and v:
+            if k not in self.req_depart_update_tree_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k == 'rtx_id' and not v:
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % k, {}).json()
+                    4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
             if k == 'data':
                 if not v:
                     return Status(
-                        213, 'failure', u'部门树不允许清空，请至少保留一个部门', {}).json()
+                        402, StatusEnum.FAILURE.value, '部门树不允许清空，请至少保留一个部门', {}).json()
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s只允许为list类型' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             new_params[k] = v
 
         all_nodes = new_params.get('data')
         nodes_array = self._nodes_array(all_nodes, [])
         for node in nodes_array:
             if not node: continue
+            # TODO 待完善开发API
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}
         ).json()
 
     def depart_init(self, params: dict) -> dict:
@@ -1744,34 +1758,35 @@ class InfoService(object):
         # ---------------------- parameters check ----------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_depart_init_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_depart_init_attrs and v:
+            if k not in self.req_depart_init_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             v = str(v)
             new_params[k] = v
         # ------------- return data -------------
         res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'user': []}).json()
+
         user_res = list()
         for _d in res:
             if not _d: continue
             user_res.append({'key': _d.rtx_id, 'value': _d.fullname})
         return Status(
-            100, 'success', StatusMsgs.get(100), {'user': user_res}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'user': user_res}
         ).json()
 
     def __depart_path(self, depart_id):
@@ -1809,31 +1824,31 @@ class InfoService(object):
         # ---------------------- parameters check ----------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_depart_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
             # illegal
-            if k not in self.req_depart_add_attrs and v:
+            if k not in self.req_depart_add_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # value is not allow null
             if k in self.req_depart_add_need_attrs and not str(v):
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # value is boolean
             if k in self.req_depart_add_bool_attrs:
                 if not isinstance(v, bool):
                     return Status(
-                        213, 'failure', u'请求参数%s只允许是Boolean类型' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -1841,37 +1856,53 @@ class InfoService(object):
             new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
-                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+                402, StatusEnum.FAILURE.value, '请求参数order_id只允许为数字类型', {}).json()
         # parameters check length
         for _key, _value in self.req_depart_add_len.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
+
+        # 父节点是否被锁定、删除
+        new_node_pid = new_params.get('pid')
+        new_node_pid_model = self.depart_bo.get_model_by_id(id=new_node_pid)
+        # not exist
+        if not new_node_pid_model:
+            return Status(
+                501, StatusEnum.FAILURE.value, '父节点不存在', {"md5": new_params.get('md5')}).json()
+        # data is deleted
+        if new_node_pid_model and new_node_pid_model.is_del:
+            return Status(
+                503, StatusEnum.FAILURE.value, '父节点已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+        # data is lock
+        if new_node_pid_model and new_node_pid_model.lock:
+            return Status(
+                506, StatusEnum.FAILURE.value, '父节点被禁用，不允许新增', {"md5": new_params.get('md5')}).json()
 
         # ===================== add new department data =====================
-        new_depart = self.depart_bo.new_mode()
-        # 交互信息
-        for attr in self.req_depart_add_attrs:
-            if not attr: continue
-            if attr == 'rtx_id':
-                new_depart.create_rtx = new_params.get(attr)
-            else:
-                setattr(new_depart, attr, new_params.get(attr))
-        # 其他信息
-        now = get_now()
-        new_depart_md5 = md5('%s%s%s' % (new_params.get('name'), now, new_params.get('rtx_Id')))
-        new_depart.md5_id = new_depart_md5
-        new_depart.create_time = now
-        new_depart.is_del = False
-        new_depart.leaf = True
-        deptid_path, dept_path = self.__depart_path(depart_id=new_params.get('pid'))
-        new_depart.dept_path = '%s>%s' % (dept_path, new_params.get('name'))
         try:
+            new_depart = self.depart_bo.new_mode()
+            # 交互信息
+            for attr in self.req_depart_add_attrs:
+                if not attr: continue
+                if attr == 'rtx_id':
+                    new_depart.create_rtx = new_params.get(attr)
+                else:
+                    setattr(new_depart, attr, new_params.get(attr))
+            # 其他信息
+            now = get_now()
+            new_depart_md5 = md5('%s%s%s' % (new_params.get('name'), now, new_params.get('rtx_Id')))
+            new_depart.md5_id = new_depart_md5
+            new_depart.create_time = now
+            new_depart.is_del = False
+            new_depart.leaf = True
+            deptid_path, dept_path = self.__depart_path(depart_id=new_params.get('pid'))
+            new_depart.dept_path = '%s>%s' % (dept_path, new_params.get('name'))
             self.depart_bo.add_model(new_depart)
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
         # ******************************* update new deapart id *******************************
         try:
             # 更新新增节点ID
@@ -1883,7 +1914,7 @@ class InfoService(object):
             new_node['deptid_path'] = '%s>%s' % (deptid_path, depart_model.id)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
         # ******************************* update up node data *******************************
         try:
             # 更新上级节点leaf属性
@@ -1892,12 +1923,12 @@ class InfoService(object):
             self.depart_bo.merge_model(up_depart_model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
         # return depart tree
         # depart_list = self.depart_list({'rtx_id': new_params.get('rtx_id')})
         # depart_list_tree = json.loads(depart_list).get('data').get('tree')
         return Status(
-            100, 'success', StatusMsgs.get(100), new_node
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), new_node
         ).json()
 
     def depart_delete(self, params: dict) -> dict:
@@ -1908,13 +1939,13 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -1923,10 +1954,10 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== data check ======================
@@ -1934,15 +1965,19 @@ class InfoService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+        # data is lock
+        if model and model.lock:
+            return Status(
+                506, StatusEnum.FAILURE.value, '节点被禁用不允许删除，请先更新状态进行删除', {"md5": new_params.get('md5')}).json()
         # root node not allow delete
         if model.id == self.DEPART_ROOT_ID:
             return Status(
-                306, 'failure', '根节点不允许删除', {}).json()
+                500, StatusEnum.FAILURE.value, '根节点不允许删除', {}).json()
 
         # < delete data >
         try:
@@ -1952,15 +1987,15 @@ class InfoService(object):
             self.depart_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {'md5': new_params.get('md5')}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
         # ******************************* 更新节点的父节点leaf信息 *******************************
         try:
             res = self._update_node_src_leaf(model.pid)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def depart_detail(self, params: dict) -> dict:
@@ -1971,13 +2006,13 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
@@ -1986,10 +2021,10 @@ class InfoService(object):
             if not k: continue
             if k not in self.req_detail_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
 
         # ====================== depart detail ======================
@@ -1997,11 +2032,11 @@ class InfoService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         depart_res = self._depart_model_to_dict(model, _type='tree')
         # ====================== user list ======================
         res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
@@ -2011,7 +2046,7 @@ class InfoService(object):
             user_res.append({'key': _d.rtx_id, 'value': _d.fullname})
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'user': user_res, 'depart': depart_res}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'user': user_res, 'depart': depart_res}
         ).json()
 
     def depart_update(self, params: dict) -> dict:
@@ -2022,31 +2057,31 @@ class InfoService(object):
         # ---------------------- parameters check ----------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_depart_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
             # illegal
-            if k not in self.req_depart_update_attrs and v:
+            if k not in self.req_depart_update_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # value is not allow null
             if k in self.req_depart_update_need_attrs and not str(v):
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # value is boolean
             if k in self.req_depart_add_bool_attrs:
                 if not isinstance(v, bool):
                     return Status(
-                        213, 'failure', u'请求参数%s只允许是Boolean类型' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -2054,42 +2089,42 @@ class InfoService(object):
             new_params['order_id'] = 1
         if order_id and not order_id.isdigit():
             return Status(
-                213, 'failure', u'请求参数order_id只允许为数字', {}).json()
+                402, StatusEnum.FAILURE.value, '请求参数order_id只允许为数字类型', {}).json()
         # parameters check length
         for _key, _value in self.req_depart_add_len.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # ******************************* update up deapart data *******************************
         model = self.depart_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
-        # 交互信息
-        for attr in self.req_depart_update_attrs:
-            if not attr and attr in ['md5']: continue
-            if attr == 'rtx_id':
-                model.update_rtx = new_params.get(attr)
-            else:
-                setattr(model, attr, new_params.get(attr))
-        # 其他信息
-        now = get_now()
-        model.update_time = now
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+
         try:
+            # 交互信息
+            for attr in self.req_depart_update_attrs:
+                if not attr and attr in ['md5']: continue
+                if attr == 'rtx_id':
+                    model.update_rtx = new_params.get(attr)
+                else:
+                    setattr(model, attr, new_params.get(attr))
+            # 其他信息
+            model.update_time = get_now()
             self.depart_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': model.md5_id}
         ).json()
 
     def _update_node_src_leaf(self, node_id):
@@ -2113,26 +2148,26 @@ class InfoService(object):
         # ---------------------- parameters check ----------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_depart_drag_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
             # illegal
-            if k not in self.req_depart_drag_attrs and v:
+            if k not in self.req_depart_drag_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # value is not allow null
             if k in self.req_depart_drag_attrs and not str(v):
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = v
 
         # ******************************* update up deapart data *******************************
@@ -2140,15 +2175,15 @@ class InfoService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # data is lock
         if model and model.lock:
             return Status(
-                306, 'failure', '节点被禁用，不允许调整', {}).json()
+                506, StatusEnum.FAILURE.value, '节点被禁用，不允许调整', {"md5": new_params.get('md5')}).json()
 
         # ******************************* 节点信息 *******************************
         try:
@@ -2165,7 +2200,7 @@ class InfoService(object):
             self.depart_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
         # ******************************* 操作节点的目标上级节点 *******************************
         try:
             # 更新上级节点leaf属性
@@ -2176,16 +2211,16 @@ class InfoService(object):
                 self.depart_bo.merge_model(up_depart_model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
         # ******************************* 更新源节点的父节点leaf信息 *******************************
         try:
             res = self._update_node_src_leaf(node_src_pid)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': model.md5_id}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': model.md5_id}
         ).json()
 
     def log_list(self, params: dict) -> dict:
@@ -2197,36 +2232,36 @@ class InfoService(object):
         # ====================== parameters check ======================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.log_log_list_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # new parameters
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.log_log_list_attrs and v:
+            if k not in self.log_log_list_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if k in self.req_log_list_search_list_types:    # 处理列表参数
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s为列表类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             if k in self.req_log_list_search_time_types and v:      # 处理时间查询参数，str类型
                 if not isinstance(v, str):
                     return Status(
-                        213, 'failure', u'请求参数%s为字符串类型' % k or StatusMsgs.get(213), {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s为字符串类型' % k, {}).json()
                 if v:
                     try:
                         s2d(v)
                     except:
                         return Status(
-                            213, 'failure', u'请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
+                            404, StatusEnum.FAILURE.value, '请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
 
             if k in self.req_log_list_search_like_types and v:      # like 查询参数
                 v = '%' + str(v) + '%'
@@ -2247,7 +2282,7 @@ class InfoService(object):
             new_params.pop('rtx_id')
 
         # **************** <get data> *****************
-        res, total = self.request_bo.get_all(new_params)
+        res, total = self.request_bo.get_all(new_params)        # 去掉rtx-id限制，管理全部数据
         # all user k-v list
         user_res, _ = self.sysuser_bo.get_all({}, is_admin=True, is_del=True)
         user_list = list()
@@ -2263,7 +2298,7 @@ class InfoService(object):
         # no data
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101),
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101),
                 {'list': [], 'total': 0, 'user': user_list, 'type': type_list}
             ).json()
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
@@ -2277,6 +2312,7 @@ class InfoService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100),
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
             {'list': new_res, 'total': total, 'user': user_list, 'type': type_list}
         ).json()
+

@@ -5,6 +5,7 @@
 
 describe: 
     image view
+      - 用户头像[avatar]
 
 base_info:
     __author__ = "PyGo"
@@ -36,11 +37,11 @@ Life is short, I use python.
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 
-from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.watcher import watcher
 from deploy.service.image import ImageService
+from deploy.utils.decorator import watch_except
 
 
 image = Blueprint(name='image', import_name=__name__, url_prefix='/image')
@@ -49,6 +50,7 @@ CORS(image, supports_credentials=True)
 
 @image.route('/profile_avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def profile_avatar_list():
     """
     image > profile avatar list
@@ -56,19 +58,16 @@ def profile_avatar_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return ImageService().profile_avatar_list(params)
-    except Exception as e:
-        LOG.error("image>profile avatar list is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return ImageService().profile_avatar_list(params)
 
 
 @image.route('/profile_avatar_set/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def profile_avatar_set():
     """
     image > profile avatar set
@@ -76,12 +75,8 @@ def profile_avatar_set():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return ImageService().profile_avatar_set(params)
-    except Exception as e:
-        LOG.error("image>profile avatar set is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return ImageService().profile_avatar_set(params)

@@ -44,6 +44,12 @@ class HttpLibApi(object):
         self.is_try = is_try
         self.timeout = timeout
 
+    def __str__(self):
+        return "HttpLibApi Class."
+
+    def __repr__(self):
+        return self.__str__()
+
     def _wrap_headers(self, headers, ctype='form'):
         _headers = {}
         # http lib headers

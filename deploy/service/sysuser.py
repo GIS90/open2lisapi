@@ -33,7 +33,7 @@ from deploy.bo.role import RoleBo
 from deploy.service.menu import MenuService
 from deploy.utils.utils import d2s, get_now, check_length
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.logger import logger as LOG
 from deploy.config import ADMIN, O_NOBN, \
     STORE_SPACE_NAME, STORE_BASE_URL, \
@@ -180,18 +180,19 @@ class SysUserService(object):
         # no token, return
         if not token:
             return Status(
-                200, 'failure', StatusMsgs.get(200) or u'用户未登录', {}).json()
+                400, StatusEnum.FAILURE.value, "用户Token参数不存在", {}).json()
 
         # -------------------- check data --------------------
+        token = token.strip()   #去空格
         user_model = self.get_user_by_token(token, is_vue=True)
         # user model is not exist
         if not user_model:
             return Status(
-                302, 'failure', StatusMsgs.get(202) or u'用户未注册，请联系管理员注册', {}).json()
+                202, StatusEnum.FAILURE.value, '用户未注册', {}).json()
         # user model is deleted
         if user_model.get('is_del'):
             return Status(
-                302, 'failure', StatusMsgs.get(203) or u'用户已注销，不允许登录系统', {}).json()
+                203, StatusEnum.FAILURE.value, '用户已注销', {}).json()
 
         LOG.info('current login user rtx_id >>>>>>>>>> %s' % user_model.get('rtx_id') or O_NOBN)
         # delete password information
@@ -199,8 +200,7 @@ class SysUserService(object):
             del user_model['password']
 
         return Status(
-            100, 'success', StatusMsgs.get(100),
-            {'user': user_model, 'token': token} or {}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'user': user_model, 'token': token} or {}
         ).json()
 
     def get_login_auth_by_rtx(self, rtx_id: str) -> dict:
@@ -212,7 +212,7 @@ class SysUserService(object):
         # not rtx_id parameter, return
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}).json()
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
         # -------------------- check user data --------------------
         rtx_id = rtx_id.strip()  # 去空格
         # get user by rtx
@@ -220,14 +220,12 @@ class SysUserService(object):
         # user model is not exist
         if not user:
             return Status(
-                202, 'failure', StatusMsgs.get(202) or u'用户未注册', {}
-            ).json()
+                202, StatusEnum.FAILURE.value, '用户未注册', {}).json()
         # user model is deleted
         user_res = self._model_to_dict(user, _type='base')
         if user_res.get('is_del'):
             return Status(
-                203, 'failure', StatusMsgs.get(203) or u'用户已注销', {}
-            ).json()
+                203, StatusEnum.FAILURE.value, '用户已注销', {}).json()
 
         # -------------------- user auth --------------------
         # 判断是否管理员，如果是管理员是全部菜单权限
@@ -247,7 +245,7 @@ class SysUserService(object):
         user_auth = self.menu_service.get_routes(auth_list, is_admin) or []
         LOG.info('current login auth rtx_id >>>>>>>>>> %s' % user_res.get('rtx_id') or O_NOBN)
         return Status(
-            100, 'success', StatusMsgs.get(100),
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
             {'auth': user_auth, 'rtx_id': user_res.get('rtx_id')}
         ).json()
 
@@ -259,34 +257,37 @@ class SysUserService(object):
         # check parameters
         if not data:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         rtx_id = data.get('rtx_id')
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}).json()
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
+
+        rtx_id = str(rtx_id).strip()    # 去空格
         new_data = dict()
         for k, v in data.items():
-            if not v or k == 'rtx_id': continue
+            if k == 'rtx_id': continue
+            # illegal
             if k not in self.update_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['email', 'introduction']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # check: length
             if k == 'name' and not check_length(v, 30):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'phone' and len(v) != 11:
                 return Status(
-                    213, 'failure', u'正确电话为11位' % k, {}).json()
+                    404, StatusEnum.FAILURE.value, '正确电话为11位', {}).json()
             elif k == 'email' and not check_length(v, 35):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'introduction' and not check_length(v, 255):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             if k == 'name':
                 new_data['fullname'] = v
             elif k == 'rtx_id':
@@ -298,7 +299,7 @@ class SysUserService(object):
         # user model is not exist
         if not user_model:
             return Status(
-                302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"rtx_id": rtx_id}).json()
         # TODO 添加注销用户判断
         for _k, _v in new_data.items():
             if not _k: continue
@@ -310,8 +311,7 @@ class SysUserService(object):
         if new_user_model.get('password'):
             del new_user_model['password']
         return Status(
-            100, 'success', StatusMsgs.get(100), new_user_model
-        ).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), new_user_model).json()
 
     def update_password_by_rtx(self, data):
         """
@@ -324,28 +324,30 @@ class SysUserService(object):
         # check parameters
         if not data:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         rtx_id = data.get('rtx_id')
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}).json()
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
         # ---------------- parameters format ------------------
+        rtx_id = str(rtx_id).strip()    # 去空格
         new_data = dict()
         for k, v in data.items():
-            if not v or k == 'rtx_id': continue
+            if k == 'rtx_id': continue
             if k not in self.password_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_data[k] = v
 
         # get user model
         user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
         if not user_model:
             return Status(
-                302, 'failure', u'用户不存在' or StatusMsgs.get(302), {}).json()
+                202, StatusEnum.FAILURE.value, '用户不存在', {}).json()
+
         # 老密码、新密码、确认密码进行验证
         old_password = new_data.get('old_password')
         new_password = new_data.get('new_password')
@@ -353,11 +355,12 @@ class SysUserService(object):
         # 老密码不同
         if old_password != user_model.password:
             return Status(
-                232, 'failure', u'输入的旧密码有误' or StatusMsgs.get(232), {}).json()
+                206, StatusEnum.FAILURE.value, '用户输入的旧密码有误', {}).json()
         # 2次新密码不一致
         if new_password != con_password:
             return Status(
-                233, 'failure', u'两次新密码不一致' or StatusMsgs.get(233), {}).json()
+                207, StatusEnum.FAILURE.value, '输入的两次新密码不一致', {}).json()
+
         # update user password
         setattr(user_model, 'password', new_password)
         self.sysuser_bo.merge_model_no_trans(user_model)
@@ -365,8 +368,7 @@ class SysUserService(object):
         if new_user_model.get('password'):
             del new_user_model['password']
         return Status(
-            100, 'success', StatusMsgs.get(100), new_user_model
-        ).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), new_user_model).json()
 
     def update_avatar_by_rtx(self, rtx_id, image_file):
         """
@@ -377,23 +379,23 @@ class SysUserService(object):
         # check parameters
         if not rtx_id:
             return Status(
-                212, 'failure', u'缺少rtx_id请求参数', {}).json()
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
         if not image_file:
             return Status(
-                212, 'failure', u'缺少上传文件', {}).json()
+                450, StatusEnum.FAILURE.value, '缺少上传文件', {}).json()
 
         try:
             image_name = image_file.filename
             # ============= image format check =============
             if not self.image_lib.allow_format_img(image_name):
                 return Status(
-                    401, 'failure', u'图片格式不支持' or StatusMsgs.get(401), {}).json()
+                    454, StatusEnum.FAILURE.value, '图片格式不支持', {}).json()
             # ============= local store =============
             local_res = self.image_lib.store_local(image_file, compress=False)
             if local_res.get('status_id') != 100:
-                return Status(local_res.get('status_id'),
-                              'failure',
-                              local_res.get('message') or StatusMsgs.get(local_res.get('status_id')),
+                return Status(local_res.get('status_id') or 456,
+                              StatusEnum.FAILURE.value,
+                              local_res.get('message') or "文件本地存储失败",
                               {}).json()
             local_image_file = local_res.get('data').get('file')
             # TODO 判断图片大小限制
@@ -403,9 +405,9 @@ class SysUserService(object):
             store_image_name = '%s/%s' % (get_now(format="%Y%m%d"), local_res.get('data').get('name'))
             store_res = self.store_lib.upload(store_name=store_image_name, local_file=local_image_file)
             if store_res.get('status_id') != 100:
-                return Status(store_res.get('status_id'),
-                              'failure',
-                              store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
+                return Status(store_res.get('status_id') or 457,
+                              StatusEnum.FAILURE.value,
+                              store_res.get('message') or "文件云存储失败",
                               {}).json()
             # ---------------- update user model ----------------
             user_model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
@@ -413,15 +415,12 @@ class SysUserService(object):
             setattr(user_model, 'avatar', avatar)
             self.sysuser_bo.merge_model_no_trans(user_model)
             return Status(
-                100, 'success', StatusMsgs.get('100'), {'avatar': avatar}
-            ).json()
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get('100'), {'avatar': avatar}).json()
 
-        except Exception as e:
-            LOG.error('upload image save failure: %s' % e)
+        except Exception as error:
+            LOG.error('User upload image save failure: %s' % error)
             return Status(
-                501, 'failure',
-                StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试',
-                {}
+                900, StatusEnum.FAILURE.value, "用户上传头像发生异常，请稍后尝试", {}
             ).json()
 
     def random_avatar_list(self, params):

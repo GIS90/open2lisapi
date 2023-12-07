@@ -5,6 +5,8 @@
 
 describe: 
     office view
+      - excel
+      - pdf
 
 base_info:
     __author__ = "PyGo"
@@ -36,10 +38,9 @@ Life is short, I use python.
 from flask import Blueprint, request
 from flask_cors import CORS, cross_origin
 
-from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
-from deploy.utils.status_msg import StatusMsgs
-# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
+from deploy.utils.decorator import watch_except
 from deploy.utils.watcher import watcher
 from deploy.service.office import OfficeService
 
@@ -50,6 +51,7 @@ CORS(office, supports_credentials=True)
 
 @office.route('/excel_source_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_source_list():
     """
     get excel source list from db table excel_source by parameters
@@ -57,20 +59,16 @@ def excel_source_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_source_list(params)
-    except Exception as e:
-        LOG.error("office>excel source list is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_source_list(params)
 
 
 @office.route('/excel_source_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_source_update():
     """
     update excel source file information, contain:
@@ -81,20 +79,16 @@ def excel_source_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_source_update(params)
-    except Exception as e:
-        LOG.error("office>update excel source file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_source_update(params)
 
 
 @office.route('/excel_source_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_source_delete():
     """
     delete one excel source excel file by md5
@@ -102,20 +96,16 @@ def excel_source_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_source_delete(params)
-    except Exception as e:
-        LOG.error("office>delete one excel source file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_source_delete(params)
 
 
 @office.route('/excel_source_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_source_deletes():
     """
     delete many excel source excel file by md5 list
@@ -123,20 +113,16 @@ def excel_source_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_source_deletes(params)
-    except Exception as e:
-        LOG.error("office>delete many excel source file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_source_deletes(params)
 
 
 @office.route('/excel_merge/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_merge():
     """
     operation method, many excel file to merge one excel file,
@@ -145,20 +131,16 @@ def excel_merge():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_merge(params)
-    except Exception as e:
-        LOG.error("office>excel merge is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_merge(params)
 
 
 @office.route('/excel_history_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_history_list():
     """
     get excel history excel list from db table excel_result
@@ -167,20 +149,16 @@ def excel_history_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_history_list(params)
-    except Exception as e:
-        LOG.error("office>excel history list is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_history_list(params)
 
 
 @office.route('/excel_result_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_result_update():
     """
     update excel result excel file, only update file name
@@ -189,20 +167,16 @@ def excel_result_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_result_update(params)
-    except Exception as e:
-        LOG.error("office>update result excel file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_result_update(params)
 
 
 @office.route('/excel_result_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_result_delete():
     """
     delete one excel result excel file by md5
@@ -210,20 +184,16 @@ def excel_result_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_result_delete(params)
-    except Exception as e:
-        LOG.error("office>delete excel result file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_result_delete(params)
 
 
 @office.route('/excel_result_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_result_deletes():
     """
     delete many excel result excel file by md5 list
@@ -232,20 +202,16 @@ def excel_result_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_result_deletes(params)
-    except Exception as e:
-        LOG.error("office>batch deletes excel result file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_result_deletes(params)
 
 
 @office.route('/excel_init_split/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_init_split_params():
     """
     initialize the excel result excel file split parameter
@@ -254,20 +220,16 @@ def excel_init_split_params():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_init_split_params(params)
-    except Exception as e:
-        LOG.error("office>initialize excel split parameter is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_init_split_params(params)
 
 
 @office.route('/excel_sheet_header/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_sheet_header():
     """
     get sheet headers by sheet index from excel_source table
@@ -275,20 +237,16 @@ def excel_sheet_header():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_sheet_header(params)
-    except Exception as e:
-        LOG.error("office>excel sheet headers is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_sheet_header(params)
 
 
 @office.route('/excel_split/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def excel_split():
     """
     split method, split parameters is many
@@ -297,20 +255,16 @@ def excel_split():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().excel_split(params)
-    except Exception as e:
-        LOG.error("office>excel split is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().excel_split(params)
 
 
 @office.route('/pdf2word_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def pdf2word_list():
     """
     get pdf2word list from db table by parameters
@@ -318,20 +272,16 @@ def pdf2word_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().pdf2word_list(params)
-    except Exception as e:
-        LOG.error("office>pdf2word list is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().pdf2word_list(params)
 
 
 @office.route('/office_pdf_detail/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def office_pdf_detail():
     """
     get office pdf file detail information by file md5
@@ -339,20 +289,16 @@ def office_pdf_detail():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().office_pdf_detail(params)
-    except Exception as e:
-        LOG.error("office>get office pdf file detail is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().office_pdf_detail(params)
 
 
 @office.route('/office_pdf_update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def office_pdf_update():
     """
     update office pdf file information, contain:
@@ -365,20 +311,16 @@ def office_pdf_update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().office_pdf_update(params)
-    except Exception as e:
-        LOG.error("office>update office pdf file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().office_pdf_update(params)
 
 
 @office.route('/office_pdf_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def office_pdf_delete():
     """
     delete one office pdf file by md5
@@ -386,20 +328,16 @@ def office_pdf_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().office_pdf_delete(params)
-    except Exception as e:
-        LOG.error("office>delete one office pdf file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().office_pdf_delete(params)
 
 
 @office.route('/office_pdf_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def office_pdf_deletes():
     """
     delete many office pdf file by md5 list
@@ -407,20 +345,16 @@ def office_pdf_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().office_pdf_deletes(params)
-    except Exception as e:
-        LOG.error("office>delete many office pdf file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().office_pdf_deletes(params)
 
 
 @office.route('/office_pdf_to/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def office_pdf_to():
     """
     office pdf file convert to word file, one file to convert:
@@ -432,13 +366,9 @@ def office_pdf_to():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return OfficeService().office_pdf_to(params)
-    except Exception as e:
-        LOG.error("office>office pdf convert to word file is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    params = request.get_json() or {}
+    return OfficeService().office_pdf_to(params)
+

@@ -58,12 +58,11 @@ Life is short, I use python.
 from flask import Blueprint, request
 from flask_cors import CORS
 
-from deploy.utils.logger import logger as LOG
 from deploy.utils.status import Status
 from deploy.service.sysuser import SysUserService
 from deploy.service.request import RequestService
-from deploy.utils.status_msg import StatusMsgs
-# from deploy.utils.utils import timeer   # change to use watcher
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
+from deploy.utils.decorator import watch_except
 from deploy.utils.watcher import watcher
 from flask import request
 
@@ -74,6 +73,7 @@ CORS(user, supports_credentials=True)
 
 @user.route('/info/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def info():
     """
     login to system get user information
@@ -82,19 +82,16 @@ def info():
     """
     if request.method == 'POST':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        token = request.args.get('token')
-        return SysUserService().get_login_by_token(token)
-    except Exception as e:
-        LOG.error("user>info is error: %s" % e)
-        return Status(501, 'failure',
-            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    token = request.args.get('token')
+    return SysUserService().get_login_by_token(token)
 
 
 @user.route('/auth/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def auth():
     """
     login to system get user authority
@@ -103,20 +100,17 @@ def auth():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        data_json = request.get_json() or {}
-        rtx_id = data_json.get('rtx_id')
-        return SysUserService().get_login_auth_by_rtx(rtx_id)
-    except Exception as e:
-        LOG.error("user>auth is error: %s" % e)
-        return Status(501, 'failure',
-                      StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    data_json = request.get_json() or {}
+    rtx_id = data_json.get('rtx_id')
+    return SysUserService().get_login_auth_by_rtx(rtx_id)
 
 
 @user.route('/update/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def update():
     """
     update login user information
@@ -124,19 +118,16 @@ def update():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        data_json = request.get_json() or {}
-        return SysUserService().update_user_by_rtx(data_json)
-    except Exception as e:
-        LOG.error("user>update is error: %s" % e)
-        return Status(501, 'failure',
-            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    data_json = request.get_json() or {}
+    return SysUserService().update_user_by_rtx(data_json)
 
 
 @user.route('/timeline/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def timeline():
     """
     login to system get user log timeline
@@ -144,19 +135,16 @@ def timeline():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return RequestService().get_by_rtx(params)  # 直接RequestService获取
-    except Exception as e:
-        LOG.error("user>timeline is error: %s" % e)
-        return Status(501, 'failure',
-            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-
+    # 参数
+    params = request.get_json() or {}
+    return RequestService().get_by_rtx(params)  # 直接RequestService获取
+ 
+ 
 @user.route('/password/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def password():
     """
     update user password, password contain:
@@ -167,19 +155,16 @@ def password():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        data_json = request.get_json() or {}
-        return SysUserService().update_password_by_rtx(data_json)
-    except Exception as e:
-        LOG.error("user>password is error: %s" % e)
-        return Status(501, 'failure',
-            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    data_json = request.get_json() or {}
+    return SysUserService().update_password_by_rtx(data_json)
 
 
 @user.route('/avatar/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def avatar():
     """
     update user avatar
@@ -188,26 +173,23 @@ def avatar():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        form = request.form
-        rtx_id = form.get('rtx_id')
-        # 文件
-        files = request.files
-        if not files or (files and not files.get('avatar')):
-            return Status(
-                216, 'failure', StatusMsgs.get(216), {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-        return SysUserService().update_avatar_by_rtx(rtx_id, files.get('avatar'))
-    except Exception as e:
-        LOG.error("user>avatar is error: %s" % e)
-        return Status(501, 'failure',
-            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+    # 参数
+    form = request.form
+    rtx_id = form.get('rtx_id')
+    # 文件
+    files = request.files
+    if not files or (files and not files.get('avatar')):
+        return Status(
+            216, 'failure', StatusMsgs.get(216), {}).json()
+
+    return SysUserService().update_avatar_by_rtx(rtx_id, files.get('avatar'))
 
 
 @user.route('/random_avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
+@watch_except
 def random_avatar_list():
     """
     all avatar list
@@ -215,14 +197,8 @@ def random_avatar_list():
     """
     if request.method == 'GET':
         return Status(
-            211, 'failure', StatusMsgs.get(211), {}).json()
-    try:
-        # 参数
-        params = request.get_json() or {}
-        return SysUserService().random_avatar_list(params)
-    except Exception as e:
-        LOG.error("user>random avatar list is error: %s" % e)
-        return Status(501, 'failure',
-            StatusMsgs.get(501) or u'服务端API请求发生故障，请稍后尝试', {}).json()
+            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
-
+    # 参数
+    params = request.get_json() or {}
+    return SysUserService().random_avatar_list(params)

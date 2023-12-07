@@ -46,6 +46,10 @@ from datetime import datetime
 from functools import wraps
 import warnings
 
+from deploy.utils.status import Status
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
+from deploy.utils.logger import logger as LOG
+
 
 def decorator(func):
     """
@@ -101,3 +105,25 @@ def deprecated(func):
         warnings.warn("[%s] is deprecated and will be removed in future versions." % func.__name__, DeprecationWarning)
         return func(*args, **kwargs)
     return __wrapper
+
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+def watch_except(func):
+    """
+    异常处理
+    """
+    @wraps(func)
+    def __wrapper(*args, **kwargs):
+        try:
+            result = func(*args, **kwargs)
+            return result
+        except Exception as error:
+            LOG.error(f"{func.__name__} is error: {error}")
+            return Status(
+                900, StatusEnum.FAILURE.value, StatusMsgs.get(900), {"error": str(error)}).json()
+
+    return __wrapper
+
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+

@@ -35,7 +35,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 import json
 
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.status import Status
 from deploy.delib.file_lib import FileLib
 from deploy.delib.store_lib import StoreLib
@@ -119,48 +119,47 @@ class CommonService(object):
         # no parameters, return
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数' or StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_upload_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         for k, v in params.items():
             if not k: continue
             # illegal parameters check
-            if k not in self.req_upload_attrs and v:
+            if k not in self.req_upload_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # necessary value check
             if not v and k in self.req_upload_attrs:
                 return Status(
-                    212, 'failure', u'缺少%s请求参数' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
 
         f_name = getattr(upload_file, 'filename')   # file public object
                                                     # use getattr method to get file name
-
         # ======================= local store =======================
         # file format filter
         if is_check_fmt and not self.file_lib.allow_format_fmt(f_name):
             return Status(
-                217, 'failure', StatusMsgs.get(217), {}).json()
+                454, StatusEnum.FAILURE.value, "文件格式不支持", {}).json()
         # file local store
         is_ok, store_msg = self.file_lib.store_file(
             upload_file, compress=False, is_md5_store_name=False)
         if not is_ok:
             return Status(
-                220, 'failure', StatusMsgs.get(220), {}).json()
+                456, StatusEnum.FAILURE.value, "文件本地存储失败", {}).json()
         # ======================= 【云存储】 =======================
         # file upload to store object
         store_res = self.store_lib.upload(store_name=store_msg.get('store_name'),
                                           local_file=store_msg.get('path'))
         if store_res.get('status_id') != 100:
-            return Status(store_res.get('status_id'),
-                          'failure',
-                          store_res.get('message') or StatusMsgs.get(store_res.get('status_id')),
+            return Status(store_res.get('status_id') or 902,
+                          StatusEnum.FAILURE.value,
+                          store_res.get('message') or "第三方[七牛云存储]API接口异常",
                           {}).json()
 
         # ======================= db store =======================
@@ -183,12 +182,13 @@ class CommonService(object):
             is_to_db = self.notify_service.store_dtalk_to_db(store_msg)
         else:   # other
             pass
+
         if not is_to_db:
             return Status(
-                225, 'failure', StatusMsgs.get(225), {}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json()
 
     def file_uploads(self, params, upload_files, is_check_fmt: bool = True) -> json:
         """
@@ -203,7 +203,7 @@ class CommonService(object):
         """
         if not params:
             return Status(
-                212, 'failure', u'缺少请求参数', {}).json()
+                400, StatusEnum.FAILURE.value, '缺少请求参数', {}).json()
 
         success_list = list()
         failure_list = list()
@@ -221,14 +221,16 @@ class CommonService(object):
         # ------------------------ upload end -----------------------
         if upload_files and len(failure_list) == len(upload_files):
             return Status(
-                223, 'failure', '文件上传失败' or StatusMsgs.get(223), {}).json()
+                460, StatusEnum.FAILURE.value, '文件上传失败', {}).json()
         if failure_list:
             return Status(
-                224, 'failure', u'文件上传：成功[%s]，失败[%s]' % (len(success_list), len(failure_list)),
+                461,
+                StatusEnum.FAILURE.value,
+                '文件上传：成功[%s]，失败[%s]' % (len(success_list), len(failure_list)),
                 {}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json()
 
     def image_wangeditor(self, params, image_file) -> dict:
         """
@@ -256,15 +258,15 @@ class CommonService(object):
         """
         # check parameters
         if not params:
-            return {'errno': 212, 'message': '缺少请求参数'}
+            return {'errno': 400, 'message': '缺少请求参数'}
         if not image_file:
-            return {'errno': 212, 'message': '缺少上传文件'}
+            return {'errno': 450, 'message': '缺少上传文件'}
 
         try:
             image_name = image_file.filename
             # ============= image format check =============
             if not self.image_lib.allow_format_img(image_name):
-                return {'errno': 401, 'message': '图片格式不支持'}
+                return {'errno': 454, 'message': '图片格式不支持'}
             # ============= local store =============
             local_res = self.image_lib.store_local(image_file, compress=False)
             if local_res.get('status_id') != 100:
@@ -296,7 +298,7 @@ class CommonService(object):
                 }
             }
         except Exception as e:
-            return {'errno': 501, 'message': '服务端API请求发生故障，请稍后尝试' or e}
+            return {'errno': 900, 'message': '服务端API请求发生异常，请稍后尝试' or e}
 
 
 

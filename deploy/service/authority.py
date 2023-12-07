@@ -38,7 +38,7 @@ import json
 from operator import itemgetter
 from itertools import groupby
 
-from deploy.utils.status_msg import StatusMsgs
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.status import Status
 from deploy.bo.role import RoleBo
 from deploy.bo.menu import MenuBo
@@ -46,9 +46,9 @@ from deploy.bo.sysuser import SysUserBo
 from deploy.bo.enum import EnumBo
 
 from deploy.config import AUTH_LIMIT, AUTH_NUM, \
-    ADMIN, ADMIN_AUTH_LIST, MENU_ONE_LEVEL, MENU_ROOT_ID, \
+    ADMIN, MENU_ONE_LEVEL, MENU_ROOT_ID, \
     USER_DEFAULT_AVATAR, USER_DEFAULT_PASSWORD, USER_DEFAULT_INTROD
-from deploy.utils.utils import d2s, get_now, md5, check_length
+from deploy.utils.utils import d2s, get_now, md5, check_length, auth_rtx_join
 
 
 class AuthorityService(object):
@@ -525,28 +525,27 @@ class AuthorityService(object):
         # >>>>>>>>>>>>>>>>>>> no parameters <<<<<<<<<<<<<<<<<<<<<
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}
-            ).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_list_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # ------------------ parameters check -------------------
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_role_list_attrs and v:
+            # illegal parameters
+            if k not in self.req_role_list_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}
-                ).json()
-            if not v and k != 'offset':
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+
+            if not v and k not in ['offset']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}
-                ).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else AUTH_LIMIT
             elif k == 'offset':
@@ -559,8 +558,9 @@ class AuthorityService(object):
         res, total = self.role_bo.get_all(new_params)       # 全部数据
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}
             ).json()
+
         new_res = list()
         n = 1 + new_params.get('offset')
         for _d in res:
@@ -572,48 +572,51 @@ class AuthorityService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100,
+            StatusEnum.SUCCESS.value,
+            StatusMsgs.get(100),
+            {'list': new_res, 'total': total}
         ).json()
 
     def role_detail(self, params: dict) -> dict:
         """
-        get role detail information
-        by rtx id
+        get role detail information by md5
         :return: json data
         """
         # =================== check parameters ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         role_md5 = params.get('md5')
         if not role_md5:
             return Status(
-                212, 'failure', "缺少md5参数", {}).json()
+                400, StatusEnum.FAILURE.value, "缺少md5参数", {}).json()
 
         model = self.role_bo.get_model_by_md5(role_md5)
         # not exist
         if not model:
             return Status(
-                302, 'failure', '角色不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": params.get('md5')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '角色已删除' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": params.get('md5')}).json()
         # check rtx-id and md5-id
         if not model.engname or not model.md5_id:
             return Status(
-                313, 'failure', '角色信息不完整' or StatusMsgs.get(313), {}).json()
+                505, StatusEnum.FAILURE.value, '数据信息不完整', {"md5": params.get('md5')}).json()
+
         # return
         return Status(
-            100, 'success', StatusMsgs.get(100), self._role_model_to_dict(model, is_detail=True)
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), self._role_model_to_dict(model, is_detail=True)
         ).json()
 
     def role_add(self, params: dict) -> dict:
@@ -626,13 +629,13 @@ class AuthorityService(object):
         # >>>>>>>>> no parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -640,31 +643,33 @@ class AuthorityService(object):
         for k, v in params.items():
             if not k: continue
             # check: not allow parameters
-            if k not in self.req_role_add_attrs and v:
+            if k not in self.req_role_add_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # parameters check length
         for _key, _value in self.req_role_add_check_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         # ******************** check engname is or not repeat **********************
         model = self.role_bo.get_model_by_engname(new_params.get('engname'))
         if model:
             return Status(
-                213, 'failure', '角色RTX已存在，请重新输入', {}).json()
+                502, StatusEnum.FAILURE.value, '数据RTX-ID已存在，不允许新增', {}).json()
+
         md5_id = md5(new_params.get('engname'))
         model_md5_id = self.role_bo.get_model_by_md5(md5=md5_id)
         if model_md5_id:
             return Status(
-                213, 'failure', '角色MD5已存在，请重新输入RTX', {}).json()
+                502, StatusEnum.FAILURE.value, '数据MD5已存在，不允许新增', {}).json()
+
         # ///////////////// add new model 、、、、、、、、、、
         try:
             new_model = self.role_bo.new_mode()
@@ -679,9 +684,10 @@ class AuthorityService(object):
             self.role_bo.add_model(new_model)
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {'md5': md5_id}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {'md5': md5_id}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}
         ).json()
 
     def role_update(self, params: dict) -> dict:
@@ -695,13 +701,13 @@ class AuthorityService(object):
         # >>>>>>>>>>>>> no parameters <<<<<<<<<<<<<
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check, engname is not allow update
@@ -709,52 +715,54 @@ class AuthorityService(object):
         for k, v in params.items():
             if not k: continue
             # check: not allow parameters
-            if k not in self.req_role_update_attrs and v:
+            if k not in self.req_role_update_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # parameters check length
         for _key, _value in self.req_role_add_check_len_attrs.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
         if new_params.get('engname') == ADMIN:  # ***** 管理员角色不允许更新 *****
             return Status(
-                213, 'failure', u'AMDIN角色为系统默认角色，不允许操作', {}).json()
+                500, StatusEnum.FAILURE.value, '管理员为系统默认角色，不允许操作', {}).json()
         """ 其他特殊检查 """
         # check engname is or not repeat
         model = self.role_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在', {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is delete
         if model and model.is_del:
             return Status(
-                304, 'failure', '数据已删除，不允许更新', {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # ADMIN用户不允许更新
         if model and model.engname == ADMIN:
             return Status(
-                304, 'failure', '管理员角色不允许更新', {}).json()
+                500, StatusEnum.FAILURE.value, '管理员为系统默认角色，不允许操作', {"md5": new_params.get('md5')}).json()
         # role engname is not allow to update
         if str(model.engname).strip() != str(new_params.get('engname')).strip():
             return Status(
-                304, 'failure', '角色RTX不允许更新', {}).json()
+                506, StatusEnum.FAILURE.value, '数据锁定字段RTX不允许更新', {"md5": new_params.get('md5')}).json()
+
         try:
             model.chnname = new_params.get('chnname')
             model.introduction = new_params.get('introduction')
             self.role_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def role_batch_delete(self, params: dict) -> dict:
@@ -766,13 +774,13 @@ class AuthorityService(object):
         # ================= no parameters ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -782,46 +790,47 @@ class AuthorityService(object):
             # request parameters check
             if k not in self.req_role_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # request value is not null
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # list check
             if k == 'list':
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+
         # ------------------- 检查批量删除的对象 -----------------------
         all_data = self.role_bo.get_models_by_md5list(new_params.get('list'))
         # not exist
         if not all_data:
             return Status(
-                302, 'failure', u'请求删除数据不存在', {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {}).json()
         # 管理员角色不允许删除
         for _d in all_data:
             if not _d: continue
             if _d.engname == ADMIN:
                 return Status(
-                    302, 'failure', u'管理员角色不允许操作，请重新选择', {}).json()
+                    500, StatusEnum.FAILURE.value, '管理员为系统默认角色，不允许操作', {}).json()
         # **************** 管理员获取ALL数据 *****************
-        ADMIN_AUTH_LIST.extend([ADMIN])     # 特权账号
-        if new_params.get('rtx_id') in ADMIN_AUTH_LIST:
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join():
             new_params.pop('rtx_id')
         # ------------------- batch delete data -----------------------
         try:
             res = self.role_bo.batch_delete_by_md5(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
 
-        return Status(100, 'success', StatusMsgs.get(100), {}).json() \
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(303, 'failure',
-                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res) or StatusMsgs.get(303),
+            else Status(508, StatusEnum.FAILURE.value,
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list')) - res),
                         {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
     def role_delete(self, params: dict) -> dict:
@@ -834,13 +843,13 @@ class AuthorityService(object):
         # ************* no parameters ***************
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_delete_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -850,31 +859,32 @@ class AuthorityService(object):
             # 不合法的参数检查
             if k not in self.req_role_delete_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # value is not null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<< data model by md5 >>>>>>>>>>>>>
         model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # ADMIN用户不允许删除
         if model and model.engname == ADMIN:
             return Status(
-                304, 'failure', '管理员角色不允许删除', {}).json()
-        # authority
+                500, StatusEnum.FAILURE.value, '管理员为系统默认角色，不允许操作', {"md5": new_params.get('md5')}).json()
+        # authority【管理员具有所有数据权限】
         rtx_id = new_params.get('rtx_id')
-        ADMIN_AUTH_LIST.extend([ADMIN, model.create_rtx])
-        if rtx_id not in ADMIN_AUTH_LIST:
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
             return Status(
-                311, 'failure', StatusMsgs.get(311), {}).json()
+                504, StatusEnum.FAILURE.value, '非数据权限人员，无权限操作', {"md5": new_params.get('md5')}).json()
+
         # /////////////// 软删除数据
         try:
             model.is_del = True
@@ -883,10 +893,10 @@ class AuthorityService(object):
             self.role_bo.merge_model(model)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def role_auth_tree(self, params: dict) -> dict:
@@ -898,32 +908,34 @@ class AuthorityService(object):
         # ------------------- check parameters --------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_auth_tree_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         if not params.get('md5'):
             return Status(
-                214, 'failure', '缺少md5请求参数', {}).json()
+                400, StatusEnum.FAILURE.value, "缺少md5参数", {}).json()
+
         # ==================== check data ======================
         role_model = self.role_bo.get_model_by_md5(md5=params.get('md5'))
         # not exist
         if not role_model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {}).json()
         # data is deleted
         if role_model and role_model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {}).json()
         # ADMIN用户不允许设置
         if role_model and role_model.engname == ADMIN:
             return Status(
-                304, 'failure', '管理员角色不允许设置', {}).json()
+                500, StatusEnum.FAILURE.value, '管理员为系统默认角色，不允许操作', {}).json()
+
         # <<<<<<<<<<<<<<<<<< authority >>>>>>>>>>>>>>>>>>>>>>
         auths = str(role_model.authority).split(';') \
             if role_model.authority else []
@@ -932,7 +944,7 @@ class AuthorityService(object):
         # not menu data
         if not all_menus:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {}).json()
 
         """ 权限树 """
         _res = list()
@@ -946,10 +958,10 @@ class AuthorityService(object):
             _d = {'id': int(menu.id), 'pid': int(menu.pid), 'label': str(menu.title), 'disabled': False}
             if int(menu.level) == MENU_ONE_LEVEL:
                 one_menus[menu.id] = _d
+                one_menu_keys.append(int(menu.id))
             else:
                 template_list.append(_d)
-            if int(menu.level) == MENU_ONE_LEVEL:
-                one_menu_keys.append(int(menu.id))
+
         template_list.sort(key=itemgetter('pid'))
         for key, group in groupby(template_list, key=itemgetter('pid')):
             if key in one_menus.keys():
@@ -964,7 +976,7 @@ class AuthorityService(object):
         expand: 默认展开的一级菜单列表
         """
         return Status(
-            100, 'success', StatusMsgs.get(100),
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
             {"menus": _res, "auths": auth_list, "expand": auth_list}
         ).json()
 
@@ -977,13 +989,13 @@ class AuthorityService(object):
         # >>>>>>>>>>>>>> no parameters <<<<<<<<<<<<<<<
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_role_auth_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -992,38 +1004,39 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_role_auth_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # value is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'keys':     # 菜单ID，也就是权限列表，List类型
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}
-                    ).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_v = [str(i) for i in v]
                 # new_v = list(set(new_v))      # 去重
                 v = ';'.join(new_v)
             new_params[k] = str(v)
+
         """ model """
         model = self.role_bo.get_model_by_md5(md5=new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
         # data is deleted
         if model and model.is_del:
             return Status(
-                306, 'failure', StatusMsgs.get(306), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # save authority
         try:
             model.authority = new_params.get('keys')
             self.role_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
     def role_select_list(self):
@@ -1035,14 +1048,15 @@ class AuthorityService(object):
         res = self.role_bo.get_select_all()
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}
             ).json()
+
         new_res = list()
         for _d in res:
             if not _d or not _d.engname or not _d.chnname: continue
             new_res.append({'key': _d.engname, 'value': _d.chnname})
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': len(new_res)}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': len(new_res)}
         ).json()
 
     def user_list(self, params: dict) -> dict:
@@ -1055,24 +1069,24 @@ class AuthorityService(object):
         # ---------------------- parameters check ----------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_list_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_user_list_attrs and v:
+            if k not in self.req_user_list_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k != 'offset':
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'limit':
                 v = int(v) if v else AUTH_LIMIT
             elif k == 'offset':
@@ -1084,7 +1098,8 @@ class AuthorityService(object):
         res, total = self.sysuser_bo.get_all(new_params, is_admin=False)    # 全员数据
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+
         new_res = list()
         n = 1 + new_params.get('offset')
         for _d in res:
@@ -1096,7 +1111,7 @@ class AuthorityService(object):
                 new_res.append(_res_dict)
                 n += 1
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
 
     def user_add(self, params: dict) -> dict:
@@ -1113,13 +1128,13 @@ class AuthorityService(object):
         # ================= check parameters: value, length ===================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         """ make new parameters """
@@ -1129,33 +1144,33 @@ class AuthorityService(object):
             # check: not allow parameters
             if k not in self.req_user_add_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['password', 'email', 'introduction']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # check: length
             if k == 'rtx_id' and not check_length(v, 25):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'name' and not check_length(v, 30):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'phone' and len(v) != 11:
                 return Status(
-                    213, 'failure', u'正确电话为11位' % k, {}).json()
+                    404, StatusEnum.FAILURE.value, '正确电话为11位', {}).json()
             elif k == 'email' and not check_length(v, 35):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'introduction' and not check_length(v, 255):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             # check: role
             if k == 'role':
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
-                # TODO 可以加上role验证
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
+                # TODO 可以加上role是否存在数据验证
                 new_params[k] = ';'.join(v)
             elif k == 'rtx_id':
                 new_params[k] = str(v).strip()    # rtx_id 去空格
@@ -1165,17 +1180,18 @@ class AuthorityService(object):
         # check rtx_id is or not exist
         if self.sysuser_bo.get_user_by_rtx_id(new_params.get('rtx_id')):
             return Status(
-                213, 'failure', '用户RTX-ID已存在，请重新输入', {}).json()
+                502, StatusEnum.FAILURE.value, '数据RTX-ID已存在，不允许新增', {}).json()
         # check phone is or not exist
         if new_params.get('phone') and \
                 self.sysuser_bo.get_user_by_phone(new_params.get('phone')):
             return Status(
-                213, 'failure', '用户电话已存在，请重新输入', {}).json()
+                502, StatusEnum.FAILURE.value, '用户电话已存在，请重新输入', {}).json()
         # check email is or not exist
         if new_params.get('email') and \
                 self.sysuser_bo.get_user_by_email(new_params.get('email')):
             return Status(
-                213, 'failure', '用户邮箱已存在，请重新输入', {}).json()
+                502, StatusEnum.FAILURE.value, '用户邮箱已存在，请重新输入', {}).json()
+
         ''' add new model '''
         md5_id = md5(new_params.get('rtx_id'))
         try:
@@ -1189,7 +1205,7 @@ class AuthorityService(object):
             new_model.avatar = USER_DEFAULT_AVATAR  # 新增用户默认头像
             new_model.department = ""
             new_model.role = new_params.get('role') or ""
-            new_model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD  # 默认米哦啊叔
+            new_model.introduction = new_params.get('introduction') or USER_DEFAULT_INTROD  # 默认值
             new_model.create_time = get_now()
             new_model.create_rtx = new_params.get('add_rtx_id')
             new_model.is_del = False
@@ -1197,9 +1213,10 @@ class AuthorityService(object):
             self.sysuser_bo.add_model(new_model)
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {'rtx_id': new_params.get('rtx_id')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {'md5': md5_id}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': new_params.get('rtx_id')}
         ).json()
 
     def user_batch_delete(self, params: dict) -> dict:
@@ -1211,13 +1228,13 @@ class AuthorityService(object):
         # parameters check
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_deletes_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters format
@@ -1226,38 +1243,40 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_user_deletes_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:       # value is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'list':     # type check
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 new_params[k] = [str(i) for i in v]
             else:
                 new_params[k] = str(v)
+
         # ------------------------ model ------------------------
         all_data = self.sysuser_bo.get_models_by_md5_list(new_params.get('list'))
         # not exist
         if not all_data:
             return Status(
-                302, 'failure', u'注销用户不存在', {}).json()
+                503, StatusEnum.FAILURE.value, '数据不存在，不允许操作', {}).json()
         # 管理不允许注销
         for _d in all_data:
             if not _d: continue
             if _d.rtx_id == ADMIN:
                 return Status(
-                    302, 'failure', u'管理员用户不允许注销，请重新选择', {}).json()
+                    500, StatusEnum.FAILURE.value, '管理员为系统默认用户，不允许操作', {}).json()
         # batch注销
         try:
             res = self.sysuser_bo.batch_delete_by_md5_list(params=new_params)
         except:
             return Status(
-                321, 'failure', StatusMsgs.get(321), {}).json()
-        return Status(100, 'success', '用户注销成功' or StatusMsgs.get(100), {}).json() \
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {}).json()
+
+        return Status(100, StatusEnum.SUCCESS.value, '用户注销成功', {}).json() \
             if res == len(new_params.get('list')) \
-            else Status(100, 'failure', "成功：[%s]，失败：[%s]" % (res, (len(new_params.get('list')) - res)),
+            else Status(509, StatusEnum.FAILURE.value, "成功：[%s]，失败：[%s]" % (res, (len(new_params.get('list')) - res)),
                         {'success': res, 'failure': (len(new_params.get('list')) - res)}).json()
 
     def user_status(self, params: dict) -> dict:
@@ -1274,13 +1293,13 @@ class AuthorityService(object):
         # not parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_status_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1289,14 +1308,14 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_user_status_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k != 'status':     # value check, is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'status':   # status check: 只允许为bool类型
                 if not isinstance(v, bool):
                     return Status(
-                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
                 new_params[k] = v
             else:
                 new_params[k] = str(v)
@@ -1305,11 +1324,11 @@ class AuthorityService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '用户不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"rtx_id": new_params.get('c_rtx_id')}).json()
         # 管理员不允许操作
         if model.rtx_id == ADMIN:
             return Status(
-                300, 'failure', '管理员用户不允许操作' or StatusMsgs.get(300), {}).json()
+                500, StatusEnum.FAILURE.value, '管理员为系统默认用户，不允许操作', {"rtx_id": new_params.get('c_rtx_id')}).json()
         # ----------- change status -----------
         try:
             model.is_del = new_params.get('status')
@@ -1319,10 +1338,11 @@ class AuthorityService(object):
             self.role_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'rtx_id': new_params.get('c_rtx_id')}).json()
+
         message = '用户注销成功' if new_params.get('status') else '用户启用成功'
         return Status(
-            100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100, StatusEnum.SUCCESS.value, message, {'rtx_id': new_params.get('c_rtx_id')}
         ).json()
 
     def user_detail(self, params: dict) -> dict:
@@ -1338,29 +1358,29 @@ class AuthorityService(object):
         # =================== check parameters ====================
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_detail_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # check rtx_id is or not exist
         rtx_id = params.get('rtx_id')
         if not rtx_id:
             return Status(
-                302, 'failure', '用户不存在' or StatusMsgs.get(302), {}).json()
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
         model = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
         # not exist
         if not model:
             return Status(
-                302, 'failure', '用户不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"rtx_id": params.get('rtx_id')}).json()
         # deleted: 先查看启用、注销2种状态的数据
         # if model and model.is_del:
         #     return Status(
-        #         302, 'failure', '用户已注销' or StatusMsgs.get(302), {}).json()
+        #         503, StatusEnum.FAILURE.value, '数据已注销，不允许操作', {}).json()
 
         # user base info
         model_res = self._user_model_to_dict(model, is_pass=False, is_detail=True)
@@ -1369,7 +1389,7 @@ class AuthorityService(object):
         model_res['roles'] = roles_res.get('data').get('list') or [] \
             if roles_res.get('status_id') == 100 else []
         return Status(
-            100, 'success', StatusMsgs.get(100), model_res
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), model_res
         ).json()
 
     def user_update(self, params):
@@ -1386,44 +1406,44 @@ class AuthorityService(object):
         """   ========== check parameters ============"""
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
             # check: not allow parameters
-            if k not in self.req_user_update_attrs and v:
+            if k not in self.req_user_update_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # check: value is not null
             if not v and k not in ['email', 'introduction']:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             # check: length
             if k == 'name' and not check_length(v, 30):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'phone' and len(v) != 11:
                 return Status(
-                    213, 'failure', u'正确电话为11位' % k, {}).json()
+                    404, StatusEnum.FAILURE.value, '正确电话为11位', {}).json()
             elif k == 'email' and not check_length(v, 35):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             elif k == 'introduction' and not check_length(v, 255):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % k, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % k, {}).json()
             # check: role
             if k == 'role':
                 if not isinstance(v, list):
                     return Status(
-                        213, 'failure', u'请求参数%s类型必须是List' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
                 # TODO 可以加上role验证
                 new_params[k] = ';'.join(v)
             else:
@@ -1433,15 +1453,15 @@ class AuthorityService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '数据不存在', {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"rtx_id": new_params.get('to_rtx_id')}).json()
         # data is delete: 注销 && 启用状态均可以更新
         # if model and model.is_del:
         #     return Status(
-        #         304, 'failure', '数据已删除，不允许更新', {}).json()
+        #         503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {}).json()
         # 管理员不允许操作
         if model.rtx_id == ADMIN:
             return Status(
-                300, 'failure', '管理员用户不允许操作' or StatusMsgs.get(300), {}).json()
+                500, StatusEnum.FAILURE.value, '管理员为系统默认角色，不允许操作', {}).json()
 
         # <<<<<<<<<<<<<<<< update user model >>>>>>>>>>>>>>>>>>
         try:
@@ -1453,9 +1473,10 @@ class AuthorityService(object):
             self.sysuser_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'rtx_id': params.get('to_rtx_id')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': params.get('to_rtx_id')}
         ).json()
 
     def user_reset_pw(self, params: dict) -> dict:
@@ -1466,13 +1487,13 @@ class AuthorityService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_reset_pw_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         rtx_id = params.get('rtx_id')
@@ -1481,11 +1502,11 @@ class AuthorityService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '用户不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {"rtx_id": params.get('rtx_id')}).json()
         # deleted
         if model and model.is_del:
             return Status(
-                302, 'failure', '用户已注销' or StatusMsgs.get(302), {}).json()
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"rtx_id": params.get('rtx_id')}).json()
         try:
             # reset password
             # 方式一
@@ -1496,9 +1517,10 @@ class AuthorityService(object):
             # self.sysuser_bo.merge_model(model)
         except:
             return Status(
-                322, 'failure', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'rtx_id': params.get('rtx_id')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': params.get('rtx_id')}).json()
 
     def menu_list(self, params: dict) -> dict:
         """
@@ -1533,16 +1555,18 @@ class AuthorityService(object):
         # ///////////////// check parameters \\\\\\\\\\\\\\\\\
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         rtx_id = params.get('rtx_id')
         if not rtx_id:
             return Status(
-                214, 'failure', u'缺少rtx_id请求参数', {}).json()
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
+
         # ------------------ get all menus ------------------
         all_menus = self.menu_bo.get_all_no(root=True)   # 全部数据，包含禁用菜单 根节点
         if not all_menus:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {}).json()
+
         # 格式化菜单
         _res = list()
         template_list = list()  # 二级临时菜单
@@ -1597,7 +1621,7 @@ class AuthorityService(object):
         sort_res = sorted(_res, key=itemgetter('order_id'), reverse=False)
 
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': sort_res, 'keys': one_menus_keys}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': sort_res, 'keys': one_menus_keys}
         ).json()
 
     def menu_detail(self, params: dict) -> dict:
@@ -1608,13 +1632,13 @@ class AuthorityService(object):
         # >>>>>>>>>> no parameters <<<<<<<<<<<
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_menu_info_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # ------------ parameters check ---------------
@@ -1623,17 +1647,19 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_menu_info_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v:
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
+
         # <<<<<<<<<<<< model >>>>>>>>>>>>>
         model = self.menu_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
-                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {}).json()
+
         model_res = self._menu_model_to_dict(model, info=True)
         # 获取根节点 && 一级菜单
         root_one_menu_models = self.menu_bo.get_root_one_menus()
@@ -1668,7 +1694,7 @@ class AuthorityService(object):
             'menu_options': menu_options
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), data).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), data).json()
 
     def menu_add(self, params: dict) -> dict:
         """
@@ -1679,13 +1705,13 @@ class AuthorityService(object):
         # ===== check parameters && format parameters ======
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_menu_add_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -1693,10 +1719,10 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_menu_add_attrs:    # illegal
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k not in self.req_menu_no_need_attrs:  # is not null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
 
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
@@ -1711,7 +1737,7 @@ class AuthorityService(object):
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
         if not order_id:
@@ -1722,7 +1748,7 @@ class AuthorityService(object):
         # model is exist
         if model:
             return Status(
-                302, 'failure', '菜单RTX名称已存在' or StatusMsgs.get(302), {}).json()
+                502, StatusEnum.FAILURE.value, '数据RTX-ID已存在，不允许新增', {}).json()
         """ add new model """
         try:
             # create new model
@@ -1744,9 +1770,10 @@ class AuthorityService(object):
                 self.menu_bo.add_model(new_model)
         except:
             return Status(
-                320, 'failure', StatusMsgs.get(320), {}).json()
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json()
 
     def menu_add_init(self) -> dict:
         """
@@ -1785,7 +1812,7 @@ class AuthorityService(object):
             'menu_options': menu_options
         }
         return Status(
-            100, 'success', StatusMsgs.get(100), data).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), data).json()
 
     def menu_update(self, params: dict) -> dict:
         """
@@ -1795,13 +1822,13 @@ class AuthorityService(object):
         # parameters check && format parameters
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_menu_update_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
@@ -1809,10 +1836,10 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_menu_update_attrs:  # illegal
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k not in self.req_menu_no_need_attrs:  # is not null
                 return Status(
-                    214, 'failure', u'请求参数%s为必须信息' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
 
             if k in self.req_menu_bool_update_attrs:
                 v = True if str(v) == '1' else False
@@ -1827,7 +1854,7 @@ class AuthorityService(object):
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
-                    213, 'failure', u'请求参数%s长度超限制' % _key, {}).json()
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
         if not order_id:
@@ -1838,7 +1865,8 @@ class AuthorityService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {'md5': new_params.get('md5')}).json()
+
         # update model
         # 只有新旧值不一致更新
         try:
@@ -1873,9 +1901,10 @@ class AuthorityService(object):
             self.menu_bo.merge_model(model)
         except:
             return Status(
-                322, 'success', StatusMsgs.get(322), {}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
         return Status(
-            100, 'success', StatusMsgs.get(100), {}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}).json()
 
     def menu_status(self, params: dict) -> dict:
         """
@@ -1889,13 +1918,13 @@ class AuthorityService(object):
         """
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_menu_status_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         # parameters check
@@ -1904,14 +1933,14 @@ class AuthorityService(object):
             if not k: continue
             if k not in self.req_menu_status_attrs:     # 不合法请求参数
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             if not v and k != 'status':     # value check, is not allow null
                 return Status(
-                    214, 'failure', u'请求参数%s不允许为空' % k, {}).json()
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             if k == 'status':   # status check: 只允许为bool类型
                 if not isinstance(v, bool):
                     return Status(
-                        214, 'failure', u'请求参数%s类型不符合要求' % k, {}).json()
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
                 new_params[k] = v
             else:
                 new_params[k] = str(v)
@@ -1920,7 +1949,7 @@ class AuthorityService(object):
         # not exist
         if not model:
             return Status(
-                302, 'failure', '菜单不存在' or StatusMsgs.get(302), {}).json()
+                501, StatusEnum.FAILURE.value, '数据不存在', {}).json()
         # change status
         try:
             model.is_del = new_params.get('status')
@@ -1930,10 +1959,11 @@ class AuthorityService(object):
             self.menu_bo.merge_model(model)
         except:
             return Status(
-                322, 'success', StatusMsgs.get(322), {'md5': new_params.get('md5')}).json()
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
         message = '菜单禁用成功' if new_params.get('status') else '菜单启用成功'
         return Status(
-            100, 'success', message or StatusMsgs.get(100), {'md5': new_params.get('md5')}
+            100,  StatusEnum.SUCCESS.value, message, {'md5': new_params.get('md5')}
         ).json()
 
     def user_kv_list(self, params: dict) -> dict:
@@ -1949,32 +1979,33 @@ class AuthorityService(object):
         # ---------------------- parameters check ----------------------
         if not params:
             return Status(
-                212, 'failure', StatusMsgs.get(212), {}).json()
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
         for _attr in self.req_user_kv_list_attrs:
             if _attr not in params.keys():
                 return Status(
-                    212, 'failure', u'缺少请求参数%s' % _attr or StatusMsgs.get(212), {}).json()
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_user_kv_list_attrs and v:
+            if k not in self.req_user_kv_list_attrs:
                 return Status(
-                    213, 'failure', u'请求参数%s不合法' % k, {}).json()
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             v = str(v)
             new_params[k] = v
         # /////////// return data \\\\\\\\\\\\
         res, total = self.sysuser_bo.get_all(new_params, is_admin=True, is_del=True)
         if not res:
             return Status(
-                101, 'failure', StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+
         new_res = list()
         for _d in res:
             if not _d: continue
             new_res.append({'key': _d.rtx_id, 'value': _d.fullname})
         return Status(
-            100, 'success', StatusMsgs.get(100), {'list': new_res, 'total': total}
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()

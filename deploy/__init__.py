@@ -110,7 +110,7 @@ class WebFlaskServer(WebBaseClass):
         self.sysuser_service = SysUserService()
         # -------------------------------------------------------------------------------
 
-        # App web hook
+        # App webhook
         # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
         @self.app.before_request
         def before_request():
@@ -164,12 +164,12 @@ class WebFlaskServer(WebBaseClass):
                     # new add check request headers[X-Rtx-Id] is or not equal user model[rtx_id]
                     if request.headers.get('X-Rtx-Id') != user_model.get('rtx_id'):
                         return Status(
-                            205, StatusEnum.FAILURE.value, "Token与当前登录用户不符合", {}).json()
+                            205, StatusEnum.FAILURE.value, "用户Token与当前登录用户不符合", {}).json()
 
                     return
             # Other condition, user is required login in
             return Status(
-                200, StatusEnum.FAILURE.value, StatusMsgs.get(200) or u'用户未登录', {}).json()
+                200, StatusEnum.FAILURE.value, '用户未登录', {}).json()
 
         """
         @self.app.after_request
@@ -192,12 +192,12 @@ class WebFlaskServer(WebBaseClass):
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
         @self.app.errorhandler(404)
         def not_found_error(error):
-            LOG.error("%s is not found 404" % request.url)
+            LOG.error(">>>>> [%s] is not found 404" % request.url)
             abort(404)
 
         @self.app.errorhandler(500)
         def server_error(error):
-            LOG.error("%s is server error 500" % request.url)
+            LOG.error(">>>>> [%s] is server error 500" % request.url)
             abort(500)
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
@@ -206,11 +206,11 @@ class WebFlaskServer(WebBaseClass):
         def get_default_favicon():
             return self.app.send_static_file('images/favicon.ico')
 
-        # init
+        # WebFlaskServer parent class init
         super(WebFlaskServer, self).__init__()
 
     def __str__(self):
-        print("WebFlaskServer class.")
+        print("WebFlaskServer class...")
 
     def __repr__(self):
         self.__str__()
@@ -223,7 +223,7 @@ class WebFlaskServer(WebBaseClass):
         :return: None
         """
         if blueprint:
-            LOG.info('Blueprint %s is register' % blueprint_n)
+            LOG.info('Blueprint %s is register.' % blueprint_n)
             self.app.register_blueprint(blueprint)
 
     def _auto_init_register_blueprint(self):
