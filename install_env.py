@@ -31,7 +31,7 @@ from platform import python_version
 
 MIN_PYTHON_VERSION = '3'
 RC = 1
-LOCAL_PYTHON_CMD = 'python3'
+LOCAL_PYTHON_CMD = 'python'
 
 
 class InstallEnv(object):
