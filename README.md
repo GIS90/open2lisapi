@@ -53,7 +53,7 @@ Python3语言进行研发，是支撑***OPENTOOL-Z***项目的后端API。
 上个版本的脚手架可以使用模板功能，这个open2lisapi主要用来做API对接，所以只保留了API接口功能，如果想使用前端模板功能，直接在deploy目录下的templates、static下写入html、js等文件即可。  
 ***git clone***之后修改配置即可运行，在此基础上可进行二次开发，可以前端/后台独立、也可以运用flask的jinja2模板。
 
-  - python 开发语言，基于python3.7
+  - python 开发语言，基于python3.7.0开发，建议用次版本
   - flask python语言使用的web框架
   - mysql 数据库
   - gunicorn web服务与应用app之间的管理
