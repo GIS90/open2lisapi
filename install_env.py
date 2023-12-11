@@ -31,7 +31,8 @@ from platform import python_version
 
 MIN_PYTHON_VERSION = '3'
 RC = 1
-LOCAL_PYTHON_CMD = 'python'
+LOCAL_PYTHON_CMD = 'python'     # 定义环境变量python
+                                # 如果是绝对路径：/usr/bin/python3.10
 
 
 class InstallEnv(object):
