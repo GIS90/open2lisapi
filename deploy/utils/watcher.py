@@ -48,8 +48,12 @@ from deploy.service.request import RequestService
 
 # 声明一个全局RequestService对象
 request_service = RequestService()
-GLOBAL_NEW_ENDPOINR = [
+
+
+REQUEST_METHODS = ['GET', 'POST', 'DELETE', 'PUT']
+GLOBAL_NEW_REQUEST_ENDPOINT = [
     'dashboard.pan',
+    'dashboard.shortcut',
     'dashboard.pan_chart',
     'dashboard.index',
     'auth.user_list',
@@ -57,6 +61,7 @@ GLOBAL_NEW_ENDPOINR = [
     'search.sqlbase_list',
     'info.depart_detail',
     'image.profile_avatar_list',
+    'common.file_uploads',
 ]
 
 
@@ -74,9 +79,9 @@ def __add_request(request, cost, rtx=None):
     if not rtx_id:
         return False
     method = getattr(request, 'method')     # method allow only get or post
-    if method and str(method).upper() not in ['GET', 'POST']:
+    if method and str(method).upper() not in REQUEST_METHODS:
         return False
-    if hasattr(request, 'endpoint') and getattr(request, 'endpoint') in GLOBAL_NEW_ENDPOINR:
+    if hasattr(request, 'endpoint') and getattr(request, 'endpoint') in GLOBAL_NEW_REQUEST_ENDPOINT:
         RequestService().add_request(request=request, cost=cost, rtx=rtx_id)
     else:
         request_service.add_request(request=request, cost=cost, rtx=rtx_id)
