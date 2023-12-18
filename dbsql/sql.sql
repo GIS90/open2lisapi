@@ -476,7 +476,7 @@ CREATE TABLE `office_pdf` (
     `id` int NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
     `name` varchar(80) NOT NULL COMMENT '文件原始名称',
     `store_name` varchar(100) COMMENT '文件存储名称',
-    `transfer_name` varchar(100) NOT NULL COMMENT '文件转换store存储名称',
+    `transfer_name` varchar(100) COMMENT '文件转换store存储名称',
     `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
     `rtx_id` varchar(25) NOT NULL COMMENT '用户rtx-id',
     `file_type` varchar(2) NOT NULL COMMENT '文件类型',
