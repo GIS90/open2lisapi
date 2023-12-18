@@ -50,6 +50,8 @@ from deploy.service.common import CommonService
 common = Blueprint(name='common', import_name=__name__, url_prefix='/common')
 CORS(common, supports_credentials=True)
 
+common_service = CommonService()
+
 
 @common.route('/file_upload/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -74,7 +76,7 @@ def file_upload():
         return Status(
             450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
 
-    return CommonService().file_upload(params, request.files.get('files'))
+    return common_service.file_upload(params, request.files.get('files'))
 
 
 @common.route('/file_uploads/', methods=['GET', 'POST'], strict_slashes=False)
@@ -100,7 +102,7 @@ def file_uploads():
         return Status(
             450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
 
-    return CommonService().file_uploads(params, files)
+    return common_service.file_uploads(params, files)
 
 
 @common.route('/image_wangeditor/', methods=['GET', 'POST'], strict_slashes=False)
@@ -126,5 +128,5 @@ def image_wangeditor():
         return Status(
             450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
 
-    return CommonService().image_wangeditor(params, request.files.get('files'))
+    return common_service.image_wangeditor(params, request.files.get('files'))
 

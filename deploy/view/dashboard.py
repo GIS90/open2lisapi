@@ -48,6 +48,8 @@ from deploy.service.dashboard import DashboardService
 dashboard = Blueprint(name='dashboard', import_name=__name__, url_prefix='/dashboard')
 CORS(dashboard, supports_credentials=True)
 
+dashboard_service = DashboardService()
+
 
 @dashboard.route('/pan/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -63,7 +65,7 @@ def pan():
 
     # 参数
     params = request.get_json() or {}
-    return DashboardService().pan(params)
+    return dashboard_service.pan(params)
 
 
 @dashboard.route('/pan_chart/', methods=['GET', 'POST'], strict_slashes=False)
@@ -80,7 +82,7 @@ def pan_chart():
 
     # 参数
     params = request.get_json() or {}
-    return DashboardService().pan_chart(params)
+    return dashboard_service.pan_chart(params)
 
 
 @dashboard.route('/index/', methods=['GET', 'POST'], strict_slashes=False)
@@ -97,7 +99,7 @@ def index():
 
     # 参数
     params = request.get_json() or {}
-    return DashboardService().index(params)
+    return dashboard_service.index(params)
 
 
 @dashboard.route('/shortcut/', methods=['GET', 'POST'], strict_slashes=False)
@@ -114,7 +116,7 @@ def shortcut():
 
     # 参数
     params = request.get_json() or {}
-    return DashboardService().shortcut(params)
+    return dashboard_service.shortcut(params)
 
 
 @dashboard.route('/shortcut_edit/', methods=['GET', 'POST'], strict_slashes=False)
@@ -131,7 +133,7 @@ def shortcut_edit():
 
     # 参数
     params = request.get_json() or {}
-    return DashboardService().shortcut_edit(params)
+    return dashboard_service.shortcut_edit(params)
 
 
 @dashboard.route('/shortcut_save/', methods=['GET', 'POST'], strict_slashes=False)
@@ -148,5 +150,5 @@ def shortcut_save():
 
     # 参数
     params = request.get_json() or {}
-    return DashboardService().shortcut_save(params)
+    return dashboard_service.shortcut_save(params)
 

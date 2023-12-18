@@ -50,6 +50,8 @@ from deploy.service.authority import AuthorityService
 auth = Blueprint(name='auth', import_name=__name__, url_prefix='/auth')
 CORS(auth, supports_credentials=True)
 
+authority_service = AuthorityService()
+
 
 @auth.route('/role_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -66,7 +68,7 @@ def role_list():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().role_list(params)
+    return authority_service.role_list(params)
 
 
 @auth.route('/role_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -83,7 +85,7 @@ def role_detail():
 
     # 参数
     params = request.args or {}
-    return AuthorityService().role_detail(params)
+    return authority_service.role_detail(params)
 
 
 @auth.route('/role_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -100,7 +102,7 @@ def role_add():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().role_add(params)
+    return authority_service.role_add(params)
 
 
 @auth.route('/role_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -120,7 +122,7 @@ def role_update():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().role_update(params)
+    return authority_service.role_update(params)
 
 
 @auth.route('/role_del_m/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -138,7 +140,7 @@ def role_batch_delete():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().role_batch_delete(params)
+    return authority_service.role_batch_delete(params)
 
 
 @auth.route('/role_del/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -157,7 +159,7 @@ def role_delete():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().role_delete(params)
+    return authority_service.role_delete(params)
 
 
 @auth.route('/role_auth/', methods=['GET', 'POST'], strict_slashes=False)
@@ -178,7 +180,7 @@ def role_auth():
 
     # 参数
     params = request.args or {}
-    return AuthorityService().role_auth_tree(params)
+    return authority_service.role_auth_tree(params)
 
 
 @auth.route('/role_save_tree/', methods=['GET', 'POST'], strict_slashes=False)
@@ -196,7 +198,7 @@ def role_save_tree():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().role_save_tree(params)
+    return authority_service.role_save_tree(params)
 
 
 @auth.route('/role_select/', methods=['GET', 'POST'], strict_slashes=False)
@@ -213,7 +215,7 @@ def role_select_list():
             300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
 
     # 无参数
-    return AuthorityService().role_select_list()
+    return authority_service.role_select_list()
 
 
 @auth.route('/user_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -231,7 +233,7 @@ def user_list():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().user_list(params)
+    return authority_service.user_list(params)
 
 
 @auth.route('/user_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -248,7 +250,7 @@ def user_add():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().user_add(params)
+    return authority_service.user_add(params)
 
 
 @auth.route('/user_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -265,7 +267,7 @@ def user_detail():
 
     # 参数
     params = request.args or {}
-    return AuthorityService().user_detail(params)
+    return authority_service.user_detail(params)
 
 
 @auth.route('/user_del_m/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -283,7 +285,7 @@ def user_batch_delete():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().user_batch_delete(params)
+    return authority_service.user_batch_delete(params)
 
 
 @auth.route('/user_status/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -301,7 +303,7 @@ def user_status():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().user_status(params)
+    return authority_service.user_status(params)
 
 
 @auth.route('/user_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -318,7 +320,7 @@ def user_update():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().user_update(params)
+    return authority_service.user_update(params)
 
 
 @auth.route('/user_reset_pw/', methods=['GET', 'POST'], strict_slashes=False)
@@ -336,7 +338,7 @@ def user_reset_pw():
 
     # 参数
     params = request.args or {}
-    return AuthorityService().user_reset_pw(params)
+    return authority_service.user_reset_pw(params)
 
 
 @auth.route('/menu_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -354,7 +356,7 @@ def menu_list():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().menu_list(params)
+    return authority_service.menu_list(params)
 
 
 @auth.route('/menu_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -371,7 +373,7 @@ def menu_detail():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().menu_detail(params)
+    return authority_service.menu_detail(params)
 
 
 @auth.route('/menu_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -389,7 +391,7 @@ def menu_add():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().menu_add(params)
+    return authority_service.menu_add(params)
 
 
 @auth.route('/menu_add_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -401,7 +403,7 @@ def menu_add_init():
     :return: json data
     data is enums: bool, one level menus
     """
-    return AuthorityService().menu_add_init()   # no parameters
+    return authority_service.menu_add_init()   # no parameters
 
 
 @auth.route('/menu_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -418,7 +420,7 @@ def menu_update():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().menu_update(params)
+    return authority_service.menu_update(params)
 
 
 @auth.route('/menu_status/', methods=['GET', 'POST'], strict_slashes=False)
@@ -436,7 +438,7 @@ def menu_status():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().menu_status(params)
+    return authority_service.menu_status(params)
 
 
 @auth.route('/user_kv_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -454,5 +456,5 @@ def user_kv_list():
 
     # 参数
     params = request.get_json() or {}
-    return AuthorityService().user_kv_list(params)
+    return authority_service.user_kv_list(params)
 

@@ -70,6 +70,8 @@ from flask import request
 user = Blueprint(name='user', import_name=__name__, url_prefix='/user')
 CORS(user, supports_credentials=True)
 
+sysuser_service = SysUserService()
+
 
 @user.route('/info/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -86,7 +88,7 @@ def info():
 
     # 参数
     token = request.args.get('token')
-    return SysUserService().get_login_by_token(token)
+    return sysuser_service.get_login_by_token(token)
 
 
 @user.route('/auth/', methods=['GET', 'POST'], strict_slashes=False)
@@ -105,7 +107,7 @@ def auth():
     # 参数
     data_json = request.get_json() or {}
     rtx_id = data_json.get('rtx_id')
-    return SysUserService().get_login_auth_by_rtx(rtx_id)
+    return sysuser_service.get_login_auth_by_rtx(rtx_id)
 
 
 @user.route('/update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -122,7 +124,7 @@ def update():
 
     # 参数
     data_json = request.get_json() or {}
-    return SysUserService().update_user_by_rtx(data_json)
+    return sysuser_service.update_user_by_rtx(data_json)
 
 
 @user.route('/timeline/', methods=['GET', 'POST'], strict_slashes=False)
@@ -159,7 +161,7 @@ def password():
 
     # 参数
     data_json = request.get_json() or {}
-    return SysUserService().update_password_by_rtx(data_json)
+    return sysuser_service.update_password_by_rtx(data_json)
 
 
 @user.route('/avatar/', methods=['GET', 'POST'], strict_slashes=False)
@@ -184,7 +186,7 @@ def avatar():
         return Status(
             216, 'failure', StatusMsgs.get(216), {}).json()
 
-    return SysUserService().update_avatar_by_rtx(rtx_id, files.get('avatar'))
+    return sysuser_service.update_avatar_by_rtx(rtx_id, files.get('avatar'))
 
 
 @user.route('/random_avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -201,4 +203,4 @@ def random_avatar_list():
 
     # 参数
     params = request.get_json() or {}
-    return SysUserService().random_avatar_list(params)
+    return sysuser_service.random_avatar_list(params)

@@ -50,6 +50,8 @@ from deploy.utils.decorator import watch_except
 search = Blueprint(name='search', import_name=__name__, url_prefix='/search')
 CORS(search, supports_credentials=True)
 
+search_service = SearchService()
+
 
 @search.route('/sqlbase_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -65,7 +67,7 @@ def sqlbase_list():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().sqlbase_list(params)
+    return search_service.sqlbase_list(params)
 
 
 @search.route('/sqlbase_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -82,7 +84,7 @@ def sqlbase_add():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().sqlbase_add(params)
+    return search_service.sqlbase_add(params)
 
 
 @search.route('/sqlbase_add_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -99,7 +101,7 @@ def sqlbase_add_init():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().sqlbase_add_init(params)
+    return search_service.sqlbase_add_init(params)
 
 
 @search.route('/sqlbase_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -116,7 +118,7 @@ def sqlbase_delete():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().sqlbase_delete(params)
+    return search_service.sqlbase_delete(params)
 
 
 @search.route('/sqlbase_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -133,7 +135,7 @@ def sqlbase_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().sqlbase_deletes(params)
+    return search_service.sqlbase_deletes(params)
 
 
 @search.route('/sqlbase_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -150,7 +152,7 @@ def sqlbase_detail():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().sqlbase_detail(params)
+    return search_service.sqlbase_detail(params)
 
 
 @search.route('/sqlbase_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -176,7 +178,7 @@ def sqlbase_update():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().sqlbase_update(params)
+    return search_service.sqlbase_update(params)
 
 
 @search.route('/share_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -193,5 +195,5 @@ def share_list():
 
     # 参数
     params = request.get_json() or {}
-    return SearchService().share_list(params)
+    return search_service.share_list(params)
 

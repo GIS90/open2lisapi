@@ -47,6 +47,8 @@ from deploy.utils.decorator import watch_except
 image = Blueprint(name='image', import_name=__name__, url_prefix='/image')
 CORS(image, supports_credentials=True)
 
+image_service = ImageService()
+
 
 @image.route('/profile_avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -62,7 +64,7 @@ def profile_avatar_list():
 
     # 参数
     params = request.get_json() or {}
-    return ImageService().profile_avatar_list(params)
+    return image_service.profile_avatar_list(params)
 
 
 @image.route('/profile_avatar_set/', methods=['GET', 'POST'], strict_slashes=False)
@@ -79,4 +81,4 @@ def profile_avatar_set():
 
     # 参数
     params = request.get_json() or {}
-    return ImageService().profile_avatar_set(params)
+    return image_service.profile_avatar_set(params)

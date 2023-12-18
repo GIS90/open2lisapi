@@ -52,6 +52,8 @@ from deploy.utils.decorator import watch_except
 system = Blueprint(name='system', import_name=__name__, url_prefix='/system')
 CORS(system, supports_credentials=True)
 
+info_service = InfoService()
+
 
 @system.route('/dict_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -67,7 +69,7 @@ def dict_list():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_list(params)
+    return info_service.dict_list(params)
 
 
 @system.route('/dict_status/', methods=['GET', 'POST'], strict_slashes=False)
@@ -84,7 +86,7 @@ def dict_status():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_status(params)
+    return info_service.dict_status(params)
 
 
 @system.route('/dict_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -101,7 +103,7 @@ def dict_delete():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_delete(params)
+    return info_service.dict_delete(params)
 
 
 @system.route('/dict_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -118,7 +120,7 @@ def dict_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_deletes(params)
+    return info_service.dict_deletes(params)
 
 
 @system.route('/dict_disables/', methods=['GET', 'POST'], strict_slashes=False)
@@ -135,7 +137,7 @@ def dict_disables():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_disables(params)
+    return info_service.dict_disables(params)
 
 
 @system.route('/dict_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -152,7 +154,7 @@ def dict_detail():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_detail(params)
+    return info_service.dict_detail(params)
 
 
 @system.route('/dict_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -174,7 +176,7 @@ def dict_update():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_update(params)
+    return info_service.dict_update(params)
 
 
 @system.route('/dict_names/', methods=['GET', 'POST'], strict_slashes=False)
@@ -191,7 +193,7 @@ def dict_names():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_names(params)
+    return info_service.dict_names(params)
 
 
 @system.route('/dict_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -208,7 +210,7 @@ def dict_add():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().dict_add(params)
+    return info_service.dict_add(params)
 
 
 @system.route('/api_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -234,7 +236,7 @@ def api_add():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().api_add(params)
+    return info_service.api_add(params)
 
 
 @system.route('/api_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -251,7 +253,7 @@ def api_list():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().api_list(params)
+    return info_service.api_list(params)
 
 
 @system.route('/api_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -268,7 +270,7 @@ def api_delete():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().api_delete(params)
+    return info_service.api_delete(params)
 
 
 @system.route('/api_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -285,7 +287,7 @@ def api_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().api_deletes(params)
+    return info_service.api_deletes(params)
 
 
 @system.route('/api_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -302,7 +304,7 @@ def api_detail():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().api_detail(params)
+    return info_service.api_detail(params)
 
 
 @system.route('/api_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -328,7 +330,7 @@ def api_update():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().api_update(params)
+    return info_service.api_update(params)
 
 
 @system.route('/api_types/', methods=['GET', 'POST'], strict_slashes=False)
@@ -345,7 +347,7 @@ def api_types():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().api_types(params)
+    return info_service.api_types(params)
 
 
 @system.route('/depart_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -362,7 +364,7 @@ def depart_list():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_list(params)
+    return info_service.depart_list(params)
 
 
 @system.route('/depart_update_tree/', methods=['GET', 'POST'], strict_slashes=False)
@@ -379,7 +381,7 @@ def depart_update_tree():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_update_tree(params)
+    return info_service.depart_update_tree(params)
 
 
 @system.route('/depart_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -396,7 +398,7 @@ def depart_init():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_init(params)
+    return info_service.depart_init(params)
 
 
 @system.route('/depart_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -413,7 +415,7 @@ def depart_add():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_add(params)
+    return info_service.depart_add(params)
 
 
 @system.route('/depart_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -430,7 +432,7 @@ def depart_delete():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_delete(params)
+    return info_service.depart_delete(params)
 
 
 @system.route('/depart_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -447,7 +449,7 @@ def depart_detail():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_detail(params)
+    return info_service.depart_detail(params)
 
 
 @system.route('/depart_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -464,7 +466,7 @@ def depart_update():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_update(params)
+    return info_service.depart_update(params)
 
 
 @system.route('/depart_drag/', methods=['GET', 'POST'], strict_slashes=False)
@@ -481,7 +483,7 @@ def depart_drag():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().depart_drag(params)
+    return info_service.depart_drag(params)
 
 
 @system.route('/log_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -498,4 +500,4 @@ def log_list():
 
     # 参数
     params = request.get_json() or {}
-    return InfoService().log_list(params)
+    return info_service.log_list(params)

@@ -48,6 +48,8 @@ from deploy.service.office import OfficeService
 office = Blueprint(name='office', import_name=__name__, url_prefix='/office')
 CORS(office, supports_credentials=True)
 
+office_service = OfficeService()
+
 
 @office.route('/excel_source_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -63,7 +65,7 @@ def excel_source_list():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_source_list(params)
+    return office_service.excel_source_list(params)
 
 
 @office.route('/excel_source_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -83,7 +85,7 @@ def excel_source_update():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_source_update(params)
+    return office_service.excel_source_update(params)
 
 
 @office.route('/excel_source_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -100,7 +102,7 @@ def excel_source_delete():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_source_delete(params)
+    return office_service.excel_source_delete(params)
 
 
 @office.route('/excel_source_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -117,7 +119,7 @@ def excel_source_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_source_deletes(params)
+    return office_service.excel_source_deletes(params)
 
 
 @office.route('/excel_merge/', methods=['GET', 'POST'], strict_slashes=False)
@@ -135,7 +137,7 @@ def excel_merge():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_merge(params)
+    return office_service.excel_merge(params)
 
 
 @office.route('/excel_history_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -153,7 +155,7 @@ def excel_history_list():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_history_list(params)
+    return office_service.excel_history_list(params)
 
 
 @office.route('/excel_result_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -171,7 +173,7 @@ def excel_result_update():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_result_update(params)
+    return office_service.excel_result_update(params)
 
 
 @office.route('/excel_result_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -188,7 +190,7 @@ def excel_result_delete():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_result_delete(params)
+    return office_service.excel_result_delete(params)
 
 
 @office.route('/excel_result_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -206,7 +208,7 @@ def excel_result_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_result_deletes(params)
+    return office_service.excel_result_deletes(params)
 
 
 @office.route('/excel_init_split/', methods=['GET', 'POST'], strict_slashes=False)
@@ -224,7 +226,7 @@ def excel_init_split_params():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_init_split_params(params)
+    return office_service.excel_init_split_params(params)
 
 
 @office.route('/excel_sheet_header/', methods=['GET', 'POST'], strict_slashes=False)
@@ -241,7 +243,7 @@ def excel_sheet_header():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_sheet_header(params)
+    return office_service.excel_sheet_header(params)
 
 
 @office.route('/excel_split/', methods=['GET', 'POST'], strict_slashes=False)
@@ -259,7 +261,7 @@ def excel_split():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().excel_split(params)
+    return office_service.excel_split(params)
 
 
 @office.route('/pdf2word_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -276,7 +278,7 @@ def pdf2word_list():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().pdf2word_list(params)
+    return office_service.pdf2word_list(params)
 
 
 @office.route('/office_pdf_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -293,7 +295,7 @@ def office_pdf_detail():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().office_pdf_detail(params)
+    return office_service.office_pdf_detail(params)
 
 
 @office.route('/office_pdf_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -315,7 +317,7 @@ def office_pdf_update():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().office_pdf_update(params)
+    return office_service.office_pdf_update(params)
 
 
 @office.route('/office_pdf_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -332,7 +334,7 @@ def office_pdf_delete():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().office_pdf_delete(params)
+    return office_service.office_pdf_delete(params)
 
 
 @office.route('/office_pdf_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -349,7 +351,7 @@ def office_pdf_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().office_pdf_deletes(params)
+    return office_service.office_pdf_deletes(params)
 
 
 @office.route('/office_pdf_to/', methods=['GET', 'POST'], strict_slashes=False)
@@ -370,5 +372,5 @@ def office_pdf_to():
 
     # 参数
     params = request.get_json() or {}
-    return OfficeService().office_pdf_to(params)
+    return office_service.office_pdf_to(params)
 

@@ -55,6 +55,8 @@ from deploy.service.notify import NotifyService
 notify = Blueprint(name='notify', import_name=__name__, url_prefix='/notify')
 CORS(notify, supports_credentials=True)
 
+notify_service = NotifyService()
+
 
 @notify.route('/dtalk_list/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -70,7 +72,7 @@ def dtalk_list():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_list(params)
+    return notify_service.dtalk_list(params)
 
 
 @notify.route('/dtalk_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -88,7 +90,7 @@ def dtalk_delete():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_delete(params)
+    return notify_service.dtalk_delete(params)
 
 
 @notify.route('/dtalk_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -106,7 +108,7 @@ def dtalk_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_deletes(params)
+    return notify_service.dtalk_deletes(params)
 
 
 @notify.route('/dtalk_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -123,7 +125,7 @@ def dtalk_detail():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_detail(params)
+    return notify_service.dtalk_detail(params)
 
 
 @notify.route('/dtalk_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -143,7 +145,7 @@ def dtalk_update():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_update(params)
+    return notify_service.dtalk_update(params)
 
 
 @notify.route('/dtalk_change_sheet/', methods=['GET', 'POST'], strict_slashes=False)
@@ -161,7 +163,7 @@ def dtalk_change_sheet():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_change_sheet(params)
+    return notify_service.dtalk_change_sheet(params)
 
 
 @notify.route('/dtalk_robot_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -178,7 +180,7 @@ def dtalk_robot_list():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_list(params)
+    return notify_service.dtalk_robot_list(params)
 
 
 @notify.route('/dtalk_robot_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -195,7 +197,7 @@ def dtalk_robot_add():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_add(params)
+    return notify_service.dtalk_robot_add(params)
 
 
 @notify.route('/dtalk_robot_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -212,7 +214,7 @@ def dtalk_robot_delete():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_delete(params)
+    return notify_service.dtalk_robot_delete(params)
 
 
 @notify.route('/dtalk_robot_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -229,7 +231,7 @@ def dtalk_robot_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_deletes(params)
+    return notify_service.dtalk_robot_deletes(params)
 
 
 @notify.route('/dtalk_robot_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -246,7 +248,7 @@ def dtalk_robot_detail():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_detail(params)
+    return notify_service.dtalk_robot_detail(params)
 
 
 @notify.route('/dtalk_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -268,7 +270,7 @@ def dtalk_robot_update():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_update(params)
+    return notify_service.dtalk_robot_update(params)
 
 
 @notify.route('/dtalk_robot_select/', methods=['GET', 'POST'], strict_slashes=False)
@@ -285,7 +287,7 @@ def dtalk_robot_select():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_select(params)
+    return notify_service.dtalk_robot_select(params)
 
 
 @notify.route('/dtalk_robot_ping/', methods=['GET', 'POST'], strict_slashes=False)
@@ -302,7 +304,7 @@ def dtalk_robot_ping():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_robot_ping(params)
+    return notify_service.dtalk_robot_ping(params)
 
 
 @notify.route('/dtalk_send_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -319,7 +321,7 @@ def dtalk_send_init():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_send_init(params)
+    return notify_service.dtalk_send_init(params)
 
 
 @notify.route('/dtalk_send/', methods=['GET', 'POST'], strict_slashes=False)
@@ -336,7 +338,7 @@ def dtalk_send():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().dtalk_send(params)
+    return notify_service.dtalk_send(params)
 
 
 @notify.route('/qywx_robot_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -353,7 +355,7 @@ def qywx_robot_list():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_list(params)
+    return notify_service.qywx_robot_list(params)
 
 
 @notify.route('/qywx_robot_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -370,7 +372,7 @@ def qywx_robot_add():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_add(params)
+    return notify_service.qywx_robot_add(params)
 
 
 @notify.route('/qywx_robot_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -387,7 +389,7 @@ def qywx_robot_delete():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_delete(params)
+    return notify_service.qywx_robot_delete(params)
 
 
 @notify.route('/qywx_robot_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -404,7 +406,7 @@ def qywx_robot_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_deletes(params)
+    return notify_service.qywx_robot_deletes(params)
 
 
 @notify.route('/qywx_robot_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -421,7 +423,7 @@ def qywx_robot_detail():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_detail(params)
+    return notify_service.qywx_robot_detail(params)
 
 
 @notify.route('/qywx_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -444,7 +446,7 @@ def qywx_robot_update():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_update(params)
+    return notify_service.qywx_robot_update(params)
 
 
 @notify.route('/qywx_robot_select/', methods=['GET', 'POST'], strict_slashes=False)
@@ -461,7 +463,7 @@ def qywx_robot_select():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_select(params)
+    return notify_service.qywx_robot_select(params)
 
 
 @notify.route('/qywx_robot_ping/', methods=['GET', 'POST'], strict_slashes=False)
@@ -478,7 +480,7 @@ def qywx_robot_ping():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_robot_ping(params)
+    return notify_service.qywx_robot_ping(params)
 
 
 @notify.route('/qywx_list/', methods=['GET', 'POST'], strict_slashes=False)
@@ -496,7 +498,7 @@ def qywx_list():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_list(params)
+    return notify_service.qywx_list(params)
 
 
 @notify.route('/qywx_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -513,7 +515,7 @@ def qywx_delete():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_delete(params)
+    return notify_service.qywx_delete(params)
 
 
 @notify.route('/qywx_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
@@ -530,7 +532,7 @@ def qywx_deletes():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_deletes(params)
+    return notify_service.qywx_deletes(params)
 
 
 @notify.route('/qywx_detail/', methods=['GET', 'POST'], strict_slashes=False)
@@ -547,7 +549,7 @@ def qywx_detail():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_detail(params)
+    return notify_service.qywx_detail(params)
 
 
 @notify.route('/qywx_update/', methods=['GET', 'POST'], strict_slashes=False)
@@ -570,7 +572,7 @@ def qywx_update():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_update(params)
+    return notify_service.qywx_update(params)
 
 
 @notify.route('/qywx_add/', methods=['GET', 'POST'], strict_slashes=False)
@@ -587,7 +589,7 @@ def qywx_add():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_add(params)
+    return notify_service.qywx_add(params)
 
 
 @notify.route('/qywx_add_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -605,7 +607,7 @@ def qywx_add_init():
 
     # GET请求参数
     params = request.args
-    return NotifyService().qywx_add_init(params)
+    return notify_service.qywx_add_init(params)
 
 
 @notify.route('/qywx_send_init/', methods=['GET', 'POST'], strict_slashes=False)
@@ -622,7 +624,7 @@ def qywx_send_init():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_send_init(params)
+    return notify_service.qywx_send_init(params)
 
 
 @notify.route('/qywx_send/', methods=['GET', 'POST'], strict_slashes=False)
@@ -640,7 +642,7 @@ def qywx_send():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_send(params)
+    return notify_service.qywx_send(params)
 
 
 @notify.route('/qywx_send_init_temp/', methods=['GET', 'POST'], strict_slashes=False)
@@ -658,7 +660,7 @@ def qywx_send_init_temp():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_send_init_temp(params)
+    return notify_service.qywx_send_init_temp(params)
 
 
 @notify.route('/qywx_send_temp/', methods=['GET', 'POST'], strict_slashes=False)
@@ -678,7 +680,7 @@ def qywx_send_temp():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_send_temp(params)
+    return notify_service.qywx_send_temp(params)
 
 
 @notify.route('/qywx_sendback/', methods=['GET', 'POST'], strict_slashes=False)
@@ -695,7 +697,7 @@ def qywx_sendback():
 
     # 参数
     params = request.get_json() or {}
-    return NotifyService().qywx_sendback(params)
+    return notify_service.qywx_sendback(params)
 
 
 @notify.route('/qywx_temp_upload/', methods=['GET', 'POST'], strict_slashes=False)
@@ -722,5 +724,5 @@ def qywx_temp_upload():
         if not f: continue
         upload_file = files.get(f)
 
-    return NotifyService().qywx_temp_upload(params, upload_file)
+    return notify_service.qywx_temp_upload(params, upload_file)
 

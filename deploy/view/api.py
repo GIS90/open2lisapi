@@ -46,6 +46,8 @@ from deploy.utils.decorator import watch_except
 api = Blueprint(name='api', import_name=__name__, url_prefix='/api')
 CORS(api, supports_credentials=True)
 
+api_service = ApiService()
+
 
 @api.route('/demo/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
@@ -61,5 +63,5 @@ def api_demo():
 
     # JSON请求参数
     params = request.get_json() or {}
-    return ApiService().api_demo(params)
+    return api_service.api_demo(params)
 
