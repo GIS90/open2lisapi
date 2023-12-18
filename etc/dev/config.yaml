@@ -18,7 +18,7 @@ LOG:
 
 # 数据库
 DB:
-  DB_LINK: mysql+pymysql://twtoolbox:2dcc0521bd32dc5100c6d65a1effa8e6@121.4.56.169:3306/twtoolbox?charset=utf8
+  DB_LINK: mysql+pymysql://twtoolbox:2dcc0521bd32dc5100c6d65a1effa8e6@110.40.141.32:3306/twtoolbox?charset=utf8
 
 
 # email
