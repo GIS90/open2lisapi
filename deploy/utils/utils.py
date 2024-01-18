@@ -425,7 +425,7 @@ def auth_rtx_join(rtx_list=None) -> list:
     if rtx_list is None:
         rtx_list = []
     if not isinstance(rtx_list, list) \
-            or not isinstance(rtx_list, str):
+            and not isinstance(rtx_list, str):
         rtx_list = []
 
     _new_list = list()
