@@ -62,6 +62,7 @@ GLOBAL_NEW_REQUEST_ENDPOINT = [
     'info.depart_detail',
     'image.profile_avatar_list',
     'common.file_uploads',
+    'system.depart_detail',
 ]
 
 

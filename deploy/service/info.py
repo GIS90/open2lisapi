@@ -375,11 +375,14 @@ class InfoService(object):
         'lock'
     ]
 
+    req_depart_add_list_attrs = [
+        'manage_rtx'
+    ]
+
     req_depart_add_len = {
         'rtx_id': 25,
         'name': 30,
-        'description': 300,
-        'manage_rtx': 25
+        'description': 300
     }
 
     req_depart_update_attrs = [
@@ -1591,7 +1594,10 @@ class InfoService(object):
             elif attr == 'lock' and _type in ['list', 'tree']:
                 _res[attr] = True if getattr(model, 'lock') else False
             elif attr == 'manage_rtx' and _type in ['list', 'tree']:
-                _res[attr] = model.manage_rtx if getattr(model, 'manage_rtx') else ""
+                if getattr(model, 'manage_rtx'):
+                    _res[attr] = str(model.manage_rtx).split(';')
+                else:
+                    _res[attr] = []
             elif attr == 'dept_path' and _type in ['list', 'tree']:
                 _res[attr] = model.dept_path if getattr(model, 'dept_path') else ""
             elif attr == 'deptid_path' and _type in ['list', 'tree']:
@@ -1849,6 +1855,11 @@ class InfoService(object):
                 if not isinstance(v, bool):
                     return Status(
                         402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
+            # value is list
+            if k in self.req_depart_add_list_attrs:
+                if not isinstance(v, list):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -1888,6 +1899,8 @@ class InfoService(object):
                 if not attr: continue
                 if attr == 'rtx_id':
                     new_depart.create_rtx = new_params.get(attr)
+                elif attr == 'manage_rtx':
+                    new_depart.manage_rtx = ';'.join(new_params.get('manage_rtx'))
                 else:
                     setattr(new_depart, attr, new_params.get(attr))
             # 其他信息
@@ -2082,6 +2095,11 @@ class InfoService(object):
                 if not isinstance(v, bool):
                     return Status(
                         402, StatusEnum.FAILURE.value, '请求参数%s类型需要是Boolean' % k, {}).json()
+            # value is list
+            if k in self.req_depart_add_list_attrs:
+                if not isinstance(v, list):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
             new_params[k] = v
         # 顺序ID特殊判断处理
         order_id = str(new_params.get('order_id'))
@@ -2114,6 +2132,8 @@ class InfoService(object):
                 if not attr and attr in ['md5']: continue
                 if attr == 'rtx_id':
                     model.update_rtx = new_params.get(attr)
+                elif attr == 'manage_rtx':
+                    model.manage_rtx = ';'.join(new_params.get('manage_rtx'))
                 else:
                     setattr(model, attr, new_params.get(attr))
             # 其他信息
