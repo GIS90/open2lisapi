@@ -36,7 +36,7 @@ Life is short, I use python.
 from sqlalchemy import distinct, func
 
 from deploy.bo.bo_base import BOBase
-# from deploy.models.XXXXX import
+# from deploy.model.XXXXX import
 
 
 class ModelBo(BOBase):
