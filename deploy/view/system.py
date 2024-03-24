@@ -65,7 +65,7 @@ def dict_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -82,7 +82,7 @@ def dict_status():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -99,7 +99,7 @@ def dict_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -116,7 +116,7 @@ def dict_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -133,7 +133,7 @@ def dict_disables():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -150,7 +150,7 @@ def dict_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -172,7 +172,7 @@ def dict_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -189,7 +189,7 @@ def dict_names():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -206,7 +206,7 @@ def dict_add():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -232,7 +232,7 @@ def api_add():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -249,7 +249,7 @@ def api_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -266,7 +266,7 @@ def api_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -283,7 +283,7 @@ def api_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -300,7 +300,7 @@ def api_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -326,7 +326,7 @@ def api_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -343,7 +343,7 @@ def api_types():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -360,7 +360,7 @@ def depart_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -377,7 +377,7 @@ def depart_update_tree():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -394,7 +394,7 @@ def depart_init():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -411,7 +411,7 @@ def depart_add():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -428,7 +428,7 @@ def depart_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -445,7 +445,7 @@ def depart_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -462,7 +462,7 @@ def depart_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -479,7 +479,7 @@ def depart_drag():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -496,7 +496,7 @@ def log_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}

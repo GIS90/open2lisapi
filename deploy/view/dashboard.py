@@ -61,7 +61,7 @@ def pan():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -78,7 +78,7 @@ def pan_chart():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -95,7 +95,7 @@ def index():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -112,7 +112,7 @@ def shortcut():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -129,7 +129,7 @@ def shortcut_edit():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -146,7 +146,7 @@ def shortcut_save():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}

@@ -59,7 +59,7 @@ def api_demo():
     """
     if request.method == 'POST':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # JSON请求参数
     params = request.get_json() or {}

@@ -68,7 +68,7 @@ def dtalk_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -86,7 +86,7 @@ def dtalk_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -104,7 +104,7 @@ def dtalk_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -121,7 +121,7 @@ def dtalk_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -141,7 +141,7 @@ def dtalk_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -159,7 +159,7 @@ def dtalk_change_sheet():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -176,7 +176,7 @@ def dtalk_robot_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -193,7 +193,7 @@ def dtalk_robot_add():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -210,7 +210,7 @@ def dtalk_robot_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -227,7 +227,7 @@ def dtalk_robot_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -244,7 +244,7 @@ def dtalk_robot_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -266,7 +266,7 @@ def dtalk_robot_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -283,7 +283,7 @@ def dtalk_robot_select():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -300,7 +300,7 @@ def dtalk_robot_ping():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -317,7 +317,7 @@ def dtalk_send_init():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -334,7 +334,7 @@ def dtalk_send():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -351,7 +351,7 @@ def qywx_robot_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -368,7 +368,7 @@ def qywx_robot_add():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -385,7 +385,7 @@ def qywx_robot_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -402,7 +402,7 @@ def qywx_robot_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -419,7 +419,7 @@ def qywx_robot_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -442,7 +442,7 @@ def qywx_robot_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -459,7 +459,7 @@ def qywx_robot_select():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -476,7 +476,7 @@ def qywx_robot_ping():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -494,7 +494,7 @@ def qywx_list():
 
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -511,7 +511,7 @@ def qywx_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -528,7 +528,7 @@ def qywx_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -545,7 +545,7 @@ def qywx_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -568,7 +568,7 @@ def qywx_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -585,7 +585,7 @@ def qywx_add():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -603,7 +603,7 @@ def qywx_add_init():
     """
     if request.method == 'POST':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # GET请求参数
     params = request.args
@@ -620,7 +620,7 @@ def qywx_send_init():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -638,7 +638,7 @@ def qywx_send():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -656,7 +656,7 @@ def qywx_send_init_temp():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -676,7 +676,7 @@ def qywx_send_temp():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -693,7 +693,7 @@ def qywx_sendback():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -711,7 +711,7 @@ def qywx_temp_upload():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.form

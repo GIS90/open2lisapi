@@ -61,7 +61,7 @@ def excel_source_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -81,7 +81,7 @@ def excel_source_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -98,7 +98,7 @@ def excel_source_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -115,7 +115,7 @@ def excel_source_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -133,7 +133,7 @@ def excel_merge():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -151,7 +151,7 @@ def excel_history_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -169,7 +169,7 @@ def excel_result_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -186,7 +186,7 @@ def excel_result_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -204,7 +204,7 @@ def excel_result_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -222,7 +222,7 @@ def excel_init_split_params():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -239,7 +239,7 @@ def excel_sheet_header():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -257,7 +257,7 @@ def excel_split():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -274,7 +274,7 @@ def pdf2word_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -291,7 +291,7 @@ def office_pdf_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -313,7 +313,7 @@ def office_pdf_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -330,7 +330,7 @@ def office_pdf_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -347,7 +347,7 @@ def office_pdf_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -368,7 +368,7 @@ def office_pdf_to():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}

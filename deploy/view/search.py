@@ -63,7 +63,7 @@ def sqlbase_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -80,7 +80,7 @@ def sqlbase_add():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -97,7 +97,7 @@ def sqlbase_add_init():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -114,7 +114,7 @@ def sqlbase_delete():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -131,7 +131,7 @@ def sqlbase_deletes():
     """
     if request.method in ['GET', 'POST']:
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -148,7 +148,7 @@ def sqlbase_detail():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -174,7 +174,7 @@ def sqlbase_update():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
@@ -191,7 +191,7 @@ def share_list():
     """
     if request.method == 'GET':
         return Status(
-            300, StatusEnum.FAILURE.VALUE, StatusMsgs.get(300), {}).json()
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
     # 参数
     params = request.get_json() or {}
