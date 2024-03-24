@@ -646,6 +646,7 @@ class OfficeService(object):
                 _res[attr] = getattr(model, 'enum_value', '')
             elif attr == 'compress':
                 _res[attr] = True if model.is_compress else False
+                _res['compress_cn'] = '是' if model.is_compress else '否'
             elif attr == 'row':
                 _res[attr] = getattr(model, 'row', '')
             elif attr == 'col':
