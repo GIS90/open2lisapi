@@ -577,7 +577,7 @@ CREATE TABLE `department`  (
     `lock` boolean DEFAULT False COMMENT '是否锁定，如果为True为锁定，默认为False',
     `dept_path` varchar(254) NULL COMMENT '部门名称全路径，用>进行分割',
     `deptid_path` varchar(254) NULL COMMENT '部门ID全路径，用>进行分割',
-    `manage_rtx` varchar(125) COMMENT '部门主管rtx-id，多用户，用英文;分割',
+    `manage_rtx` varchar(254) COMMENT '部门主管rtx-id，多用户，用英文;分割',
     `create_rtx` varchar(25) COMMENT '创建用户',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
     `update_rtx` varchar(25) COMMENT '最新更新用户',

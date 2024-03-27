@@ -64,7 +64,7 @@ class DepartmentModel(base.ModelBase):
     lock = Column(Boolean())
     dept_path = Column(String(254))
     deptid_path = Column(String(254))
-    manage_rtx = Column(String(25))
+    manage_rtx = Column(String(254))
     create_time = Column(TIMESTAMP())
     create_rtx = Column(String(25))
     update_time = Column(TIMESTAMP())
