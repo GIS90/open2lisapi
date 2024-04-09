@@ -2299,3 +2299,29 @@ class OfficeService(object):
 
         return Status(
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}).json()
+
+    def pdf_2_word_download(self, params: dict) -> list:
+        """
+        文件下载 > pdf_2_word
+        """
+        res, total = self.office_pdf_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._office_pdf_model_to_dict(model=_d, _type='info')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['文件名称'] = _res_dict.get('name')
+                _new_res_dict['转换状态'] = _res_dict.get('transfer')
+                _new_res_dict['转换模式'] = _res_dict.get('mode')
+                _new_res_dict['转换时间'] = _res_dict.get('transfer_time')
+                _new_res_dict['开始页'] = _res_dict.get('start')
+                _new_res_dict['结束页'] = _res_dict.get('end')
+                _new_res_dict['指标页列表'] = _res_dict.get('pages')
+                _new_res_dict['上传用户RTX'] = _res_dict.get('rtx_id')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res

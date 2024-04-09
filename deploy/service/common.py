@@ -35,17 +35,21 @@ Life is short, I use python.
 # ------------------------------------------------------------
 import json
 
-from deploy.utils.status_msg import StatusMsgs, StatusEnum
-from deploy.utils.status import Status
+# lib
 from deploy.delib.file_lib import FileLib
 from deploy.delib.store_lib import StoreLib
+from deploy.delib.image_lib import ImageLib
+# service
 from deploy.service.office import OfficeService
 from deploy.service.notify import NotifyService
-from deploy.delib.image_lib import ImageLib
+# bo
+from deploy.bo.enum import EnumBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, OFFICE_STORE_BK
 from deploy.utils.enum import *
-from deploy.utils.utils import get_now
+from deploy.utils.utils import get_now, check_length, auth_rtx_join
+from deploy.utils.status_msg import StatusMsgs, StatusEnum
+from deploy.utils.status import Status
 
 
 class CommonService(object):
@@ -80,6 +84,30 @@ class CommonService(object):
         'file_type'
     ]
 
+    req_download_excel_attrs = [
+        'rtx_id',
+        'source',
+        'list',
+        'name',
+        'type',
+        'format'
+    ]
+
+    req_download_excel_need_attrs = [
+        'rtx_id',
+        'source',
+        'name',
+        'type',
+        'format'
+    ]
+
+    req_download_excel_check_length_attrs = {
+        'name': 55
+    }
+
+    EXCEL_SUFFIX = ['xls', 'xlsx']
+    DOWNLOAD_TYPE = ['All', 'Select']
+
     def __init__(self):
         """
         CommonService class initialize
@@ -92,6 +120,8 @@ class CommonService(object):
         # service
         self.office_service = OfficeService()
         self.notify_service = NotifyService()
+        # bo
+        self.enum_bo = EnumBo()
 
     def __str__(self):
         print("CommonService class.")
@@ -300,5 +330,111 @@ class CommonService(object):
         except Exception as e:
             return {'errno': 900, 'message': '服务端API请求发生异常，请稍后尝试' or e}
 
+    def download_excel_init(self, params):
+        # ------------------------ parameters check -----------------------
+        # no parameters
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
 
+        rtx_id = params.get('rtx_id')
+        if not rtx_id:
+            return Status(
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
+        # ------------------------ parameters check -----------------------
+        enum_names = ['download-select', 'excel-format']
+        res = self.enum_bo.get_model_by_names(names=enum_names)
+        download_select_list = list()
+        excel_format_list = list()
+        for e in res:
+            if not e: continue
+            if e.name == 'download-select':
+                download_select_list.append({'name': str(e.name), 'label': str(e.value), 'value': str(e.key)})
+            elif e.name == 'excel-format':
+                excel_format_list.append({'name': str(e.name), 'label': str(e.value), 'value': str(e.key)})
+        data = {
+            'download_select': download_select_list,
+            'excel_format': excel_format_list
+        }
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), data).json()
 
+    def download_excel(self, params):
+        # ------------------------ parameters check -----------------------
+        # no parameters
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_download_excel_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+
+        # ===================== parameters check and format =====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_download_excel_attrs:     # illegal key
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if k in self.req_download_excel_need_attrs and not v:
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            # parameters check
+            if k == 'list':    # parameter type check
+                if not isinstance(v, list):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
+                new_params[k] = v
+            else:
+                new_params[k] = str(v)
+
+        # parameters length check
+        for _key, _value in self.req_download_excel_check_length_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
+        # parameters enum check
+        format2 = new_params.get('format')
+        if format2 not in self.EXCEL_SUFFIX:
+            return Status(
+                404, StatusEnum.FAILURE.value, '请求参数format只允许是xls，xlsx枚举值', {}).json()
+        # 依据type：All全部数据 Select选择数据
+        type2 = new_params.get('type')
+        if type2 not in self.DOWNLOAD_TYPE:
+            return Status(
+                404, StatusEnum.FAILURE.value, '请求参数type只允许是All，Select枚举值', {}).json()
+        # Select选择数据的时候需要提供下载数据的list列表
+        if type2 == 'Select' and not new_params.get('list'):
+            return Status(
+                403, StatusEnum.FAILURE.value, '请求参数list不允许为空', {}).json()
+        else:
+            # 如果是全部下载，删除list参数
+            del new_params['list']
+        # 根据用户权限下载数据，管理权限允许下载全部数据
+        rtx_id = new_params.get('rtx_id')
+        if rtx_id in auth_rtx_join([]):
+            del new_params['rtx_id']
+
+        # 文件名称
+        file_name = '%s.%s' % (new_params.get('name'), format2)
+        # 数据下载请求对应的service
+        source = new_params.get('source')
+        res = list()
+        if source == 'office-pdf':
+            res = self.office_service.pdf_2_word_download(params=new_params)
+
+        status_id = 100 if len(res) > 0 else 101
+        return Status(
+            status_id,
+            StatusEnum.SUCCESS.value,
+            StatusMsgs.get(100),
+            {'list': res, 'total': len(res), 'name': file_name}
+        ).json()

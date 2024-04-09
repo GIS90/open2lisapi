@@ -324,9 +324,6 @@ CREATE TABLE `enum`  (
     UNIQUE INDEX `index_id`(`id`) USING HASH COMMENT 'id索引'
 ) COMMENT='ENUM枚举表';
 
--- delete
-delete from enum;
-
 -- insert data
 /*
 -- insert sql
@@ -350,6 +347,10 @@ SELECT
 FROM enum e
 WHERE e.is_del <> 1;
 */
+
+-- delete
+delete from enum;
+
 insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`) VALUES
 ('bool-type', '9dfa56939efce58a64ec76651bfb1320', '1', '是', '布尔型枚举值：True', 1, 'admin', 1),
 ('bool-type', '47191a26aa630c57701f6034b9fa495a', '0', '否', '布尔型枚举值：False', 1, 'admin', 2),
@@ -397,7 +398,12 @@ insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `cre
 ('db-type', '4e0d61664feab705c27a1a07eb304ac5', 'Redis', 'Redis', '数据库类型 > 非关系型数据库 > Redis', 1, 'admin', 7),
 ('db-type', '358841380e96a757c6293278a1e76528', 'Memcache', 'Memcache', '数据库类型 > 非关系型数据库 > Memcache', 1, 'admin', 8),
 ('db-type', 'ae5816aea7485d94c4bf782e8f9fa2c7', 'MongoDb', 'MongoDb', '数据库类型 > 非关系型数据库 > MongoDb', 1, 'admin', 9),
-('db-type', 'c9c0821ca988ca2fd7c8c10d9198058f', 'HBase', 'HBase', '数据库类型 > 非关系型数据库 > HBase', 1, 'admin', 10);
+('db-type', 'c9c0821ca988ca2fd7c8c10d9198058f', 'HBase', 'HBase', '数据库类型 > 非关系型数据库 > HBase', 1, 'admin', 10),
+('download-select', 'bc1c7c26bfeac3a75a5a07a9926b8d08', 'All', '全部', '表格下载方式 > 全部下载', 1, 'admin', 1),
+('download-select', 'ced53e5b8a5f4835eaf895b966d02fd9', 'Select', '选择数据', '表格下载方式 > 已选择数据', 1, 'admin', 2),
+('excel-format', '48a12305af5c8e87edefaeaf8b139bda', 'xls', 'xls', '表格下载文件保存格式 > xls', 1, 'admin', 1),
+('excel-format', '7078549a73f443430b655112015b3f91', 'xlsx', 'xlsx', '表格下载文件保存格式 > xlsx', 1, 'admin', 2),
+('excel-format', '7a604ef3f052d9a3785ec4ecf49117e3', 'csv', 'csv', '表格下载文件保存格式 > csv', 0, 'admin', 3);
 ------------------------------------------------------------------------------------------------
 
 

@@ -58,9 +58,9 @@ class OfficePDFBo(BOBase):
         q = q.filter(OfficePDFModel.is_del != 1)
         if params.get('rtx_id'):
             q = q.filter(OfficePDFModel.rtx_id == str(params.get('rtx_id')))
+        if params.get('list'):
+            q = q.filter(OfficePDFModel.md5_id.in_(params.get('list')))
         q = q.order_by(OfficePDFModel.create_time.desc())
-        if not q:
-            return [], 0
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))

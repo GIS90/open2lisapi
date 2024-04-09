@@ -130,3 +130,35 @@ def image_wangeditor():
 
     return common_service.image_wangeditor(params, request.files.get('files'))
 
+
+@common.route('/download_excel_init/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def download_excel_init():
+    """
+    Excel data download initialize parameter
+    """
+    if request.method == 'POST':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.args or {}
+    return common_service.download_excel_init(params)
+
+
+@common.route('/download_excel/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def download_excel():
+    """
+    Excel data download initialize parameter
+    """
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return common_service.download_excel(params)
+
