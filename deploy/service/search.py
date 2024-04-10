@@ -813,7 +813,7 @@ class SearchService(object):
         n = 1
         for _d in res:
             if not _d: continue
-            _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
+            _res_dict = self._sqlbase_model_to_dict(_d, _type='detail')
             if _res_dict:
                 _new_res_dict = dict()
                 _new_res_dict['序号'] = n
