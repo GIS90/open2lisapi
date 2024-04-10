@@ -2302,7 +2302,7 @@ class OfficeService(object):
 
     def pdf_2_word_download(self, params: dict) -> list:
         """
-        文件下载 > pdf_2_word
+        文件下载：文档工具 > PDF转WORD
         """
         res, total = self.office_pdf_bo.get_all(params)
         new_res = list()
@@ -2320,6 +2320,59 @@ class OfficeService(object):
                 _new_res_dict['开始页'] = _res_dict.get('start')
                 _new_res_dict['结束页'] = _res_dict.get('end')
                 _new_res_dict['指标页列表'] = _res_dict.get('pages')
+                _new_res_dict['上传用户RTX'] = _res_dict.get('rtx_id')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
+    def excel_source_download(self, params: dict) -> list:
+        """
+        文件下载：文档工具 > 表格合并 && 拆分
+        """
+        # 1-excel merge, 2-excel split
+        req_type = params.get('type')
+        res, total = self.excel_source_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._excel_source_model_to_dict(model=_d)
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['文件名称'] = _res_dict.get('name')
+                _new_res_dict['操作Sheet'] = _res_dict.get('set_sheet_name')
+                _new_res_dict['类别'] = _res_dict.get('ftypev')
+                _new_res_dict['Sheet数'] = _res_dict.get('nsheet')
+                _new_res_dict['操作次数'] = _res_dict.get('numopr')
+                _new_res_dict['上传用户RTX'] = _res_dict.get('rtx_id')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
+    def excel_result_download(self, params: dict) -> list:
+        """
+        文件下载：文档工具 > 表格历史
+        """
+        res, total = self.excel_result_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._excel_result_model_to_dict(_d)
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['文件名称'] = _res_dict.get('name')
+                _new_res_dict['Sheet名称'] = _res_dict.get('set_sheet_name')
+                _new_res_dict['类别'] = _res_dict.get('ftypev')
+                _new_res_dict['Sheet数'] = _res_dict.get('nsheet')
+                _new_res_dict['ZIP压缩'] = _res_dict.get('compress_cn')
+                _new_res_dict['文件数'] = _res_dict.get('nfile')
+                _new_res_dict['行数'] = _res_dict.get('row')
+                _new_res_dict['列数'] = _res_dict.get('col')
                 _new_res_dict['上传用户RTX'] = _res_dict.get('rtx_id')
                 _new_res_dict['创建时间'] = _res_dict.get('create_time')
                 new_res.append(_new_res_dict)

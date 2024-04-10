@@ -81,9 +81,9 @@ class SqlbaseBo(BOBase):
         if params.get('enum_name'):
             q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
         if params.get('public'):
-            q = q.filter(SqlbaseModel.public == True)
+            q = q.filter(SqlbaseModel.public == 1)
         if not params.get('public'):
-            q = q.filter(SqlbaseModel.public == False)
+            q = q.filter(SqlbaseModel.public == 0)
         # if params.get('rtx_id'):
         #     q = q.filter(SqlbaseModel.rtx_id == str(params.get('rtx_id')))
         """多参数高级筛选"""
@@ -114,9 +114,10 @@ class SqlbaseBo(BOBase):
             q = q.filter(SqlbaseModel.count >= params.get('count_start'))
         if params.get('count_end'):  # 浏览次数下限
             q = q.filter(SqlbaseModel.count <= params.get('count_end'))
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(SqlbaseModel.md5_id.in_(params.get('list')))
         q = q.order_by(SqlbaseModel.create_time.desc())
-        if not q:
-            return [], 0
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))

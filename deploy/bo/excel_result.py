@@ -91,10 +91,11 @@ class ExcelResultBo(BOBase):
             q = q.filter(ExcelResultModel.create_time >= params.get('create_time_start'))
         if params.get('create_time_end'):  # 结束创建时间
             q = q.filter(ExcelResultModel.create_time <= params.get('create_time_end'))
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(ExcelResultModel.md5_id.in_(params.get('list')))
         q = q.filter(ExcelResultModel.is_del != 1)
         q = q.order_by(ExcelResultModel.create_time.desc())
-        if not q:
-            return [], 0
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))

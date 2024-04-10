@@ -42,6 +42,7 @@ from deploy.delib.image_lib import ImageLib
 # service
 from deploy.service.office import OfficeService
 from deploy.service.notify import NotifyService
+from deploy.service.search import SearchService
 # bo
 from deploy.bo.enum import EnumBo
 
@@ -88,21 +89,21 @@ class CommonService(object):
         'rtx_id',
         'source',
         'list',
-        'name',
-        'type',
-        'format'
+        'file_name',
+        'file_type',
+        'file_format'
     ]
 
     req_download_excel_need_attrs = [
         'rtx_id',
         'source',
-        'name',
-        'type',
-        'format'
+        'file_name',
+        'file_type',
+        'file_format'
     ]
 
     req_download_excel_check_length_attrs = {
-        'name': 55
+        'file_name': 55
     }
 
     EXCEL_SUFFIX = ['xls', 'xlsx']
@@ -120,6 +121,7 @@ class CommonService(object):
         # service
         self.office_service = OfficeService()
         self.notify_service = NotifyService()
+        self.search_service = SearchService()
         # bo
         self.enum_bo = EnumBo()
 
@@ -402,20 +404,20 @@ class CommonService(object):
                 return Status(
                     405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
         # parameters enum check
-        format2 = new_params.get('format')
-        if format2 not in self.EXCEL_SUFFIX:
+        file_format = new_params.get('file_format')
+        if file_format not in self.EXCEL_SUFFIX:
             return Status(
-                404, StatusEnum.FAILURE.value, '请求参数format只允许是xls，xlsx枚举值', {}).json()
+                404, StatusEnum.FAILURE.value, '请求参数file_format只支持xls，xlsx枚举值', {}).json()
         # 依据type：All全部数据 Select选择数据
-        type2 = new_params.get('type')
-        if type2 not in self.DOWNLOAD_TYPE:
+        file_type = new_params.get('file_type')
+        if file_type not in self.DOWNLOAD_TYPE:
             return Status(
-                404, StatusEnum.FAILURE.value, '请求参数type只允许是All，Select枚举值', {}).json()
+                404, StatusEnum.FAILURE.value, '请求参数type只支持All，Select枚举值', {}).json()
         # Select选择数据的时候需要提供下载数据的list列表
-        if type2 == 'Select' and not new_params.get('list'):
+        if file_type == 'Select' and not new_params.get('list'):
             return Status(
                 403, StatusEnum.FAILURE.value, '请求参数list不允许为空', {}).json()
-        else:
+        elif file_type == 'All':
             # 如果是全部下载，删除list参数
             del new_params['list']
         # 根据用户权限下载数据，管理权限允许下载全部数据
@@ -424,17 +426,40 @@ class CommonService(object):
             del new_params['rtx_id']
 
         # 文件名称
-        file_name = '%s.%s' % (new_params.get('name'), format2)
+        file_all_name = '%s.%s' % (new_params.get('file_name'), file_format)
         # 数据下载请求对应的service
         source = new_params.get('source')
-        res = list()
         if source == 'office-pdf':
             res = self.office_service.pdf_2_word_download(params=new_params)
+        elif source == 'office-excel-source-merge':
+            # 1-excel merge, 2-excel split
+            new_params['type'] = 1
+            new_params['enum_name'] = 'excel-type'
+            res = self.office_service.excel_source_download(params=new_params)
+        elif source == 'office-excel-source-split':
+            # 1-excel merge, 2-excel split
+            new_params['type'] = 2
+            new_params['enum_name'] = 'excel-type'
+            res = self.office_service.excel_source_download(params=new_params)
+        elif source == 'office-excel-result':
+            new_params['enum_name'] = 'excel-type'
+            res = self.office_service.excel_result_download(params=new_params)
+        elif source == 'search-sqlbase':
+            new_params['enum_name'] = 'db-type'   # 数据库枚举RTX
+            new_params['public'] = 1           # 已发布
+            res = self.search_service.sqlbase_download(params=new_params)
+        else:
+            return Status(
+                401,
+                StatusEnum.SUCCESS.value,
+                "暂无资源下载",
+                {'list': [], 'total': 0, 'name': file_all_name}
+            ).json()
 
         status_id = 100 if len(res) > 0 else 101
         return Status(
             status_id,
             StatusEnum.SUCCESS.value,
             StatusMsgs.get(100),
-            {'list': res, 'total': len(res), 'name': file_name}
+            {'list': res, 'total': len(res), 'name': file_all_name}
         ).json()

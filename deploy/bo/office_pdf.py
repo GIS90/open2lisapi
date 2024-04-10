@@ -58,6 +58,7 @@ class OfficePDFBo(BOBase):
         q = q.filter(OfficePDFModel.is_del != 1)
         if params.get('rtx_id'):
             q = q.filter(OfficePDFModel.rtx_id == str(params.get('rtx_id')))
+        # 选择下载条件
         if params.get('list'):
             q = q.filter(OfficePDFModel.md5_id.in_(params.get('list')))
         q = q.order_by(OfficePDFModel.create_time.desc())

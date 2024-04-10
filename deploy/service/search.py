@@ -804,6 +804,32 @@ class SearchService(object):
             return Status(
                 603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
 
+    def sqlbase_download(self, params: dict) -> list:
+        """
+        文件下载：知识平台 > SQL仓库
+        """
+        res, total = self.sqlbase_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._sqlbase_model_to_dict(_d, _type='list')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['标题'] = _res_dict.get('title')
+                _new_res_dict['作者'] = _res_dict.get('author')
+                _new_res_dict['发布时间'] = _res_dict.get('public_time')
+                _new_res_dict['推荐度'] = _res_dict.get('recommend')
+                _new_res_dict['数据库'] = _res_dict.get('database_value')
+                _new_res_dict['文档内容'] = _res_dict.get('text')
+                _new_res_dict['浏览次数'] = _res_dict.get('count')
+                _new_res_dict['上传用户RTX'] = _res_dict.get('rtx_id')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
     def share_list(self, params: dict) -> json:
         """
         get share data list from db table share by parameters
