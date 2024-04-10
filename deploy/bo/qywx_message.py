@@ -81,9 +81,10 @@ class QywxMessageBo(BOBase):
             q = q.filter(EnumModel.name == str(params.get('enum_name')).lower())
         if params.get('rtx_id'):
             q = q.filter(QywxMessageModel.rtx_id == str(params.get('rtx_id')))
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(QywxMessageModel.md5_id.in_(params.get('list')))
         q = q.order_by(QywxMessageModel.create_time.desc())
-        if not q:
-            return [], 0
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))

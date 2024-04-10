@@ -430,24 +430,36 @@ class CommonService(object):
         # 数据下载请求对应的service
         source = new_params.get('source')
         if source == 'office-pdf':
+            # 文档工具 > PDF转WORD
             res = self.office_service.pdf_2_word_download(params=new_params)
         elif source == 'office-excel-source-merge':
+            # 文档工具 > 表格合并
             # 1-excel merge, 2-excel split
             new_params['type'] = 1
             new_params['enum_name'] = 'excel-type'
             res = self.office_service.excel_source_download(params=new_params)
         elif source == 'office-excel-source-split':
+            # 文档工具 > 表格拆分
             # 1-excel merge, 2-excel split
             new_params['type'] = 2
             new_params['enum_name'] = 'excel-type'
             res = self.office_service.excel_source_download(params=new_params)
         elif source == 'office-excel-result':
+            # 文档工具 > 表格历史
             new_params['enum_name'] = 'excel-type'
             res = self.office_service.excel_result_download(params=new_params)
         elif source == 'search-sqlbase':
+            # 知识平台 > SQL仓库
             new_params['enum_name'] = 'db-type'   # 数据库枚举RTX
             new_params['public'] = 1           # 已发布
             res = self.search_service.sqlbase_download(params=new_params)
+        elif source == 'notify-dtalk':
+            # 消息通知 > 钉钉绩效
+            res = self.notify_service.dtalk_download(params=new_params)
+        elif source == 'notify-qywx':
+            # 消息通知 > 企微通知
+            new_params['enum_name'] = 'qywx-type'   # 数据库枚举RTX
+            res = self.notify_service.qywx_download(params=new_params)
         else:
             return Status(
                 401,

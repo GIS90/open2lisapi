@@ -1979,6 +1979,31 @@ class NotifyService(object):
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
+    def dtalk_download(self, params: dict) -> list:
+        """
+        文件下载：消息通知 > 钉钉绩效
+        """
+        res, total = self.dtalk_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._dtalk_model_to_dict(_d, _type='detail')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['文件名称'] = _res_dict.get('file_name')
+                _new_res_dict['操作Sheet'] = _res_dict.get('set_sheet_name')
+                _new_res_dict['Sheet数'] = _res_dict.get('nsheet')
+                _new_res_dict['操作次数'] = _res_dict.get('count')
+                _new_res_dict['发送条数'] = _res_dict.get('number')
+                _new_res_dict['消息标题'] = _res_dict.get('set_title')
+                _new_res_dict['上传用户RTX'] = _res_dict.get('rtx_id')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
     def qywx_robot_list(self, params: dict):
         """
         get qywx robot list by params
@@ -3685,3 +3710,26 @@ class NotifyService(object):
         return Status(
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), data).json()
 
+    def qywx_download(self, params: dict) -> list:
+        """
+        文件下载：消息通知 > 企微绩效
+        """
+        res, total = self.qywx_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._qywx_model_to_dict(_d, _type='detail')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['标题'] = _res_dict.get('title')
+                _new_res_dict['消息内容'] = _res_dict.get('content')
+                _new_res_dict['消息类型'] = _res_dict.get('type_name')
+                _new_res_dict['发送次数'] = _res_dict.get('count')
+                _new_res_dict['最新发送时间'] = _res_dict.get('last_send_time')
+                _new_res_dict['上传用户RTX'] = _res_dict.get('rtx_id')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res

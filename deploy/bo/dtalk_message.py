@@ -60,8 +60,9 @@ class DtalkMessageBo(BOBase):
         if params.get('rtx_id'):
             q = q.filter(DtalkMessageModel.rtx_id == str(params.get('rtx_id')))
         q = q.order_by(DtalkMessageModel.create_time.desc())
-        if not q:
-            return [], 0
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(DtalkMessageModel.md5_id.in_(params.get('list')))
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))
