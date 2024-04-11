@@ -86,8 +86,9 @@ class SysUserBo(BOBase):
             q = q.filter(SysUserModel.rtx_id != ADMIN)
         if is_del:
             q = q.filter(SysUserModel.is_del != 1)
-        if not q:
-            return [], 0
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(SysUserModel.md5_id.in_(params.get('list')))
         total = len(q.all())
         q = q.order_by(SysUserModel.create_time.desc())
         if params.get('offset'):

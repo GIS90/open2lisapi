@@ -227,9 +227,10 @@ class RequestBo(BOBase):
             q = q.filter(RequestModel.create_time >= params.get('create_time_start'))
         if params.get('create_time_end'):  # 结束创建时间
             q = q.filter(RequestModel.create_time <= params.get('create_time_end'))
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(RequestModel.id.in_(params.get('list')))
         q = q.order_by(RequestModel.create_time.desc())
-        if not q:
-            return [], 0
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))

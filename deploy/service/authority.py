@@ -566,7 +566,7 @@ class AuthorityService(object):
         for _d in res:
             if not _d: continue
             # if getattr(_d, 'engname') == ADMIN: continue     # 不显示管理员角色
-            _res_dict = self._role_model_to_dict(_d)
+            _res_dict = self._role_model_to_dict(model=_d)
             if _res_dict:       # 添加额外自定义ID序列
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
@@ -616,7 +616,7 @@ class AuthorityService(object):
 
         # return
         return Status(
-            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), self._role_model_to_dict(model, is_detail=True)
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), self._role_model_to_dict(model=model, is_detail=True)
         ).json()
 
     def role_add(self, params: dict) -> dict:
@@ -1059,6 +1059,28 @@ class AuthorityService(object):
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': len(new_res)}
         ).json()
 
+    def role_download(self, params: dict) -> list:
+        """
+        文件下载：权限管理 > 角色管理
+        """
+        res, total = self.role_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._role_model_to_dict(model=_d, is_detail=True)
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['RTX名称'] = _res_dict.get('engname')
+                _new_res_dict['中文名称'] = _res_dict.get('chnname')
+                _new_res_dict['描述'] = _res_dict.get('introduction')
+                _new_res_dict['创建者RTX'] = _res_dict.get('create_rtx')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
     def user_list(self, params: dict) -> dict:
         """
         get user list, many parameters: limit, offset
@@ -1105,7 +1127,7 @@ class AuthorityService(object):
         for _d in res:
             if not _d: continue
             # if getattr(_d, 'rtx_id') == ADMIN: continue     # 不显示管理员
-            _res_dict = self._user_model_to_dict(_d)
+            _res_dict = self._user_model_to_dict(model=_d, is_pass=False, is_detail=False)
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
@@ -1383,7 +1405,7 @@ class AuthorityService(object):
         #         503, StatusEnum.FAILURE.value, '数据已注销，不允许操作', {}).json()
 
         # user base info
-        model_res = self._user_model_to_dict(model, is_pass=False, is_detail=True)
+        model_res = self._user_model_to_dict(model=model, is_pass=False, is_detail=True)
         # role select list
         roles_res = json.loads(self.role_select_list()) or {}
         model_res['roles'] = roles_res.get('data').get('list') or [] \
@@ -1522,6 +1544,32 @@ class AuthorityService(object):
         return Status(
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': params.get('rtx_id')}).json()
 
+    def user_download(self, params: dict) -> list:
+        """
+        文件下载：权限管理 > 用户管理
+        """
+        res, total = self.sysuser_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._user_model_to_dict(model=_d, is_pass=False, is_detail=True)
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['RTX名称'] = _res_dict.get('rtx_id')
+                _new_res_dict['姓名'] = _res_dict.get('name')
+                _new_res_dict['电话'] = _res_dict.get('phone')
+                _new_res_dict['邮箱'] = _res_dict.get('email')
+                _new_res_dict['部门'] = _res_dict.get('department')
+                _new_res_dict['描述'] = _res_dict.get('introduction')
+                _new_res_dict['状态'] = "注销" if _res_dict.get('is_del') else "启用"
+                _new_res_dict['创建者RTX'] = _res_dict.get('create_rtx')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
     def menu_list(self, params: dict) -> dict:
         """
         get menu list from db table menu
@@ -1576,7 +1624,7 @@ class AuthorityService(object):
         # 所有菜单，遍历之后加入一级菜单列表、临时菜单列表（二级）
         for menu in all_menus:
             if not menu: continue
-            _d = self._menu_model_to_dict(menu, info=False)
+            _d = self._menu_model_to_dict(model=menu, info=False)
             if not _d: continue
             """
             TODO
@@ -1660,7 +1708,7 @@ class AuthorityService(object):
             return Status(
                 501, StatusEnum.FAILURE.value, '数据不存在', {}).json()
 
-        model_res = self._menu_model_to_dict(model, info=True)
+        model_res = self._menu_model_to_dict(model=model, info=True)
         # 获取根节点 && 一级菜单
         root_one_menu_models = self.menu_bo.get_root_one_menus()
         root_menu = list()  # 菜单根节点，只有一个
@@ -2009,3 +2057,37 @@ class AuthorityService(object):
         return Status(
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
         ).json()
+
+    def menu_download(self, params: dict) -> list:
+        """
+        文件下载：权限管理 > 菜单管理
+        """
+        res = self.menu_bo.get_all(root=True)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._menu_model_to_dict(model=_d, info=False)
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['菜单RTX名称'] = _res_dict.get('name')
+                _new_res_dict['菜单中文名称'] = _res_dict.get('title')
+                _new_res_dict['请求地址'] = _res_dict.get('path')
+                _new_res_dict['菜单图标'] = _res_dict.get('icon')
+                _new_res_dict['级别'] = _res_dict.get('level')
+                _new_res_dict['快捷入口'] = _res_dict.get('shortcut')
+                _new_res_dict['排序ID'] = _res_dict.get('order_id')
+                _new_res_dict['上级菜单ID'] = _res_dict.get('pid')
+                _new_res_dict['组件'] = _res_dict.get('component')
+                _new_res_dict['重定向'] = _res_dict.get('redirect')
+                _new_res_dict['Hidden属性'] = _res_dict.get('hidden')
+                _new_res_dict['Cache属性'] = _res_dict.get('cache')
+                _new_res_dict['Affix属性'] = _res_dict.get('affix')
+                _new_res_dict['Breadcrumb属性'] = _res_dict.get('breadcrumb')
+                _new_res_dict['状态'] = "禁用" if _res_dict.get('is_del') else "启用"
+                _new_res_dict['创建者RTX'] = _res_dict.get('create_rtx')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res

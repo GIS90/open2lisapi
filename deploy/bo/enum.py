@@ -58,8 +58,9 @@ class EnumBo(BOBase):
         q = self.session.query(EnumModel)
         q = q.filter(EnumModel.is_del != 1)     # 过滤删除
         q = q.order_by(EnumModel.name.asc(), EnumModel.order_id.asc())      # name, order_id 排序
-        if not q:
-            return [], 0
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(EnumModel.md5_id.in_(params.get('list')))
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))

@@ -43,6 +43,8 @@ from deploy.delib.image_lib import ImageLib
 from deploy.service.office import OfficeService
 from deploy.service.notify import NotifyService
 from deploy.service.search import SearchService
+from deploy.service.info import InfoService
+from deploy.service.authority import AuthorityService
 # bo
 from deploy.bo.enum import EnumBo
 
@@ -108,6 +110,7 @@ class CommonService(object):
 
     EXCEL_SUFFIX = ['xls', 'xlsx']
     DOWNLOAD_TYPE = ['All', 'Select']
+    DOWNLOAD_NO_SELECT = ['system-depart', 'manage-menu']
 
     def __init__(self):
         """
@@ -122,6 +125,8 @@ class CommonService(object):
         self.office_service = OfficeService()
         self.notify_service = NotifyService()
         self.search_service = SearchService()
+        self.info_service = InfoService()
+        self.authority_service = AuthorityService()
         # bo
         self.enum_bo = EnumBo()
 
@@ -414,7 +419,10 @@ class CommonService(object):
             return Status(
                 404, StatusEnum.FAILURE.value, '请求参数type只支持All，Select枚举值', {}).json()
         # Select选择数据的时候需要提供下载数据的list列表
-        if file_type == 'Select' and not new_params.get('list'):
+        # 特殊无选择功能不支持选择性数据下载
+        if file_type == 'Select' \
+                and not new_params.get('list') \
+                and new_params.get('source') not in self.DOWNLOAD_NO_SELECT:
             return Status(
                 403, StatusEnum.FAILURE.value, '请求参数list不允许为空', {}).json()
         elif file_type == 'All':
@@ -429,6 +437,7 @@ class CommonService(object):
         file_all_name = '%s.%s' % (new_params.get('file_name'), file_format)
         # 数据下载请求对应的service
         source = new_params.get('source')
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         if source == 'office-pdf':
             # 文档工具 > PDF转WORD
             res = self.office_service.pdf_2_word_download(params=new_params)
@@ -448,11 +457,13 @@ class CommonService(object):
             # 文档工具 > 表格历史
             new_params['enum_name'] = 'excel-type'
             res = self.office_service.excel_result_download(params=new_params)
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         elif source == 'search-sqlbase':
             # 知识平台 > SQL仓库
             new_params['enum_name'] = 'db-type'   # 数据库枚举RTX
             new_params['public'] = 1           # 已发布
             res = self.search_service.sqlbase_download(params=new_params)
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         elif source == 'notify-dtalk':
             # 消息通知 > 钉钉绩效
             res = self.notify_service.dtalk_download(params=new_params)
@@ -460,6 +471,30 @@ class CommonService(object):
             # 消息通知 > 企微通知
             new_params['enum_name'] = 'qywx-type'   # 数据库枚举RTX
             res = self.notify_service.qywx_download(params=new_params)
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        elif source == 'system-depart':
+            # 系统维护 > 部门架构
+            res = self.info_service.depart_download(params=new_params)
+        elif source == 'system-dict':
+            # 系统维护 > 数据字典
+            res = self.info_service.dict_download(params=new_params)
+        elif source == 'system-api':
+            # 系统维护 > 后台API
+            res = self.info_service.api_download(params=new_params)
+        elif source == 'system-log':
+            # 系统维护 > 日志查看
+            res = self.info_service.log_download(params=new_params)
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        elif source == 'manage-user':
+            # 权限管理 > 用户管理
+            res = self.authority_service.user_download(params=new_params)
+        elif source == 'manage-role':
+            # 权限管理 > 角色管理
+            res = self.authority_service.role_download(params=new_params)
+        elif source == 'manage-menu':
+            # 权限管理 > 菜单管理
+            res = self.authority_service.menu_download(params=new_params)
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         else:
             return Status(
                 401,

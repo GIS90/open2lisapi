@@ -85,9 +85,10 @@ class ApiBo(BOBase):
             q = q.filter(ApiModel.create_time >= params.get('create_time_start'))
         if params.get('create_time_end'):  # 结束创建时间
             q = q.filter(ApiModel.create_time <= params.get('create_time_end'))
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(ApiModel.md5_id.in_(params.get('list')))
         q = q.order_by(ApiModel.order_id.asc(), ApiModel.create_time.desc())
-        if not q:
-            return [], 0
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))

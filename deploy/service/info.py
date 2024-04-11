@@ -544,6 +544,7 @@ class InfoService(object):
             if not attr: continue
             if attr == 'id':
                 _res[attr] = getattr(model, 'id', '')
+                _res['md5_id'] = getattr(model, 'id', '')
             elif attr == 'create_rtx':
                 _res[attr] = getattr(model, 'rtx_id', '')
             elif attr == 'ip':
@@ -1107,6 +1108,33 @@ class InfoService(object):
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}
         ).json()
 
+    def dict_download(self, params: dict) -> list:
+        """
+        文件下载：系统维护 > 数据字典
+        """
+        res, total = self.enum_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._enum_model_to_dict(model=_d, _type='list')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['RTX名称'] = _res_dict.get('name')
+                _new_res_dict['字典KEY'] = _res_dict.get('key')
+                _new_res_dict['字典VALUE'] = _res_dict.get('value')
+                _new_res_dict['描述'] = _res_dict.get('description')
+                _new_res_dict['状态'] = "启用" if _res_dict.get('status') else "禁用"
+                _new_res_dict['排序'] = _res_dict.get('order_id')
+                _new_res_dict['创建者RTX'] = _res_dict.get('create_rtx')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                _new_res_dict['最近更新者RTX'] = _res_dict.get('update_rtx')
+                _new_res_dict['最近更新时间'] = _res_dict.get('update_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
     def api_list(self, params: dict) -> dict:
         """
         get api list from api table by params
@@ -1569,6 +1597,35 @@ class InfoService(object):
         return Status(
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
 
+    def api_download(self, params: dict) -> list:
+        """
+        文件下载：系统维护 > 后台API
+        """
+        res, total = self.api_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._api_model_to_dict(model=_d, _type='list')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['BluePrint'] = _res_dict.get('blueprint')
+                _new_res_dict['ApiName'] = _res_dict.get('apiname')
+                _new_res_dict['EndPoint'] = _res_dict.get('endpoint')
+                _new_res_dict['请求地址'] = _res_dict.get('path')
+                _new_res_dict['类型'] = _res_dict.get('type')
+                _new_res_dict['简述'] = _res_dict.get('short')
+                _new_res_dict['说明'] = _res_dict.get('long')
+                _new_res_dict['排序ID'] = _res_dict.get('order_id')
+                _new_res_dict['创建者RTX'] = _res_dict.get('create_rtx')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                _new_res_dict['最近更新者RTX'] = _res_dict.get('update_rtx')
+                _new_res_dict['最近更新时间'] = _res_dict.get('update_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
     def _depart_model_to_dict(self, model, _type='list'):
         """
         depart model transfer to dict data
@@ -1594,6 +1651,7 @@ class InfoService(object):
             elif attr == 'lock' and _type in ['list', 'tree']:
                 _res[attr] = True if getattr(model, 'lock') else False
             elif attr == 'manage_rtx' and _type in ['list', 'tree']:
+                _res['manage_rtx_store'] = str(model.manage_rtx)
                 if getattr(model, 'manage_rtx'):
                     _res[attr] = str(model.manage_rtx).split(';')
                 else:
@@ -2243,6 +2301,37 @@ class InfoService(object):
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': model.md5_id}
         ).json()
 
+    def depart_download(self, params: dict) -> list:
+        """
+        文件下载：系统维护 > 部门架构
+        """
+        res = self.depart_bo.get_all(root=True)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._depart_model_to_dict(_d, _type='list')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['部门ID'] = _res_dict.get('id')
+                _new_res_dict['部门名称'] = _res_dict.get('label')
+                _new_res_dict['描述'] = _res_dict.get('description')
+                _new_res_dict['上级部门ID'] = _res_dict.get('pid')
+                _new_res_dict['叶子节点'] = "叶子节点" if _res_dict.get('leaf') else "非叶子节点"
+                _new_res_dict['状态'] = "禁用" if _res_dict.get('lock') else "启用"
+                _new_res_dict['部门ID路径'] = _res_dict.get('deptid_path')
+                _new_res_dict['部门名称路径'] = _res_dict.get('dept_path')
+                _new_res_dict['管理员RTX'] = _res_dict.get('manage_rtx_store')
+                _new_res_dict['排序ID'] = _res_dict.get('order_id')
+                _new_res_dict['创建者RTX'] = _res_dict.get('create_rtx')
+                _new_res_dict['创建时间'] = _res_dict.get('create_time')
+                _new_res_dict['最近更新者RTX'] = _res_dict.get('update_rtx')
+                _new_res_dict['最近更新时间'] = _res_dict.get('update_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res
+
     def log_list(self, params: dict) -> dict:
         """
         get log data list by params
@@ -2336,3 +2425,33 @@ class InfoService(object):
             {'list': new_res, 'total': total, 'user': user_list, 'type': type_list}
         ).json()
 
+    def log_download(self, params: dict) -> list:
+        """
+        文件下载：系统维护 > 日志查看
+        """
+        res, total = self.request_bo.get_all(params)
+        new_res = list()
+        n = 1
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._log_model_to_dict(model=_d, _type='list')
+            if _res_dict:
+                _new_res_dict = dict()
+                _new_res_dict['序号'] = n
+                _new_res_dict['系统用户RTX'] = _res_dict.get('create_rtx')
+                _new_res_dict['IP'] = _res_dict.get('ip')
+                _new_res_dict['BluePrint'] = _res_dict.get('blueprint')
+                _new_res_dict['ApiName'] = _res_dict.get('apiname')
+                _new_res_dict['EndPoint'] = _res_dict.get('endpoint')
+                _new_res_dict['请求方法'] = _res_dict.get('method')
+                _new_res_dict['请求路径'] = _res_dict.get('path')
+                _new_res_dict['请求地址'] = _res_dict.get('full_path')
+                _new_res_dict['HostUrl'] = _res_dict.get('host_url')
+                _new_res_dict['URL'] = _res_dict.get('url')
+                _new_res_dict['类型'] = _res_dict.get('type')
+                _new_res_dict['简述'] = _res_dict.get('short')
+                _new_res_dict['说明'] = _res_dict.get('long')
+                _new_res_dict['日志时间'] = _res_dict.get('create_time')
+                new_res.append(_new_res_dict)
+                n += 1
+        return new_res

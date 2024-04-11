@@ -58,8 +58,9 @@ class RoleBo(BOBase):
     def get_all(self, params):
         q = self.session.query(RoleModel)
         q = q.filter(RoleModel.is_del != True)
-        if not q:
-            return [], 0
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(RoleModel.md5_id.in_(params.get('list')))
         total = len(q.all())
         q = q.order_by(RoleModel.create_time.desc())
         if params.get('offset'):
