@@ -308,10 +308,16 @@ class ImageService(object):
 
         # <<<<<<<<<<<<< update user avatar >>>>>>>>>>>>>
         try:
+            # 第一步：设置用户头像
             avatar_url = self.store_lib.open_download_url(store_name=avatar_model.url) \
                     if avatar_model.url else USER_DEFAULT_AVATAR
             setattr(user_model, 'avatar', avatar_url)
             self.sysuser_bo.merge_model(user_model)
+
+            # 第二步：更新图像设置数量
+            avatar_model.count = avatar_model.count + 1
+            self.sysuser_avatar_bo.merge_model(avatar_model)
+            
             return Status(
                 100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': rtx_id, 'avatar': avatar_model.url}
             ).json()
