@@ -317,9 +317,9 @@ class ImageService(object):
             # 第二步：更新图像设置数量
             avatar_model.count = avatar_model.count + 1
             self.sysuser_avatar_bo.merge_model(avatar_model)
-            
+
             return Status(
-                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': rtx_id, 'avatar': avatar_model.url}
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': rtx_id, 'avatar': avatar_url}
             ).json()
         except:
             return Status(
