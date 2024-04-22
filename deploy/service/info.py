@@ -2077,6 +2077,14 @@ class InfoService(object):
         if model and model.lock:
             return Status(
                 506, StatusEnum.FAILURE.value, '节点被禁用不允许删除，请先更新状态进行删除', {"md5": new_params.get('md5')}).json()
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # 节点下面有子节点，不允许删除
+        if model.id:
+            model_sub_modes = self.depart_bo.get_models_by_pid(pid=model.id)
+            if model_sub_modes:
+                return Status(
+                    506, StatusEnum.FAILURE.value, '该节点下有子节点，不允许删除', {"md5": new_params.get('md5')}).json()
+        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # root node not allow delete
         if model.id == self.DEPART_ROOT_ID:
             return Status(
