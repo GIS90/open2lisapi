@@ -422,13 +422,13 @@ class InfoService(object):
         'create_time_start',  # 起始创建时间
         'create_time_end',  # 结束创建时间
         'create_rtx',  # 创建用户RTX
-        'label',  # 标签
+        'type',  # 类型
         'content'  # 模糊搜索内容
     ]
 
     req_avatar_list_search_list_types = [
         'create_rtx',
-        'label'
+        'type'
     ]
 
     req_avatar_list_search_time_types = [
@@ -2553,18 +2553,18 @@ class InfoService(object):
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
         # all label types
-        label_list = list()
+        type_list = list()      # 类型
+
         # no data
         if not res:
             return Status(
                 101, StatusEnum.SUCCESS.value, StatusMsgs.get(101),
-                {'list': [], 'total': 0, 'user': user_list, 'label': label_list}
+                {'list': [], 'total': 0, 'user': user_list, 'type': type_list}
             ).json()
 
         # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
         new_res = list()
         n = 1 + new_params.get('offset')
-        label_dict = dict()
         for _d in res:
             if not _d: continue
             _res_dict = self.image_service._sysuer_avatar_model_to_dict(_d, _type='list')
@@ -2572,17 +2572,10 @@ class InfoService(object):
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
                 n += 1
-                label = _res_dict.get('label')
-                if not label_dict.get(label):
-                    label_dict[label] = label
-        # refactor label
-        for k, v in label_dict.items():
-            if not k or not v: continue
-            label_list.append({'key': k, 'value': v})
 
         return Status(
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
-            {'list': new_res, 'total': total, 'user': user_list, 'label': label_list}
+            {'list': new_res, 'total': total, 'user': user_list, 'type': type_list}
         ).json()
 
     def avatar_delete(self, params: dict) -> dict:

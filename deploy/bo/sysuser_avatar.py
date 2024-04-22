@@ -34,7 +34,7 @@ Life is short, I use python.
 # usage: /usr/bin/python sysuser_avatar.py
 # ------------------------------------------------------------
 from deploy.utils.utils import get_now
-from sqlalchemy import distinct, func
+from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.model.sysuser_avatar import SysUserAvatarModel
@@ -55,10 +55,34 @@ class SysUserAvatarBo(BOBase):
         return SysUserAvatarModel()
 
     def get_all(self, params: dict):
+        """
+        :param params: 条件参数
+        :return:
+        """
         q = self.session.query(SysUserAvatarModel)
         q = q.filter(SysUserAvatarModel.is_del != 1)
         if params.get('rtx_id'):
             q = q.filter(SysUserAvatarModel.rtx_id == str(params.get('rtx_id')))
+        """多参数高级筛选"""
+        if params.get('create_rtx'):  # 创建用户RTX
+            q = q.filter(SysUserAvatarModel.rtx_id.in_(params.get('create_rtx')))
+        if params.get('type'):  # 类型
+            q = q.filter(SysUserAvatarModel.type.in_(params.get('type')))
+        if params.get('content'):  # 模糊查询内容
+            q = q.filter(or_(
+                SysUserAvatarModel.name.like(params.get('content')),
+                SysUserAvatarModel.type.like(params.get('content')),
+                SysUserAvatarModel.label.like(params.get('content')),
+                SysUserAvatarModel.summary.like(params.get('content'))
+            ))
+        if params.get('create_time_start'):  # 起始创建时间
+            q = q.filter(SysUserAvatarModel.create_time >= params.get('create_time_start'))
+        if params.get('create_time_end'):  # 结束创建时间
+            q = q.filter(SysUserAvatarModel.create_time <= params.get('create_time_end'))
+        # 选择下载条件
+        if params.get('list'):
+            q = q.filter(SysUserAvatarModel.md5_id.in_(params.get('list')))
+
         q = q.order_by(SysUserAvatarModel.order_id.asc(), SysUserAvatarModel.create_time.desc())
         total = len(q.all())
         if params.get('offset'):
