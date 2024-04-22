@@ -60,7 +60,7 @@ info_service = InfoService()
 @watch_except
 def dict_list():
     """
-    information > dict list
+    system > dict list
     :return: json data
     """
     if request.method == 'GET':
@@ -77,7 +77,7 @@ def dict_list():
 @watch_except
 def dict_status():
     """
-    information > change dict data status by md5
+    system > change dict data status by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -94,7 +94,7 @@ def dict_status():
 @watch_except
 def dict_delete():
     """
-    information > delete one dict data by md5
+    system > delete one dict data by md5
     :return: json data
     """
     if request.method in ['GET', 'POST']:
@@ -111,7 +111,7 @@ def dict_delete():
 @watch_except
 def dict_deletes():
     """
-    information > delete many dict data by md5 list
+    system > delete many dict data by md5 list
     :return: json data
     """
     if request.method in ['GET', 'POST']:
@@ -128,7 +128,7 @@ def dict_deletes():
 @watch_except
 def dict_disables():
     """
-    information > batch many dict data status to False by md5 list
+    system > batch many dict data status to False by md5 list
     :return: json data
     """
     if request.method == 'GET':
@@ -145,7 +145,7 @@ def dict_disables():
 @watch_except
 def dict_detail():
     """
-    information > get dict detail information by md5
+    system > get dict detail information by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -162,7 +162,7 @@ def dict_detail():
 @watch_except
 def dict_update():
     """
-    information > update dict data information by md5, contain:
+    system > update dict data information by md5, contain:
         - key
         - value
         - description 描述
@@ -184,7 +184,7 @@ def dict_update():
 @watch_except
 def dict_names():
     """
-    information > get enum names list: key-value
+    system > get enum names list: key-value
     :return: json data
     """
     if request.method == 'GET':
@@ -201,7 +201,7 @@ def dict_names():
 @watch_except
 def dict_add():
     """
-    information > add enum model
+    system > add enum model
     :return: json data
     """
     if request.method == 'GET':
@@ -218,7 +218,7 @@ def dict_add():
 @watch_except
 def api_add():
     """
-    information > add new api model, contain:
+    system > add new api model, contain:
         - blueprint
         - apiname
         - type
@@ -244,7 +244,7 @@ def api_add():
 @watch_except
 def api_list():
     """
-    information > get api list from api table by params
+    system > get api list from api table by params
     :return: json data
     """
     if request.method == 'GET':
@@ -261,7 +261,7 @@ def api_list():
 @watch_except
 def api_delete():
     """
-    information > delete one api data by md5
+    system > delete one api data by md5
     :return: json data
     """
     if request.method in ['GET', 'POST']:
@@ -278,7 +278,7 @@ def api_delete():
 @watch_except
 def api_deletes():
     """
-    information > delete many api data by md5 list
+    system > delete many api data by md5 list
     :return: json data
     """
     if request.method in ['GET', 'POST']:
@@ -295,7 +295,7 @@ def api_deletes():
 @watch_except
 def api_detail():
     """
-    information > get api detail information by md5
+    system > get api detail information by md5
     :return: json data
     """
     if request.method == 'GET':
@@ -312,7 +312,7 @@ def api_detail():
 @watch_except
 def api_update():
     """
-    information > api dict data information by md5, contain:
+    system > api dict data information by md5, contain:
         - blueprint
         - apiname
         - type
@@ -338,7 +338,7 @@ def api_update():
 @watch_except
 def api_types():
     """
-    information > get api type list: key-value
+    system > get api type list: key-value
     :return: json data
     """
     if request.method == 'GET':
@@ -355,7 +355,7 @@ def api_types():
 @watch_except
 def depart_list():
     """
-    information > department list
+    system > department list
     :return: json data
     """
     if request.method == 'GET':
@@ -372,7 +372,7 @@ def depart_list():
 @watch_except
 def depart_update_tree():
     """
-    information > update department tree information
+    system > update department tree information
     :return: json data
     """
     if request.method == 'GET':
@@ -491,7 +491,7 @@ def depart_drag():
 @watch_except
 def log_list():
     """
-    information > log list
+    system > log list
     :return: json data
     """
     if request.method == 'GET':
@@ -501,3 +501,54 @@ def log_list():
     # 参数
     params = request.get_json() or {}
     return info_service.log_list(params)
+
+
+@system.route('/avatar_list/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def avatar_list():
+    """
+    system > avatar list
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return info_service.avatar_list(params)
+
+
+@system.route('/avatar_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def avatar_delete():
+    """
+    system > delete one avatar data by md5
+    :return: json data
+    """
+    if request.method in ['GET', 'POST']:
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return info_service.avatar_delete(params)
+
+
+@system.route('/avatar_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def avatar_deletes():
+    """
+    system > delete many avatar data by md5 list
+    :return: json data
+    """
+    if request.method in ['GET', 'POST']:
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return info_service.avatar_deletes(params)

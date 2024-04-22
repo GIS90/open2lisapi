@@ -37,6 +37,7 @@ from deploy.utils.utils import filename2md5, \
 from deploy.config import STORE_CACHE, DEBUG
 from deploy.utils.status_msg import StatusMsgs
 from deploy.utils.logger import logger as LOG
+from deploy.utils.enum import FileTypeEnum
 
 
 class FileLib(object):
@@ -55,15 +56,38 @@ class FileLib(object):
         '.pptx',
         '.pdf',
         '.txt',
+        '.jpg',
+        '.jpeg',
+        '.png',
     ]
 
-    DOC_EXTENSIONS = [
+    WORD_EXTENSIONS = [
         '.doc',
         '.docx'
     ]
 
-    DPF_EXTENSIONS = [
+    EXCEL_EXTENSIONS = [
+        '.xls',
+        '.xlsx'
+    ]
+
+    PPT_EXTENSIONS = [
+        '.ppt',
+        '.pptx'
+    ]
+
+    PDF_EXTENSIONS = [
         '.pdf'
+    ]
+
+    TEXT_EXTENSIONS = [
+        '.txt'
+    ]
+
+    AVATAR_EXTENSIONS = [
+        '.jpg',
+        '.jpeg',
+        '.png'
     ]
 
     @staticmethod
@@ -96,13 +120,43 @@ class FileLib(object):
             'data': data
         }
 
-    def allow_format_fmt(self, filename):
+    def allow_format_fmt(self, filename, filetype=None):
         """
         build in function to check is or not file formatter
         :param filename: check file name
+        :param filetype: check file type
         :return: bool, True or False
+
+        文件类型：
+            EXCEL_MERGE = 1
+            EXCEL_SPLIT = 2
+            WORD = 3
+            PPT = 4
+            TEXT = 5
+            PDF = 6
+            DTALK = 7
+            AVATAR = 8
+            OTHER = 99
         """
-        return True if (os.path.splitext(filename)[1]).lower() in self.ALLOWED_EXTENSIONS else False
+        # 默认为全部
+        allow_suffix = self.ALLOWED_EXTENSIONS
+        filetype = str(filetype)
+        if filetype in [FileTypeEnum.EXCEL_MERGE.value,
+                        FileTypeEnum.EXCEL_SPLIT.value,
+                        FileTypeEnum.DTALK.value]:
+            allow_suffix = self.EXCEL_EXTENSIONS
+        elif filetype in [FileTypeEnum.WORD.value]:
+            allow_suffix = self.WORD_EXTENSIONS
+        elif filetype in [FileTypeEnum.PPT.value]:
+            allow_suffix = self.PPT_EXTENSIONS
+        elif filetype in [FileTypeEnum.TEXT.value]:
+            allow_suffix = self.TEXT_EXTENSIONS
+        elif filetype in [FileTypeEnum.PDF.value]:
+            allow_suffix = self.PDF_EXTENSIONS
+        elif filetype == FileTypeEnum.AVATAR.value:
+            allow_suffix = self.AVATAR_EXTENSIONS
+
+        return True if (os.path.splitext(filename)[1]).lower() in allow_suffix else False
 
     def store_file(self, file, compress: bool = False, is_md5_store_name: bool = False):
         """

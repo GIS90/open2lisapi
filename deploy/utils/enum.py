@@ -62,5 +62,6 @@ class FileTypeEnum(Enum):
     TEXT = 5
     PDF = 6
     DTALK = 7
+    AVATAR = 8
     OTHER = 99
 

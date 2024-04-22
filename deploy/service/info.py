@@ -43,6 +43,10 @@ from deploy.bo.sysuser import SysUserBo
 from deploy.bo.department import DepartmentBo
 from deploy.bo.api import ApiBo
 from deploy.bo.request import RequestBo
+from deploy.bo.sysuser_avatar import SysUserAvatarBo
+
+# service
+from deploy.service.image import ImageService
 
 # utils
 from deploy.utils.status import Status
@@ -411,6 +415,31 @@ class InfoService(object):
         'md5'
     ]
 
+    req_avatar_list_attrs = [
+        'rtx_id',  # 查询用户rtx
+        'limit',  # 条数
+        'offset',  # 偏移多少条
+        'create_time_start',  # 起始创建时间
+        'create_time_end',  # 结束创建时间
+        'create_rtx',  # 创建用户RTX
+        'label',  # 标签
+        'content'  # 模糊搜索内容
+    ]
+
+    req_avatar_list_search_list_types = [
+        'create_rtx',
+        'label'
+    ]
+
+    req_avatar_list_search_time_types = [
+        'create_time_start',  # 起始创建时间
+        'create_time_end'  # 结束创建时间
+    ]
+
+    req_avatar_list_search_like_types = [
+        'content'
+    ]
+
     def __init__(self):
         """
         InfoService class initialize
@@ -425,6 +454,9 @@ class InfoService(object):
         self.depart_bo = DepartmentBo()
         self.api_bo = ApiBo()
         self.request_bo = RequestBo()
+        self.sysuser_avatar_bo = SysUserAvatarBo()
+        # service
+        self.image_service = ImageService()
 
     def __str__(self):
         print("InfoService class.")
@@ -2390,7 +2422,6 @@ class InfoService(object):
             rtx_id = new_params.get('rtx_id')
             new_params.pop('rtx_id')
 
-        # **************** <get data> *****************
         res, total = self.request_bo.get_all(new_params)        # 去掉rtx-id限制，管理全部数据
         # all user k-v list
         user_res, _ = self.sysuser_bo.get_all({}, is_admin=True, is_del=True)
@@ -2455,3 +2486,250 @@ class InfoService(object):
                 new_res.append(_new_res_dict)
                 n += 1
         return new_res
+
+    def avatar_list(self, params: dict) -> dict:
+        """
+        get avatar data list by params
+        params is dict
+        return json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_avatar_list_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_avatar_list_attrs:
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if k in self.req_avatar_list_search_list_types:    # 处理列表参数
+                if not isinstance(v, list):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
+            if k in self.req_avatar_list_search_time_types and v:      # 处理时间查询参数，str类型
+                if not isinstance(v, str):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s为字符串类型' % k, {}).json()
+                if v:
+                    try:
+                        s2d(v)
+                    except:
+                        return Status(
+                            404, StatusEnum.FAILURE.value, '请求参数%s格式：yyyy-MM-dd HH:mm:ss' % k, {}).json()
+
+            if k in self.req_avatar_list_search_like_types and v:      # like 查询参数
+                v = '%' + str(v) + '%'
+            elif k == 'limit':
+                v = int(v) if v else self.PAGE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            elif k in self.req_avatar_list_search_list_types and v:    # list 查询参数
+                v = v
+            else:
+                v = str(v) if v else ''
+            new_params[k] = v
+
+        # **************** <get data> *****************
+        # delete rtx-id to get all data
+        if new_params.get('rtx_id'):
+            rtx_id = new_params.get('rtx_id')
+            new_params.pop('rtx_id')
+
+        res, total = self.sysuser_avatar_bo.get_all(new_params)      # 去掉rtx-id限制，管理全部数据
+        # all user k-v list
+        user_res, _ = self.sysuser_bo.get_all({}, is_admin=True, is_del=True)
+        user_list = list()
+        for _d in user_res:
+            if not _d: continue
+            user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
+        # all label types
+        label_list = list()
+        # no data
+        if not res:
+            return Status(
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101),
+                {'list': [], 'total': 0, 'user': user_list, 'label': label_list}
+            ).json()
+
+        # <<<<<<<<<<<<<<<<<<<< format and return data >>>>>>>>>>>>>>>>>>>>
+        new_res = list()
+        n = 1 + new_params.get('offset')
+        label_dict = dict()
+        for _d in res:
+            if not _d: continue
+            _res_dict = self.image_service._sysuer_avatar_model_to_dict(_d, _type='list')
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+                label = _res_dict.get('label')
+                if not label_dict.get(label):
+                    label_dict[label] = label
+        # refactor label
+        for k, v in label_dict.items():
+            if not k or not v: continue
+            label_list.append({'key': k, 'value': v})
+
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100),
+            {'list': new_res, 'total': total, 'user': user_list, 'label': label_list}
+        ).json()
+
+    def avatar_delete(self, params: dict) -> dict:
+        """
+        delete one avatar data by md5
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.sysuser_avatar_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+        # < update data >
+        try:
+            setattr(model, 'is_del', True)
+            setattr(model, 'delete_rtx', new_params.get('rtx_id'))
+            setattr(model, 'delete_time', get_now())
+            self.sysuser_avatar_bo.merge_model(model)
+        except:
+            return Status(
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def avatar_deletes(self, params: dict) -> dict:
+        """
+        delete many avatar data by md5 list
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        # new format parameter
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:     # illegal parameter
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # << batch delete >>
+        try:
+            res = self.sysuser_avatar_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
+
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(508, StatusEnum.FAILURE.value,
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def avatar_store_to_db(self, store):
+        """
+        store avatar upload image message to db
+        params store: store message
+            - rtx_id: rtx-id
+            - file_type: file type
+            - name: file name
+            - md5: file md5
+            - store_name: file store name
+            - path: file store url, no have store base url
+            - message: message
+
+        default value:
+            - count: count operation, default value is 0
+            - order_id: order id, default value is 1
+
+        参数JSON：
+        {
+            'name': 'gao-2024-04-22-21-26-26.jpg',
+            'md5': 'eac54fe9d0c0afc030c490a853c167fe',
+            'store_name': '20240422/gao-2024-04-22-21-26-26.jpg',
+            'path': '/Users/gaomingliang/Downloads/_CACHE/20240422/gao-2024-04-22-21-26-26.jpg',
+            'message': 'success',
+            'rtx_id': 'admin',
+            'file_type': '8'
+        }
+        """
+        if not store:
+            return False
+
+        try:
+            # create new mode
+            new_model = self.sysuser_avatar_bo.new_mode()
+            new_model.rtx_id = store.get('rtx_id')
+            new_model.name = store.get('name')
+            new_model.md5_id = store.get('md5')
+            new_model.type = ""
+            new_model.summary = ""
+            new_model.label = ""
+            new_model.url = store.get('store_name')
+            new_model.or_url = store.get('store_name')
+            new_model.count = 0
+            new_model.create_time = get_now()
+            new_model.is_del = False
+            new_model.order_id = 1
+            self.sysuser_avatar_bo.add_model(new_model)
+            return True
+        except:
+            return False

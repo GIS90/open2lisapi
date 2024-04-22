@@ -49,7 +49,7 @@ from deploy.service.authority import AuthorityService
 from deploy.bo.enum import EnumBo
 
 from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, OFFICE_STORE_BK
-from deploy.utils.enum import *
+from deploy.utils.enum import FileTypeEnum
 from deploy.utils.utils import get_now, check_length, auth_rtx_join
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.status import Status
@@ -180,7 +180,8 @@ class CommonService(object):
                                                     # use getattr method to get file name
         # ======================= local store =======================
         # file format filter
-        if is_check_fmt and not self.file_lib.allow_format_fmt(f_name):
+        if is_check_fmt and \
+                not self.file_lib.allow_format_fmt(filename=f_name, filetype=params.get('file_type')):
             return Status(
                 454, StatusEnum.FAILURE.value, "文件格式不支持", {}).json()
         # file local store
@@ -205,18 +206,24 @@ class CommonService(object):
         # 存储文件记录到数据库，依据file_type进行不同存储
         file_type = int(params.get('file_type'))
         if file_type in [FileTypeEnum.EXCEL_MERGE.value,
-                         FileTypeEnum.EXCEL_SPLIT.value]:   # excel merge && split
-            is_to_db = self.office_service.store_excel_source_to_db(store_msg)
+                         FileTypeEnum.EXCEL_SPLIT.value]:
+            # 文档工具 -> 表格合并 && 拆分
+            is_to_db = self.office_service.excel_store_source_to_db(store_msg)
         elif file_type == FileTypeEnum.WORD.value:  # word
             pass
         elif file_type == FileTypeEnum.PPT.value:   # ppt
             pass
         elif file_type == FileTypeEnum.TEXT.value:   # text
             pass
-        elif file_type == FileTypeEnum.PDF.value:   # office pdf
-            is_to_db = self.office_service.store_office_pdf_to_db(store_msg)
-        elif file_type == FileTypeEnum.DTALK.value:   # notify dtalk
-            is_to_db = self.notify_service.store_dtalk_to_db(store_msg)
+        elif file_type == FileTypeEnum.PDF.value:
+            # 文档工具 -> PDF转WORD
+            is_to_db = self.office_service.office_store_pdf_to_db(store_msg)
+        elif file_type == FileTypeEnum.DTALK.value:
+            # 消息通知 -> 钉钉绩效
+            is_to_db = self.notify_service.dtalk_store_to_db(store_msg)
+        elif file_type == FileTypeEnum.AVATAR.value:
+            # 系统维护 -> 头像管理
+            is_to_db = self.info_service.avatar_store_to_db(store_msg)
         else:   # other
             pass
 

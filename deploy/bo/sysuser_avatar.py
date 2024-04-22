@@ -33,6 +33,7 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python sysuser_avatar.py
 # ------------------------------------------------------------
+from deploy.utils.utils import get_now
 from sqlalchemy import distinct, func
 
 from deploy.bo.bo_base import BOBase
@@ -51,7 +52,7 @@ class SysUserAvatarBo(BOBase):
         return self.__str__()
 
     def new_mode(self):
-        return SysUserAvatarBo()
+        return SysUserAvatarModel()
 
     def get_all(self, params: dict):
         q = self.session.query(SysUserAvatarModel)
@@ -59,8 +60,6 @@ class SysUserAvatarBo(BOBase):
         if params.get('rtx_id'):
             q = q.filter(SysUserAvatarModel.rtx_id == str(params.get('rtx_id')))
         q = q.order_by(SysUserAvatarModel.order_id.asc(), SysUserAvatarModel.create_time.desc())
-        if not q:
-            return [], 0
         total = len(q.all())
         if params.get('offset'):
             q = q.offset(params.get('offset'))
@@ -73,3 +72,18 @@ class SysUserAvatarBo(BOBase):
         q = q.filter(SysUserAvatarModel.is_del != 1)
         q = q.filter(SysUserAvatarModel.md5_id == md5)
         return q.first() if q else None
+
+    def batch_delete_by_md5(self, params):
+        if not params.get('list'):
+            return 0
+
+        md5_list = params.get('list')
+        rtx_id = params.get('rtx_id')
+        q = self.session.query(SysUserAvatarModel)
+        q = q.filter(SysUserAvatarModel.md5_id.in_(md5_list))
+        q = q.filter(SysUserAvatarModel.is_del != 1)
+        q = q.update({SysUserAvatarModel.is_del: True,
+                      SysUserAvatarModel.delete_rtx: rtx_id,
+                      SysUserAvatarModel.delete_time: get_now()},
+                     synchronize_session=False)
+        return q

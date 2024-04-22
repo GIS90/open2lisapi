@@ -318,7 +318,7 @@ class OfficeService(object):
         new_res = self.excel_lib.read_headers(excel_file)
         return new_res
 
-    def store_office_pdf_to_db(self, store):
+    def office_store_pdf_to_db(self, store):
         """
         store office pdf file message to db
         params store: store message
@@ -334,8 +334,6 @@ class OfficeService(object):
         default value:
             - numopr: number operation, default value is 0
             - set_sheet: operation sheet index, default value is 0
-
-        excel headers from excel_lib get_headers methods
         """
         if not store:
             return False
@@ -359,7 +357,7 @@ class OfficeService(object):
         except:
             return False
 
-    def store_excel_source_to_db(self, store):
+    def excel_store_source_to_db(self, store):
         """
         store excel source file message to db
         params store: store message

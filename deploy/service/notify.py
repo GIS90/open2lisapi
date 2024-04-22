@@ -458,9 +458,9 @@ class NotifyService(object):
             _res[k] = _d
         return _res
 
-    def store_dtalk_to_db(self, store):
+    def dtalk_store_to_db(self, store):
         """
-        store dtalk excel source file message to db
+        store dtalk excel file message to db
         params store: store message
             - rtx_id: rtx-id
             - file_type: file type

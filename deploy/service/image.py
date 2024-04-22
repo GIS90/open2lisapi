@@ -36,9 +36,12 @@ Life is short, I use python.
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.utils import d2s, s2d, check_length, auth_rtx_join
-
+from deploy.config import STORE_BASE_URL, STORE_SPACE_NAME, USER_DEFAULT_AVATAR
+# bo
 from deploy.bo.sysuser_avatar import SysUserAvatarBo
 from deploy.bo.sysuser import SysUserBo
+# lib
+from deploy.delib.store_lib import StoreLib
 
 
 class ImageService(object):
@@ -75,14 +78,17 @@ class ImageService(object):
         'avatar': 120
     }
 
-    sysuser_avatar_list_attrs = [
+    sysuser_avatar_return_list_attrs = [
         # 'id',
+        'name',
         'rtx_id',
         'md5_id',
-        'name',
+        'type',
+        # 'type_name',
         'summary',
         'label',
         'url',
+        'or_url',
         'count',
         'create_time',
         'update_rtx',
@@ -93,14 +99,24 @@ class ImageService(object):
         'order_id'
     ]
 
+    sysuser_avatar_return_avatar_attrs = [
+        'name',
+        'md5_id',
+        # 'type_name',
+        'url',
+        'or_url'
+    ]
+
     def __init__(self):
         """
         ImageService class initialize
         """
         super(ImageService, self).__init__()
         # bo
-        self.sysuser_avatar_bo =  SysUserAvatarBo()
+        self.sysuser_avatar_bo = SysUserAvatarBo()
         self.sysuser_bo = SysUserBo()
+        # lib
+        self.store_lib = StoreLib(space_url=STORE_BASE_URL, space_name=STORE_SPACE_NAME)
 
     def __str__(self):
         print("ImageService class.")
@@ -128,38 +144,51 @@ class ImageService(object):
         if not model:
             return _res
 
-        for attr in self.sysuser_avatar_list_attrs:
+        if _type == 'list':
+            attrs = self.sysuser_avatar_return_list_attrs
+        elif _type == 'avatar':
+            attrs = self.sysuser_avatar_return_avatar_attrs
+
+        for attr in attrs:
             if not attr: continue
-            if attr == 'id' and _type in ['list']:
-                _res[attr] = getattr(model, 'id', '')
-            elif attr == 'name' and _type in ['list']:
-                _res[attr] = getattr(model, 'name', '')
-            elif attr == 'md5_id' and _type in ['list', 'avatar']:
-                _res[attr] = getattr(model, 'md5_id', '')
-            elif attr == 'rtx_id' and _type in ['list']:
-                _res[attr] = getattr(model, 'rtx_id', '')
-            elif attr == 'summary' and _type in ['list']:
-                _res[attr] = getattr(model, 'summary', '')
-            elif attr == 'label' and _type in ['list']:
-                _res[attr] = getattr(model, 'label', '')
-            elif attr == 'url' and _type in ['list', 'avatar']:
-                _res[attr] = getattr(model, 'url', '')
-            elif attr == 'count' and _type in ['list']:
-                _res[attr] = getattr(model, 'count', 0)
-            elif attr == 'create_time' and _type in ['list']:
+            if attr == 'id':
+                _res[attr] = model.id
+            elif attr == 'name':
+                _res[attr] = model.name
+            elif attr == 'md5_id':
+                _res[attr] = model.md5_id
+            elif attr == 'rtx_id':
+                _res[attr] = model.rtx_id
+            elif attr == 'type':
+                _res[attr] = model.type
+            elif attr == 'type_name':
+                _res[attr] = model.type_name
+            elif attr == 'summary':
+                _res[attr] = model.summary
+            elif attr == 'label':
+                _res[attr] = model.label
+            elif attr == 'url':
+                _res[attr] = self.store_lib.open_download_url(store_name=model.url) \
+                    if model.url else ''
+            elif attr == 'or_url':
+                _res[attr] = self.store_lib.open_download_url(store_name=model.or_url) \
+                    if model.or_url else ''
+            elif attr == 'count':
+                _res[attr] = model.count or 0
+            elif attr == 'create_time':
                 _res[attr] = self._transfer_time(model.create_time)
-            elif attr == 'update_rtx' and _type in ['list']:
-                _res[attr] = getattr(model, 'update_rtx', '')
-            elif attr == 'update_time' and _type in ['list']:
+            elif attr == 'update_rtx':
+                _res[attr] = model.update_rtx
+            elif attr == 'update_time':
                 _res[attr] = self._transfer_time(model.update_time)
-            elif attr == 'delete_rtx' and _type in ['list']:
-                _res[attr] = getattr(model, 'delete_rtx', '')
-            elif attr == 'delete_time' and _type in ['list']:
+            elif attr == 'delete_rtx':
+                _res[attr] = model.delete_rtx
+            elif attr == 'delete_time':
                 _res[attr] = self._transfer_time(model.delete_time)
-            elif attr == 'is_del' and _type in ['list']:
+            elif attr == 'is_del':
                 _res[attr] = model.is_del or False
-            elif attr == 'order_id' and _type in ['list']:
-                _res[attr] = getattr(model, 'order_id', 1)
+            elif attr == 'order_id':
+                _res[attr] = model.order_id or 1
         else:
             return _res
 
@@ -279,7 +308,9 @@ class ImageService(object):
 
         # <<<<<<<<<<<<< update user avatar >>>>>>>>>>>>>
         try:
-            setattr(user_model, 'avatar', avatar_model.url)
+            avatar_url = self.store_lib.open_download_url(store_name=avatar_model.url) \
+                    if avatar_model.url else USER_DEFAULT_AVATAR
+            setattr(user_model, 'avatar', avatar_url)
             self.sysuser_bo.merge_model(user_model)
             return Status(
                 100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'rtx_id': rtx_id, 'avatar': avatar_model.url}
