@@ -2734,3 +2734,59 @@ class InfoService(object):
             return True
         except:
             return False
+
+    def avatar_detail(self, params: dict) -> json:
+        """
+        get avatar detail information by md5
+        :return: json data
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:  # illegal parameter
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if not v:       # parameter is not allow null
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>
+        model = self.sysuser_avatar_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+        # -------------- return data -----------------
+        # type list
+        type_models = self.enum_bo.get_model_by_name(name='api-type')
+        _type_res = list()
+        # not exist
+        for _m in type_models:
+            if not _m: continue
+            _type_res.append({'key': _m.key, 'value': _m.value})
+        # detail
+        _res = {
+            'detail': self.image_service._sysuer_avatar_model_to_dict(model, _type='detail'),
+            'type': _type_res
+        }
+        # return data
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res
+        ).json()

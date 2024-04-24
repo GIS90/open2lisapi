@@ -87,6 +87,27 @@ class ImageService(object):
         # 'type_name',
         'summary',
         'label',
+        # 'url',
+        # 'or_url',
+        'count',
+        'create_time',
+        'update_rtx',
+        'update_time',
+        # 'delete_rtx',
+        # 'delete_time',
+        # 'is_del',
+        'order_id'
+    ]
+
+    sysuser_avatar_return_detail_attrs = [
+        # 'id',
+        'name',
+        'rtx_id',
+        'md5_id',
+        'type',
+        # 'type_name',
+        'summary',
+        'label',
         'url',
         'or_url',
         'count',
@@ -148,6 +169,10 @@ class ImageService(object):
             attrs = self.sysuser_avatar_return_list_attrs
         elif _type == 'avatar':
             attrs = self.sysuser_avatar_return_avatar_attrs
+        elif _type == 'detail':
+            attrs = self.sysuser_avatar_return_detail_attrs
+        else:
+            return _res
 
         for attr in attrs:
             if not attr: continue

@@ -328,18 +328,20 @@ CREATE TABLE `enum`  (
 /*
 -- insert sql
 SELECT
-  'insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`) VALUES'
-FROM enum LIMIT 1
+  'delete from enum; insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`) VALUES'
+FROM sysuser
+WHERE rtx_id = 'admin'
 UNION ALL
 SELECT
 *
 FROM (
-SELECT
- CONCAT("('", `name`, "', '", `md5_id`, "', '", `key`, "', '", `value`, "', '", `description`, "', ", `status`, ", '", `create_rtx`, "', ", `order_id`, "),")
-FROM enum
-WHERE is_del != 1
-ORDER BY `name`, order_id
+  SELECT
+    CONCAT("('", `name`, "', '", `md5_id`, "', '", `key`, "', '", `value`, "', '", `description`, "', ", `status`, ", '", `create_rtx`, "', ", `order_id`, "),")
+  FROM enum
+  WHERE is_del != 1
+  ORDER BY `name`, order_id
 )t;
+
 
 -- excel
 SELECT
@@ -348,10 +350,7 @@ FROM enum e
 WHERE e.is_del <> 1;
 */
 
--- delete
-delete from enum;
-
-insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`) VALUES
+delete from enum; insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `create_rtx`, `order_id`) VALUES
 ('bool-type', '9dfa56939efce58a64ec76651bfb1320', '1', '是', '布尔型枚举值：True', 1, 'admin', 1),
 ('bool-type', '47191a26aa630c57701f6034b9fa495a', '0', '否', '布尔型枚举值：False', 1, 'admin', 2),
 ('excel-type', 'ecf0b1978b354bfcf243ef316c252101', '1', '合并', '表格处理方式 > 合并', 1, 'admin', 1),
@@ -375,20 +374,20 @@ insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `cre
 ('qywx-type', '6bb6b85b36e06aeb31ecfe7ab1f4d894', 'file', '文件消息', '企业微信消息类型 > 文件消息', 1, 'admin', 5),
 ('qywx-type', 'b4fd5e4d7e033fe6c022d9d9237efd17', 'textcard', '文本卡片消息', '企业微信消息类型 > 文本卡片消息', 0, 'admin', 6),
 ('qywx-type', '259225b177117c2f44b39de0ae3d3457', 'news', '图文消息', '企业微信消息类型 > 图文消息', 0, 'admin', 7),
-('qywx-type', '4da311801e0c3b85161223855540be41', 'mpnews', '多图文消息', '企业微信消息类型 > 多图文消息', 0, 'admin', 8),
 ('qywx-type', 'febc81425c4542429956d7cf3477bb46', 'markdown', 'markdown消息', '企业微信消息类型 > markdown消息', 1, 'admin', 9),
 ('qywx-type', '88e59bdf04e4843ca649e33f7872bcbb', 'miniprogram_notice', '小程序通知消息', '企业微信消息类型 > 小程序通知消息', 0, 'admin', 10),
 ('qywx-type', 'd046e3333d903c8962e927571660452f', 'template_card@text_notice', '模板卡片消息 > 文本通知型', '企业微信消息类型 > 模板卡片消息 > 文本通知型', 0, 'admin', 11),
-('qywx-type', '684fb803a898eeb2497c6b5e6921e0b6', 'template_card@news_notice', '模板卡片消息 > 图文展示型', '企业微信消息类型 > 模板卡片消息 > 图文展示型', 0, 'admin', 12),
-('qywx-type', '1848b73595df91d0c29cdf5127897040', 'template_card@button_interaction', '模板卡片消息 > 按钮交互型', '企业微信消息类型 > 模板卡片消息 > 按钮交互型', 0, 'admin', 13),
-('qywx-type', '16bef9b5ef7a95422d8b355714e92367', 'template_card@vote_interaction', '模板卡片消息 > 投票选择型', '企业微信消息类型 > 模板卡片消息 > 投票选择型', 0, 'admin', 14),
-('qywx-type', 'a805e896e02b83115987743cff27d507', 'template_card@multiple_interaction', '模板卡片消息 > 多项选择型', '企业微信消息类型 > 模板卡片消息 > 多项选择型', 0, 'admin', 15),
 ('api-type', '6e0902c24a7c2ba5eff38c893288454f', 'primary', '新增', 'API接口操作类型 > 数据库 > 新增', 1, 'admin', 1),
 ('api-type', '055360b96a9712758ba22cea8cb4cda0', 'success', '删除', 'API接口操作类型 > 数据库 > 删除', 1, 'admin', 2),
 ('api-type', '42c142615a0f68e436d8f6021d566ec2', 'info', '修改', 'API接口操作类型 > 数据库 > 修改', 1, 'admin', 3),
 ('api-type', 'cba31eaae518a4695c40d22f87812072', 'warning', '查询', 'API接口操作类型 > 数据库 > 查询', 1, 'admin', 4),
 ('api-type', 'b00d5918839a894ccbaaac80749ece31', 'danger', '操作类', 'API接口操作类型 > 操作类API', 1, 'admin', 5),
 ('api-type', '880dd7c28a310b64eb79d962c0fc412e', 'error', '其他类', 'API接口操作类型 > 其他类API', 1, 'admin', 6),
+('qywx-type', '4da311801e0c3b85161223855540be41', 'mpnews', '多图文消息', '企业微信消息类型 > 多图文消息', 0, 'admin', 8),
+('qywx-type', '684fb803a898eeb2497c6b5e6921e0b6', 'template_card@news_notice', '模板卡片消息 > 图文展示型', '企业微信消息类型 > 模板卡片消息 > 图文展示型', 0, 'admin', 12),
+('qywx-type', '1848b73595df91d0c29cdf5127897040', 'template_card@button_interaction', '模板卡片消息 > 按钮交互型', '企业微信消息类型 > 模板卡片消息 > 按钮交互型', 0, 'admin', 13),
+('qywx-type', '16bef9b5ef7a95422d8b355714e92367', 'template_card@vote_interaction', '模板卡片消息 > 投票选择型', '企业微信消息类型 > 模板卡片消息 > 投票选择型', 0, 'admin', 14),
+('qywx-type', 'a805e896e02b83115987743cff27d507', 'template_card@multiple_interaction', '模板卡片消息 > 多项选择型', '企业微信消息类型 > 模板卡片消息 > 多项选择型', 0, 'admin', 15),
 ('db-type', '01a9bf972fa7c09be40d08d668419da1', 'DB2', 'DB2', '数据库类型 > 关系型数据库 > DB2', 1, 'admin', 1),
 ('db-type', 'c555fd735b52b0f37cba6616f5f584d2', 'Oracle', 'Oracle', '数据库类型 > 关系型数据库 > Oracle', 1, 'admin', 2),
 ('db-type', '2f7bde83268fab2083719214e29f620c', 'MySQL', 'MySQL', '数据库类型 > 关系型数据库 > MySQL', 1, 'admin', 3),
@@ -402,8 +401,7 @@ insert into enum(`name`, `md5_id`, `key`, `value`, `description`, `status`, `cre
 ('download-select', 'bc1c7c26bfeac3a75a5a07a9926b8d08', 'All', '全部', '表格下载方式 > 全部下载', 1, 'admin', 1),
 ('download-select', 'ced53e5b8a5f4835eaf895b966d02fd9', 'Select', '选择数据', '表格下载方式 > 已选择数据', 1, 'admin', 2),
 ('excel-format', '48a12305af5c8e87edefaeaf8b139bda', 'xls', 'xls', '表格下载文件保存格式 > xls', 1, 'admin', 1),
-('excel-format', '7078549a73f443430b655112015b3f91', 'xlsx', 'xlsx', '表格下载文件保存格式 > xlsx', 1, 'admin', 2),
-('excel-format', '7a604ef3f052d9a3785ec4ecf49117e3', 'csv', 'csv', '表格下载文件保存格式 > csv', 0, 'admin', 3);
+('excel-format', '7078549a73f443430b655112015b3f91', 'xlsx', 'xlsx', '表格下载文件保存格式 > xlsx', 1, 'admin', 2);
 ------------------------------------------------------------------------------------------------
 
 
