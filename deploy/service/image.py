@@ -87,7 +87,7 @@ class ImageService(object):
         # 'type_name',
         'summary',
         'label',
-        # 'url',
+        'url',
         # 'or_url',
         'count',
         'create_time',
