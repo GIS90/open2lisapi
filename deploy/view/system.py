@@ -402,8 +402,8 @@ def depart_init():
 
 
 @system.route('/depart_add/', methods=['GET', 'POST'], strict_slashes=False)
-# @watcher(watcher_args=request)
-# @watch_except
+@watcher(watcher_args=request)
+@watch_except
 def depart_add():
     """
     add new department to db table department
