@@ -248,7 +248,7 @@ class FileLib(object):
             return self.format_res(455, 'PDF文件内容不支持', {'md5': cmd5})
         pdf_path, pdf_name = os.path.split(pdf_file)
         pdf_names = os.path.splitext(pdf_name)
-        if len(pdf_names) < 2 or pdf_names[1] not in self.DPF_EXTENSIONS:
+        if len(pdf_names) < 2 or pdf_names[1] not in self.PDF_EXTENSIONS:
             return self.format_res(454, 'PDF文件格式不正确', {'md5': cmd5})
 
         # check start page && end page
