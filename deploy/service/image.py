@@ -191,7 +191,8 @@ class ImageService(object):
             elif attr == 'summary':
                 _res[attr] = model.summary
             elif attr == 'label':
-                _res[attr] = model.label
+                # 图片标签，以英文;分隔
+                _res[attr] = str(model.label).split(';') if model.label else []
             elif attr == 'url':
                 _res[attr] = self.store_lib.open_download_url(store_name=model.url) \
                     if model.url else ''

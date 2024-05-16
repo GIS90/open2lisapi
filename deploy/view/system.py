@@ -569,3 +569,26 @@ def avatar_detail():
     # 参数
     params = request.get_json() or {}
     return info_service.avatar_detail(params)
+
+
+@system.route('/avatar_update/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def avatar_update():
+    """
+    system > update avatar detail information by md5, contain:
+        - name
+        - type
+        - label
+        - summary
+        - order_id
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return info_service.avatar_update(params)
+

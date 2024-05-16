@@ -440,6 +440,30 @@ class InfoService(object):
         'content'
     ]
 
+    req_avatar_update_attrs = [
+        'rtx_id',
+        'md5',
+        'name',
+        'type',
+        'label',
+        'summary',
+        'order_id'
+    ]
+
+    req_avatar_update_need_attrs = [
+        'rtx_id',
+        'md5',
+        'name',
+        'summary'
+    ]
+
+    req_avatar_update_ck_len_attrs = {
+        'rtx_id': 25,
+        'name': 55,
+        'summary': 200,
+        'label': 55
+    }
+
     def __init__(self):
         """
         InfoService class initialize
@@ -2775,18 +2799,110 @@ class InfoService(object):
                 503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
         # -------------- return data -----------------
         # type list
-        type_models = self.enum_bo.get_model_by_name(name='api-type')
+        type_models = self.enum_bo.get_model_by_name(name='avatar-type')
         _type_res = list()
         # not exist
         for _m in type_models:
             if not _m: continue
             _type_res.append({'key': _m.key, 'value': _m.value})
         # detail
+        model_dict = self.image_service._sysuer_avatar_model_to_dict(model, _type='detail')
+        model_label = model_dict.get('label')
+        model_label_list = list()
+        # TODO
+        # 可以设置一些默认标签/或者直接查看图片标签最多的，取前10
+        if model_label:
+            for label in model_label:
+                model_label_list.append({'key': label, 'value': label})
         _res = {
-            'detail': self.image_service._sysuer_avatar_model_to_dict(model, _type='detail'),
-            'type': _type_res
+            'detail': model_dict,
+            'type': _type_res,
+            'label': model_label_list
         }
         # return data
         return Status(
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res
+        ).json()
+
+    def avatar_update(self, params: dict):
+        """
+        update the exist avatar model, contain:
+            - name
+            - type
+            - label
+            - summary
+            - order_id
+        :return: json data
+        """
+        # ----------------- check and format --------------------
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_avatar_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        # parameters check
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_avatar_update_attrs:  # illegal parameter
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if not v and k in self.req_avatar_update_need_attrs:       # parameter is not allow null
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            if k == 'label':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
+                # 进行处理，存储字符串，以英文;分割
+                new_params[k] = ';'.join(v) if v else ''
+                continue
+            new_params[k] = v
+        # 顺序ID特殊判断处理
+        order_id = str(new_params.get('order_id'))
+        if not order_id:
+            new_params['order_id'] = 1
+        if order_id and not order_id.isdigit():
+            return Status(
+                402, StatusEnum.FAILURE.value, '请求参数order_id只允许为数字类型', {}).json()
+        # parameters check length
+        for _key, _value in self.req_avatar_update_ck_len_attrs.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
+
+        # <<<<<<<<<<<<<<< check data >>>>>>>>>>>>>>>>>
+        model = self.sysuser_avatar_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+
+        # --------------------------------------- update model --------------------------------------
+        rtx_id = new_params.get('rtx_id')
+        new_params.pop('rtx_id')
+        new_params.pop('md5')
+        try:
+            for _k, _v in new_params.items():
+                setattr(model, _k, _v)
+            setattr(model, 'update_time', get_now())
+            setattr(model, 'update_rtx', rtx_id)
+            self.sysuser_avatar_bo.merge_model(model)
+        except:
+            return Status(
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()
+
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
