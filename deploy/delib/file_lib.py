@@ -257,7 +257,7 @@ class FileLib(object):
         # check word file name
         if word_name:
             word_names = os.path.splitext(word_name)
-            if len(word_names) < 2 or word_names[1] not in self.DOC_EXTENSIONS:
+            if len(word_names) < 2 or word_names[1] not in self.WORD_EXTENSIONS:
                 word_name += self.default_doc_prefix
         else:
             word_name = pdf_names[0] + self.default_doc_prefix
