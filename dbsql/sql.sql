@@ -277,7 +277,7 @@ CREATE TABLE `api`  (
     `endpoint` varchar(65) NOT NULL COMMENT 'API接口endpoint',
     `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
     `path` varchar(65) NOT NULL COMMENT 'API接口path，与request表关联',
-    `type` varchar(55) NOT NULL default 'success' COMMENT 'API接口类型：primary登录/success数据获取/warning/danger退出/info新增/更新/删除数据',
+    `type` varchar(55) NOT NULL default 'success' COMMENT 'API接口类型：primary查询/success新增/info修改/warning删除/danger操作类/error其他类',
     `short` varchar(55) NULL COMMENT 'API接口简述',
     `long` varchar(120) NULL COMMENT 'API接口详细描述',
     `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
