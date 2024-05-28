@@ -38,6 +38,7 @@ from sqlalchemy import distinct, func, or_
 
 from deploy.bo.bo_base import BOBase
 from deploy.model.sysuser_avatar import SysUserAvatarModel
+from deploy.model.enum import EnumModel
 
 
 class SysUserAvatarBo(BOBase):
@@ -54,12 +55,32 @@ class SysUserAvatarBo(BOBase):
     def new_mode(self):
         return SysUserAvatarModel()
 
-    def get_all(self, params: dict):
+    def get_all(self, params: dict, enum_name: str = "avatar-type"):
         """
         :param params: 条件参数
+        :param enum_name: enum name
         :return:
         """
-        q = self.session.query(SysUserAvatarModel)
+        q = self.session.query(SysUserAvatarModel.id,
+                               SysUserAvatarModel.name,
+                               SysUserAvatarModel.rtx_id,
+                               SysUserAvatarModel.md5_id,
+                               SysUserAvatarModel.type,
+                               SysUserAvatarModel.summary,
+                               SysUserAvatarModel.label,
+                               SysUserAvatarModel.url,
+                               SysUserAvatarModel.or_url,
+                               SysUserAvatarModel.count,
+                               SysUserAvatarModel.create_time,
+                               SysUserAvatarModel.update_rtx,
+                               SysUserAvatarModel.update_time,
+                               SysUserAvatarModel.delete_rtx,
+                               SysUserAvatarModel.delete_time,
+                               SysUserAvatarModel.is_del,
+                               SysUserAvatarModel.order_id,
+                               EnumModel.value.label('type_name'))
+        q = q.filter(SysUserAvatarModel.type == EnumModel.key)
+        q = q.filter(EnumModel.name == enum_name)
         q = q.filter(SysUserAvatarModel.is_del != 1)
         if params.get('rtx_id'):
             q = q.filter(SysUserAvatarModel.rtx_id == str(params.get('rtx_id')))

@@ -2577,7 +2577,7 @@ class InfoService(object):
             rtx_id = new_params.get('rtx_id')
             new_params.pop('rtx_id')
 
-        res, total = self.sysuser_avatar_bo.get_all(new_params)      # 去掉rtx-id限制，管理全部数据
+        res, total = self.sysuser_avatar_bo.get_all(params=new_params, enum_name='avatar-type')      # 去掉rtx-id限制，管理全部数据
         # all user k-v list
         user_res, _ = self.sysuser_bo.get_all({}, is_admin=True, is_del=True)
         user_list = list()
@@ -2599,7 +2599,7 @@ class InfoService(object):
         n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
-            _res_dict = self.image_service._sysuer_avatar_model_to_dict(_d, _type='list')
+            _res_dict = self.image_service._sysuser_avatar_model_to_dict(_d, _type='list')
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)

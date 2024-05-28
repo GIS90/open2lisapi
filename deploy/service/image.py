@@ -33,6 +33,8 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python image.py
 # ------------------------------------------------------------
+import random
+
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.utils import d2s, s2d, check_length, auth_rtx_join
@@ -84,7 +86,7 @@ class ImageService(object):
         'rtx_id',
         'md5_id',
         'type',
-        # 'type_name',
+        'type_name',
         'summary',
         'label',
         'url',
@@ -120,10 +122,10 @@ class ImageService(object):
         'order_id'
     ]
 
-    sysuser_avatar_return_avatar_attrs = [
+    sysuser_avatar_return_profile_attrs = [
         'name',
         'md5_id',
-        # 'type_name',
+        'type',
         'url',
         'or_url'
     ]
@@ -157,7 +159,7 @@ class ImageService(object):
         else:
             return t or ''
 
-    def _sysuer_avatar_model_to_dict(self, model, _type='list'):
+    def _sysuser_avatar_model_to_dict(self, model, _type='list'):
         """
         enum model transfer to dict data
         """
@@ -168,7 +170,7 @@ class ImageService(object):
         if _type == 'list':
             attrs = self.sysuser_avatar_return_list_attrs
         elif _type == 'avatar':
-            attrs = self.sysuser_avatar_return_avatar_attrs
+            attrs = self.sysuser_avatar_return_profile_attrs
         elif _type == 'detail':
             attrs = self.sysuser_avatar_return_detail_attrs
         else:
@@ -192,7 +194,16 @@ class ImageService(object):
                 _res[attr] = model.summary
             elif attr == 'label':
                 # 图片标签，以英文;分隔
-                _res[attr] = str(model.label).split(';') if model.label else []
+                labels = str(model.label).split(';') if model.label else []
+                if not labels:
+                    _res[attr] = labels
+                else:
+                    new_labels = []
+                    for l in labels:
+                        if not l: continue
+                        _new_label = {'type': l, 'index': random.randint(0, 3)}
+                        new_labels.append(_new_label)
+                    _res[attr] = new_labels
             elif attr == 'url':
                 _res[attr] = self.store_lib.open_download_url(store_name=model.url) \
                     if model.url else ''
@@ -255,7 +266,7 @@ class ImageService(object):
         rtx_id = new_params.get('rtx_id')
         # 全量
         new_params.pop('rtx_id')
-        res, total = self.sysuser_avatar_bo.get_all(new_params)
+        res, total = self.sysuser_avatar_bo.get_all(params=new_params, enum_name='avatar-type')
         # no data
         if not res:
             return Status(
@@ -265,7 +276,7 @@ class ImageService(object):
         n = 1 + new_params.get('offset')
         for _d in res:
             if not _d: continue
-            _res_dict = self._sysuer_avatar_model_to_dict(_d, _type='avatar')
+            _res_dict = self._sysuser_avatar_model_to_dict(_d, _type='avatar')
             if _res_dict:
                 _res_dict['id'] = n
                 new_res.append(_res_dict)
