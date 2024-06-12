@@ -2806,7 +2806,7 @@ class InfoService(object):
             if not _m: continue
             _type_res.append({'key': _m.key, 'value': _m.value})
         # detail
-        model_dict = self.image_service._sysuer_avatar_model_to_dict(model, _type='detail')
+        model_dict = self.image_service._sysuser_avatar_model_to_dict(model, _type='detail')
         model_label = model_dict.get('label')
         model_label_list = list()
         # TODO
