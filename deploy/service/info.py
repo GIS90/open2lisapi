@@ -2584,8 +2584,12 @@ class InfoService(object):
         for _d in user_res:
             if not _d: continue
             user_list.append({'key': _d.rtx_id, 'value': _d.fullname})
-        # all label types
-        type_list = list()      # 类型
+        # 类型
+        type_list = list()
+        type_res = self.enum_bo.get_model_by_name(name='avatar-type')
+        for _d in type_res:
+            if not _d: continue
+            type_list.append({'key': _d.key, 'value': _d.value})
 
         # no data
         if not res:
@@ -2755,6 +2759,54 @@ class InfoService(object):
             new_model.is_del = False
             new_model.order_id = 1
             self.sysuser_avatar_bo.add_model(new_model)
+            return True
+        except:
+            return False
+
+    def avatar_crop_store_to_db(self, store, is_new=False):
+        """
+        图片裁剪，直接更新原图片URL地址信息
+        is_new：是否新建图片
+
+        参数JSON：
+        {
+            'src_md5': 'XXXXXXXXXXXXXXXXXXXXXXXXXX',
+            'name': 'gao-2024-04-22-21-26-26.jpg',
+            'md5': 'eac54fe9d0c0afc030c490a853c167fe',
+            'store_name': '20240422/gao-2024-04-22-21-26-26.jpg',
+            'path': '/Users/gaomingliang/Downloads/_CACHE/20240422/gao-2024-04-22-21-26-26.jpg',
+            'message': 'success',
+            'rtx_id': 'admin',
+            'file_type': '8'
+        }
+        """
+        if not store:
+            return False
+
+        try:
+            if is_new:
+                # 新建mode
+                new_model = self.sysuser_avatar_bo.new_mode()
+                new_model.rtx_id = store.get('rtx_id')
+                new_model.name = store.get('name')
+                new_model.md5_id = store.get('md5')
+                new_model.type = ""
+                new_model.summary = ""
+                new_model.label = ""
+                new_model.url = store.get('store_name')
+                new_model.or_url = store.get('store_name')
+                new_model.count = 0
+                new_model.create_time = get_now()
+                new_model.is_del = False
+                new_model.order_id = 1
+                self.sysuser_avatar_bo.add_model(new_model)
+            else:
+                # 更新mode
+                model = self.sysuser_avatar_bo.get_model_by_md5(md5=store.get('src_md5'))
+                if not model:
+                    return False
+                setattr(model, 'url', store.get('store_name'))
+                self.sysuser_avatar_bo.merge_model(model)
             return True
         except:
             return False

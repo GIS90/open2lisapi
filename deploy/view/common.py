@@ -71,12 +71,16 @@ def file_upload():
     # FORM表单参数
     params = request.form
     # 文件
-    files = request.files
-    if not files or (files and not files.get('files')):
+    file = None
+    if request.files:
+        for f in request.files:
+            file = f
+            break
+    if not file:
         return Status(
             450, StatusEnum.FAILURE.value, StatusMsgs.get(450), {}).json()
 
-    return common_service.file_upload(params, request.files.get('files'))
+    return common_service.file_upload(params, file)
 
 
 @common.route('/file_uploads/', methods=['GET', 'POST'], strict_slashes=False)

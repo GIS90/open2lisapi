@@ -34,7 +34,7 @@ Life is short, I use python.
 # usage: /usr/bin/python sysuser_avatar.py
 # ------------------------------------------------------------
 from deploy.utils.utils import get_now
-from sqlalchemy import distinct, func, or_
+from sqlalchemy import distinct, func, or_, and_
 
 from deploy.bo.bo_base import BOBase
 from deploy.model.sysuser_avatar import SysUserAvatarModel
@@ -79,9 +79,8 @@ class SysUserAvatarBo(BOBase):
                                SysUserAvatarModel.is_del,
                                SysUserAvatarModel.order_id,
                                EnumModel.value.label('type_name'))
-        q = q.filter(SysUserAvatarModel.type == EnumModel.key)
-        q = q.filter(EnumModel.name == enum_name)
-        q = q.filter(SysUserAvatarModel.is_del != 1)
+        q = q.outerjoin(EnumModel, and_(SysUserAvatarModel.type == EnumModel.key, EnumModel.name == enum_name))
+        q = q.filter(SysUserAvatarModel.is_del != 1)    # 去掉已删除
         if params.get('rtx_id'):
             q = q.filter(SysUserAvatarModel.rtx_id == str(params.get('rtx_id')))
         """多参数高级筛选"""

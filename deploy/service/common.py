@@ -82,6 +82,12 @@ class CommonService(object):
         'file_type'
     ]
 
+    req_crop_attrs = [
+        'rtx_id',
+        'file_type',
+        'md5'
+    ]
+
     req_upload_need_attrs = [
         'rtx_id',
         'file_type'
@@ -165,14 +171,16 @@ class CommonService(object):
                     400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
         """end"""
         # **************************************************************************
+        file_type = int(params.get('file_type'))
+        check_attrs = self.req_crop_attrs if file_type == 9 else self.req_upload_attrs
         for k, v in params.items():
             if not k: continue
             # illegal parameters check
-            if k not in self.req_upload_attrs:
+            if k not in check_attrs:
                 return Status(
                     401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # necessary value check
-            if not v and k in self.req_upload_attrs:
+            if not v and k in check_attrs:
                 return Status(
                     403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
 
@@ -181,7 +189,7 @@ class CommonService(object):
         # ======================= local store =======================
         # file format filter
         if is_check_fmt and \
-                not self.file_lib.allow_format_fmt(filename=f_name, filetype=params.get('file_type')):
+                not self.file_lib.allow_format_fmt(filename=f_name, filetype=file_type):
             return Status(
                 454, StatusEnum.FAILURE.value, "文件格式不支持", {}).json()
         # file local store
@@ -204,7 +212,6 @@ class CommonService(object):
         store_msg['rtx_id'] = params.get('rtx_id')
         store_msg['file_type'] = params.get('file_type')
         # 存储文件记录到数据库，依据file_type进行不同存储
-        file_type = int(params.get('file_type'))
         if file_type in [FileTypeEnum.EXCEL_MERGE.value,
                          FileTypeEnum.EXCEL_SPLIT.value]:
             # 文档工具 -> 表格合并 && 拆分
@@ -224,6 +231,10 @@ class CommonService(object):
         elif file_type == FileTypeEnum.AVATAR.value:
             # 系统维护 -> 头像管理
             is_to_db = self.info_service.avatar_store_to_db(store_msg)
+        elif file_type == FileTypeEnum.AVATAR_CROP.value:
+            # 系统维护 -> 头像管理 -> 裁剪
+            store_msg['src_md5'] = params.get('md5')    # 原图片MD5-ID
+            is_to_db = self.info_service.avatar_crop_store_to_db(store_msg, is_new=False)
         else:   # other
             pass
 
@@ -254,8 +265,8 @@ class CommonService(object):
         # ------------------------ upload start -----------------------
         # TODO 循环的方式进行存储文件，后期改成多进程
         for uf in upload_files:
+            if not uf: continue
             try:
-                if not uf: continue
                 store_res = self.file_upload(params=params, upload_file=upload_files.get(uf))
                 store_res_json = json.loads(store_res)
                 success_list.append(uf) if store_res_json.get('status_id') == 100 \

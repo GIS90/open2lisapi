@@ -140,7 +140,7 @@ class FileLib(object):
         """
         # 默认为全部
         allow_suffix = self.ALLOWED_EXTENSIONS
-        filetype = str(filetype)
+        filetype = int(filetype)
         if filetype in [FileTypeEnum.EXCEL_MERGE.value,
                         FileTypeEnum.EXCEL_SPLIT.value,
                         FileTypeEnum.DTALK.value]:
@@ -153,7 +153,7 @@ class FileLib(object):
             allow_suffix = self.TEXT_EXTENSIONS
         elif filetype in [FileTypeEnum.PDF.value]:
             allow_suffix = self.PDF_EXTENSIONS
-        elif filetype == FileTypeEnum.AVATAR.value:
+        elif filetype in [FileTypeEnum.AVATAR.value, FileTypeEnum.AVATAR_CROP.value]:
             allow_suffix = self.AVATAR_EXTENSIONS
 
         return True if (os.path.splitext(filename)[1]).lower() in allow_suffix else False
