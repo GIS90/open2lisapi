@@ -2784,7 +2784,10 @@ class InfoService(object):
             return False
 
         try:
+            print('=' * 100)
+            print(is_new)
             if is_new:
+                print('1' * 100)
                 # 新建mode
                 new_model = self.sysuser_avatar_bo.new_mode()
                 new_model.rtx_id = store.get('rtx_id')
@@ -2801,6 +2804,7 @@ class InfoService(object):
                 new_model.order_id = 1
                 self.sysuser_avatar_bo.add_model(new_model)
             else:
+                print('2' * 100)
                 # 更新mode
                 model = self.sysuser_avatar_bo.get_model_by_md5(md5=store.get('src_md5'))
                 if not model:

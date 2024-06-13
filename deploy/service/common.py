@@ -85,6 +85,13 @@ class CommonService(object):
     req_crop_attrs = [
         'rtx_id',
         'file_type',
+        'md5',
+        'mode'
+    ]
+
+    req_crop_need_attrs = [
+        'rtx_id',
+        'file_type',
         'md5'
     ]
 
@@ -172,15 +179,16 @@ class CommonService(object):
         """end"""
         # **************************************************************************
         file_type = int(params.get('file_type'))
-        check_attrs = self.req_crop_attrs if file_type == 9 else self.req_upload_attrs
+        check_illegal_attrs = self.req_crop_attrs if file_type == 9 else self.req_upload_attrs
+        check_need_attrs = self.req_crop_need_attrs if file_type == 9 else self.req_upload_attrs
         for k, v in params.items():
             if not k: continue
             # illegal parameters check
-            if k not in check_attrs:
+            if k not in check_illegal_attrs:
                 return Status(
                     401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
             # necessary value check
-            if not v and k in check_attrs:
+            if not v and k in check_need_attrs:
                 return Status(
                     403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
 
@@ -234,7 +242,7 @@ class CommonService(object):
         elif file_type == FileTypeEnum.AVATAR_CROP.value:
             # 系统维护 -> 头像管理 -> 裁剪
             store_msg['src_md5'] = params.get('md5')    # 原图片MD5-ID
-            is_to_db = self.info_service.avatar_crop_store_to_db(store_msg, is_new=False)
+            is_to_db = self.info_service.avatar_crop_store_to_db(store_msg, is_new=params.get('mode'))
         else:   # other
             pass
 
