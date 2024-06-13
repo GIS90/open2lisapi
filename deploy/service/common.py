@@ -242,7 +242,8 @@ class CommonService(object):
         elif file_type == FileTypeEnum.AVATAR_CROP.value:
             # 系统维护 -> 头像管理 -> 裁剪
             store_msg['src_md5'] = params.get('md5')    # 原图片MD5-ID
-            is_to_db = self.info_service.avatar_crop_store_to_db(store_msg, is_new=params.get('mode'))
+            mode = True if params.get('mode') == 'true' else False
+            is_to_db = self.info_service.avatar_crop_store_to_db(store_msg, is_new=mode)
         else:   # other
             pass
 
