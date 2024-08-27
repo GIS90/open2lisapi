@@ -65,3 +65,20 @@ def api_demo():
     params = request.get_json() or {}
     return api_service.api_demo(params)
 
+
+@api.route('/zlxcx/process/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def zlxcx_process():
+    """
+    质量小程序: 过程检查
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # JSON请求参数
+    params = request.get_json() or {}
+    return api_service.zlxcx_process(params)
+
