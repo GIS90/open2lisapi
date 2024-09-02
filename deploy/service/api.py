@@ -77,8 +77,17 @@ class ApiService(object):
         self.__str__()
 
     def zlxcx_token(self) -> dict:
-        token = "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxMjE3NCIsInVzZXJJZCI6IjIxMjEiLCJuYW1lIjoi6auY5piO5LquIiwicm9sZUlkcyI6IiIsInJvbGVDb2RlcyI6IiIsInNlc3Npb25JZCI6IkJEREMxODFDNEEzMzIwOEE5MUIxMEVCMzkwNjZDMjAwIiwib3JnSWQiOiIxOCIsImV4cCI6MTcyNDgwNTM3OH0.C4yX8xd8W480uoQ_UPNYiTtse39llGiEmZkBNzJh_XG2HwZIWwXDtZ9ZfXDmI0nLCE_xGdRDnMcg_ZG9lXOWdINEaaT_GM_nZX2R4faw0VKTqmJIla__g_hUH0onhyjbSIA5DKGK98xyXiwdJbrYgoFAkwP0PrZ_mnw4So4UCU9pqVdtX2omIg6LXp3JoWrdTEbY1GTzaIgs1YZbx1W_XqmyhQHOtQeweDNzNDy8HXKn3SSi5Wo0xRsFYPEIu_0JvECLwathVPWLTyFr82RI3EXqtTvcZaJYKi4B2RUQTsLqERSB_Due2kzyxeQAhehawiXofEoM4A50ZXUisEhV0A"
-        return {"token": token}
+        url = "http://tmis.pasok.cn/tmis/api/loginToken?_code=aHXCeyJwYXNzd29yZCI6Ijc3QjhCRjUxRUFFOUJCODVBMEM0RDk4QzcwM0ZGNjc1IiwidXNlcm5hbWUiOiIxMjE3NCJ9n5Ws"
+
+        payload = {}
+        headers = {}
+
+        response = requests.request("GET", url, headers=headers, data=payload)
+        response_json = response.json()
+        if response_json.get('code') == 0:
+            return {"token": response_json.get("data")}
+        else:
+            return {"token": ""}
 
     def zlxcx_process(self, params: dict) -> dict:
         """
@@ -235,6 +244,7 @@ class ApiService(object):
                     if zb_id in ZB_ZXQK_4:
                         zb['zxqk'] = zxqk_list[quarter_index].get('zxjgmc')
                     elif zb_id in ZB_ZXQK_3:
+                        # 效果评估
                         if quarter_index in [0, 1, 3]:
                             _index = 0
                         elif quarter_index in [4]:
@@ -243,7 +253,12 @@ class ApiService(object):
                             _index = 0
                         zb['zxqk'] = zxqk_list[_index].get('zxjgmc')
                     elif zb_id in ZB_ZXQK_2:
-                        zb['zxqk'] = '/'
+                        # 调度时长优化
+                        if quarter_index in [0, 1]:
+                            _index = 0
+                        else:
+                            _index = 1
+                        zb['zxqk'] = zxqk_list[_index].get('zxjgmc')
                     else:
                         zb['zxqk'] = '/'
                     zb_list.append(zb)
