@@ -172,18 +172,17 @@ class WebFlaskServer(WebBaseClass):
             return Status(
                 200, StatusEnum.FAILURE.value, '用户未登录', {}).json()
 
-        """
         @self.app.after_request
         def after_request(response):
-            '''
+            """
             在after_request钩子函数中对response进行添加headers，所有的url跨域请求都会允许。。。
-            '''
+            """
             resp = make_response(response)
             resp.headers['Access-Control-Allow-Origin'] = '*'
             resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
             resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
             return resp
-        """
+
         @self.app.before_first_request
         def before_first_request():
             g._session = get_session()
