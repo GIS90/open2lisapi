@@ -146,16 +146,16 @@ VALUES
 DROP TABLES IF EXISTS `menu`;
 CREATE TABLE `menu`  (
     `id` int NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
-    `name` varchar(25) NOT NULL COMMENT '路由rtx-id，大驼峰命名方式',
+    `name` varchar(55) NOT NULL COMMENT '路由rtx-id，大驼峰命名方式',
     `path` varchar(35) NOT NULL COMMENT '路由path，全小写字母',
-    `title` varchar(25) NOT NULL COMMENT '菜单名称',
+    `title` varchar(35) NOT NULL COMMENT '菜单名称',
     `pid` int NOT NULL COMMENT '父ID',
     `level` int default 1 NOT NULL COMMENT '菜单级别',
     `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
-    `component` varchar(25) NOT NULL COMMENT '路由组件，与Vue router mappings映射',
+    `component` varchar(35) NOT NULL COMMENT '路由组件，与Vue router mappings映射',
     `hidden` bool default False COMMENT '是否在SideBar显示，默认为false',
     `redirect` varchar(35) COMMENT '菜单重定向，主要用于URL一级菜单跳转',
-    `icon` varchar(25) COMMENT '菜单图标',
+    `icon` varchar(35) COMMENT '菜单图标',
     `cache` bool default true COMMENT '页面是否进行cache，默认true缓存',
     `affix` bool default false  COMMENT '是否在tags-view固定，默认false',
     `breadcrumb` bool default true COMMENT '是否breadcrumb中显示，默认true',
@@ -204,6 +204,10 @@ VALUES
 (18, '后台API', 'SystemApi', 'api', 15, 2, '4ae6c8f4429f7bacb050c9c980cf51d3', 'systemApi', FALSE, '', 'i_api', TRUE, FALSE, TRUE, 403, 'admin', FALSE, TRUE),
 (19, '头像管理', 'SystemAvatar', 'avatar', 15, 2, 'eafdc02f3b847285bf1815f55f1f4e46', 'systemAvatar', FALSE, '', 'i-avatar', TRUE, FALSE, TRUE, 404, 'admin', FALSE, TRUE),
 (27, '系统日志', 'SystemLog', 'log', 15, 2, 'fa83d9352d3c8fab04893bbf60be7e06', 'systemLog', FALSE, '', 'i-log', TRUE, FALSE, TRUE, 405, 'admin', FALSE, TRUE),
+-- 其他工具
+(29, '其他工具', 'Other', '/other', 1, 1, '6311ae17c1ee52b36e68aaf4ad066387', 'layout', FALSE, '/other/viomessage', 'c-othertool', TRUE, FALSE, TRUE, 900, 'admin', FALSE, FALSE),
+(30, '暴力短信', 'OtherViolentMessage', 'viomessage', 29, 2, '70cc0ee1160974fa6bc3d448de11b4db', 'otherViolentMessage', FALSE, '', 'i-viomessage', TRUE, FALSE, TRUE, 901, 'admin', FALSE, TRUE),
+(31, '拓扑关系', 'OtherTopologyRelation', 'torelation', 29, 2, 'd4dd9131fda7dcac18e30be1d3133b5e', 'otherTopologyRelation', FALSE, '', 'i-torelation', TRUE, FALSE, TRUE, 902, 'admin', FALSE, TRUE),
 -- 权限管理
 (20, '权限管理', 'Manage', '/manage', 1, 1, '34e34c43ec6b943c10a3cc1a1a16fb11', 'layout', FALSE, '/manage/user', 'c-manage', TRUE, FALSE, TRUE, 1000, 'admin', FALSE, FALSE),
 (21, '用户管理', 'ManageUser', 'user', 20, 2, '8f9bfe9d1345237cb3b2b205864da075', 'manageUser', FALSE, '', 'peoples', TRUE, FALSE, TRUE, 1001, 'admin', FALSE, TRUE),
