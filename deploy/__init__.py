@@ -178,8 +178,8 @@ class WebFlaskServer(WebBaseClass):
             在after_request钩子函数中对response进行添加headers
             """
             resp = make_response(response)
-            # 跨域
             """
+            # 跨域
             resp.headers['Access-Control-Allow-Origin'] = '*'
             resp.headers['Access-Control-Allow-Methods'] = 'GET,POST'
             resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
