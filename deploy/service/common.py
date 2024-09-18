@@ -179,6 +179,7 @@ class CommonService(object):
         """end"""
         # **************************************************************************
         file_type = int(params.get('file_type'))
+        # 9图片裁剪上传
         check_illegal_attrs = self.req_crop_attrs if file_type == 9 else self.req_upload_attrs
         check_need_attrs = self.req_crop_need_attrs if file_type == 9 else self.req_upload_attrs
         for k, v in params.items():
@@ -195,6 +196,11 @@ class CommonService(object):
         f_name = getattr(upload_file, 'filename')   # file public object
                                                     # use getattr method to get file name
         # ======================= local store =======================
+        # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        # 裁剪操作不启用格式验证，上传已验证
+        if file_type == 9:
+            is_check_fmt = False
+        # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         # file format filter
         if is_check_fmt and \
                 not self.file_lib.allow_format_fmt(filename=f_name, filetype=file_type):
