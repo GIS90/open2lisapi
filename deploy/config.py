@@ -18,6 +18,16 @@ base_info:
     __author__ = "mingliang.gao"
     __time__ = "2020/5/20 10:00 AM"
     __mail__ = "mingliang.gao@163.com"
+
+remark:
+    2024.10.08 update：采用pathlib方式
+
+python version:
+    python3
+
+
+Enjoy the good life everyday！！!
+Life is short, I use python.
 --------------------------------------------------------------
 """
 
@@ -27,44 +37,63 @@ base_info:
 import os
 import sys
 import yaml
-import inspect
 import logging
+from pathlib import Path
 
 
+# config file absolute path
+config_abspath_file = Path(__file__).resolve()
+if not config_abspath_file.is_absolute():
+    _os_path = os.path.dirname(os.path.abspath(__file__))
+    config_abspath_file = Path(_os_path)
 # logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 
-# get current folder, solve is or not frozen of the script
-def _get_cur_folder():
-    if getattr(sys, "frozen", False):
-        return os.path.dirname(os.path.abspath(__file__))
-    else:
-        cur_folder = os.path.dirname(inspect.getfile(inspect.currentframe()))
-        return os.path.abspath(cur_folder)
+# get deploy folder, solve is or not frozen of the script
+def _get_deploy_folder():
+    return config_abspath_file.parent
+
+
+# get deploy folder, solve is or not frozen of the script
+def _get_root_folder():
+    return _get_deploy_folder().parent
 
 
 # get current run config by mode
 def _get_config(mode='dev'):
+    # not allow mode parameters
     if mode not in ['dev', 'prod']:
         return None
-    return os.path.join(os.path.join(os.path.join(os.path.dirname(_get_cur_folder()), 'etc'), mode), 'config.yaml')
-    # return os.path.join((os.path.dirname(_get_cur_folder())), ('etc/' + mode + '/config.yaml'))
+    # root path is not abs
+    root = _get_root_folder()
+    if not root.is_absolute():
+        return None
+
+    return root.joinpath('etc').joinpath(mode).joinpath('config.yaml')
 
 
 # default log dir
-def __get_log_dir():
-    return os.path.join(os.path.dirname(_get_cur_folder()), 'log')
+def _get_log_folder():
+    root = _get_root_folder()
+    if not root.is_absolute():
+        return None
+
+    return root.joinpath('log')
+
+
+"""~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ !"""
 
 
 """
 default config
+avoid initialization parameters is empty
 """
 # SERVER
-NAME = 'OpenTool'
+NAME = 'Open2L----->'
 VERSION = 'v1.0.0'
 DEBUG = True
-SECRET_KEY = 'belivemeIcanfly'
+SECRET_KEY = 'IbelivemeIcanfly-gaomingliang'
 ADMIN = 'admin'
 ADMIN_AUTH_LIST = []
 
@@ -72,7 +101,7 @@ ADMIN_AUTH_LIST = []
 DB_LINK = None
 
 # LOG
-LOG_DIR = __get_log_dir()
+LOG_DIR = _get_log_folder()
 LOG_LEVEL = "debug"
 LOG_FORMATTER = "%(asctime)s - %(pathname)s[line:%(lineno)d] - %(levelname)s - %(message)s"
 LOG_FILENAME_PREFIX = 'base_webframe'
@@ -148,7 +177,7 @@ DEPART_ROOT_PID = 0
 NOBN = 'NoNameBody'
 
 """
-enrty: initializate config
+Entry: initialize config
 """
 mode = os.environ.get('mode') or 'dev'
 _config_file = _get_config(mode)
@@ -175,7 +204,7 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
 
     # LOG
     if _config_info['LOG']['LOG_DIR']:
-        LOG_DIR = os.path.join(os.path.dirname(_get_cur_folder()), _config_info['LOG']['LOG_DIR'])
+        LOG_DIR = os.path.join(os.path.dirname(_get_deploy_folder()), _config_info['LOG']['LOG_DIR'])
     else:
         LOG_DIR = LOG_DIR
     if not os.path.exists(LOG_DIR):
@@ -208,7 +237,7 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     if _config_info['STORE']['CACHE']:
         STORE_CACHE = _config_info['STORE']['CACHE']
     else:
-        STORE_CACHE = os.path.join(os.path.dirname(_get_cur_folder()), _CACHE)
+        STORE_CACHE = os.path.join(os.path.dirname(_get_deploy_folder()), _CACHE)
     if not os.path.exists(STORE_CACHE):
         logger.critical('====== store dir is not exist, create %s... ======' % STORE_CACHE)
         os.makedirs(STORE_CACHE)
