@@ -166,13 +166,13 @@ def get_now_date():
     return datetime.now().date()
 
 
-def get_now(fmt="%Y-%m-%d %H:%M:%S"):
+def get_now(format="%Y-%m-%d %H:%M:%S"):
     """
     获取当前时间，字符串类型
 
     :return: to return the now of string type
     """
-    return d2s(datetime.now(), fmt)
+    return d2s(datetime.now(), format)
 
 
 def get_week_day(date):
