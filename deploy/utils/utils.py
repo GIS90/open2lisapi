@@ -262,8 +262,8 @@ def get_month_list():
 
     :return: list data
     """
-    return [u'1月', u'2月', u'3月', u'4月', u'5月', u'6月',
-            u'7月', u'8月', u'9月', u'10月', u'11月', u'12月']
+    return ['1月', '2月', '3月', '4月', '5月', '6月',
+            '7月', '8月', '9月', '10月', '11月', '12月']
 
 
 def filename2md5(rtx_id: str = None, file_name: str = None, _type: str = 'file'):
