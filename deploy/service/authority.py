@@ -37,6 +37,7 @@ import datetime
 import json
 from operator import itemgetter
 from itertools import groupby
+from collections import OrderedDict
 
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.status import Status
@@ -952,17 +953,18 @@ class AuthorityService(object):
         one_menus = dict()
         one_menu_keys = list()  # 默认展开一级菜单，后续改成展开权限菜单
         for menu in all_menus:
+            # print(menu.id, menu.name, menu.title, menu.order_id)
             if not menu or menu.is_del \
                     or not menu.id or not menu.title or not menu.level:
                 continue
-            _d = {'id': int(menu.id), 'pid': int(menu.pid), 'label': str(menu.title), 'disabled': False}
+            _d = {'id': int(menu.id), 'pid': int(menu.pid), 'label': str(menu.title), 'order_id': int(menu.order_id), 'disabled': False}
             if int(menu.level) == MENU_ONE_LEVEL:
                 one_menus[menu.id] = _d
                 one_menu_keys.append(int(menu.id))
             else:
                 template_list.append(_d)
 
-        template_list.sort(key=itemgetter('pid'))
+        template_list.sort(key=itemgetter('order_id'))
         for key, group in groupby(template_list, key=itemgetter('pid')):
             if key in one_menus.keys():
                 _d = one_menus.get(key)
