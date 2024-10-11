@@ -214,9 +214,9 @@ VALUES
 (22, '角色管理', 'ManageRole', 'role', 20, 2, 'bbbabdbe1b262f75d99d62880b953be1', 'manageRole', FALSE, '', 'i_role', TRUE, FALSE, TRUE, 1002, 'admin', FALSE, TRUE),
 (23, '菜单管理', 'ManageMenu', 'menu', 20, 2, 'b61541208db7fa7dba42c85224405911', 'manageMenu', FALSE, '', 'component', TRUE, FALSE, TRUE, 1003, 'admin', FALSE, TRUE),
 -- 个人设置
-(24, '个人设置', 'Setter', '/setter', 1, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'c-setter', TRUE, FALSE, TRUE, 2000, 'admin', FALSE, FALSE),
-(25, '个人中心', 'SetterProfile', 'profile', 24, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setterProfile', FALSE, '', 'i_user', TRUE, FALSE, TRUE, 2001, 'admin', FALSE, TRUE),
-(26, '系统向导', 'SetterGuide', 'guide', 24, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setterGuide', FALSE, '', 'guide', TRUE, FALSE, TRUE, 2002, 'admin', FALSE, TRUE);
+(24, '个人设置', 'Setter', '/setter', 1, 1, '130bdeec588552954b9e3bea0ef364b2', 'layout', FALSE, '/setter/profile', 'c-setter', TRUE, FALSE, TRUE, 10000, 'admin', FALSE, FALSE),
+(25, '个人中心', 'SetterProfile', 'profile', 24, 2, 'cce99c598cfdb9773ab041d54c3d973a', 'setterProfile', FALSE, '', 'i_user', TRUE, FALSE, TRUE, 10001, 'admin', FALSE, TRUE),
+(26, '系统向导', 'SetterGuide', 'guide', 24, 2, '6602bbeb2956c035fb4cb5e844a4861b', 'setterGuide', FALSE, '', 'guide', TRUE, FALSE, TRUE, 10002, 'admin', FALSE, TRUE);
 ------------------------------------------------------------------------------------------------
 
 
