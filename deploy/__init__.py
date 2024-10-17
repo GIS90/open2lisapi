@@ -64,6 +64,8 @@ from deploy.utils.logger import logger as LOG
 from deploy.utils.utils import get_user_id, get_real_ip
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
+from deploy.utils.verify import verify_access_token_expire
+from deploy.utils.exception import JwtCredentialsException
 
 # view
 from deploy.view import add_routers
@@ -158,7 +160,9 @@ class WebFlaskServer(WebBaseClass):
             X-Token to check legal user by database table sysuser[md5-id]
             legal request && legal user >>>>> access
             otherwise >>>>> no access
-            """
+            
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            # 用户model验证：
             if request.headers.get('X-Token'):      # legal request
                 user_model = self.sysuser_service.get_user_by_token(request.headers.get('X-Token'))   # legal user
                 if user_model:
@@ -166,8 +170,24 @@ class WebFlaskServer(WebBaseClass):
                     if request.headers.get('X-Rtx-Id') != user_model.get('rtx_id'):
                         return Status(
                             205, StatusEnum.FAILURE.value, "用户Token与当前登录用户不符合", {}).json()
+            
+                    return
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            """
+            # JWT Token验证
+            if request.headers.get('X-Token'):      # legal request
+                expire, rtx_id = verify_access_token_expire(request.headers.get('X-Token'))  # legal user
+                if not expire:
+                    # new add check request headers[X-Rtx-Id] is or not equal user model[rtx_id]
+                    if request.headers.get('X-Rtx-Id') != rtx_id:
+                        return Status(
+                            205, StatusEnum.FAILURE.value, "用户Token与当前登录用户不符合", {}).json()
 
                     return
+                else:
+                    return Status(
+                        209, StatusEnum.FAILURE.value, StatusMsgs.get(209), {}).json()
+
             # Other condition, user is required login in
             return Status(
                 200, StatusEnum.FAILURE.value, '用户未登录', {}).json()
@@ -203,6 +223,11 @@ class WebFlaskServer(WebBaseClass):
         def server_error(error):
             LOG.error(">>>>> [%s] is server error 500" % request.url)
             abort(500)
+
+        @self.app.errorhandler(JwtCredentialsException)
+        def server_error(error):
+            return Status(
+                208, StatusEnum.FAILURE.value, "用户JWT TOKEN验证失败", {}).json()
         # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
         # set favicon

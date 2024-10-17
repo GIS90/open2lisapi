@@ -44,6 +44,7 @@ from deploy.service.sysuser import SysUserService
 from deploy.service.request import RequestService
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.utils.decorator import watch_except
+from deploy.utils.verify import encode_access_token
 
 
 access = Blueprint(name='access', import_name=__name__, url_prefix='/access')
@@ -97,15 +98,21 @@ def login():
 
         """ user is login success"""
         rtx_id = user_model.get('rtx_id') or rtx_id
-        LOG.info('%s login in <<<<<<<<<<<<<' % rtx_id or NoNameBody)
         session['rtx-id'] = rtx_id     # 设置用户登录session状态
+        # JWT Token
+        token = encode_access_token(rtx_id)
+        if not token:
+            return Status(
+                208, StatusEnum.SUCCESS.value, StatusMsgs.get(208), {}).json()
+        LOG.info('%s[TOKEN:%s] login in <<<<<<<<<<<<<' % (rtx_id or NoNameBody, token))
 
         end = datetime.now()    # end time
         cost = round((end - start).microseconds * pow(0.1, 6), 4)  # API run time, unit is second
         # watcher打点 >>>>>>>>> request
         request_service.add_request(request=request, cost=cost, rtx=rtx_id)
         return Status(
-            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'token': user_model.get('md5_id')}).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'token': token}).json()
+            # 100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'token': user_model.get('md5_id')}).json()
     else:
         # 不支持其他请求
         return Status(

@@ -114,6 +114,13 @@ DEPART:
   ROOT_PID: 0
 
 
+# JWT
+JWT:
+  KEY : "Enjoy the good life everyday！！!"
+  ALGORITHM: "HS256"
+  EXPIRE: 240
+
+
 # 其他配置
 OTHERS:
   NOBN: NoNameBody

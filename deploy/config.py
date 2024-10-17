@@ -173,6 +173,11 @@ QYWX_TEMP_GET = '/cgi-bin/media/get'
 DEPART_ROOT_ID = 1
 DEPART_ROOT_PID = 0
 
+# jwt token
+JWT_TOKEN_SECRET_KEY = "Enjoy the good life everyday！！!"  # 密钥
+JWT_TOKEN_ALGORITHM = "HS256"  # 算法
+JWT_TOKEN_EXPIRE_MINUTES = 60 * 4   # 访问令牌过期时间，单位：分
+
 # others
 NOBN = 'NoNameBody'
 
@@ -289,3 +294,8 @@ with open(_config_file, 'r', encoding='UTF-8') as f:
     # depart
     DEPART_ROOT_ID = _config_info['DEPART']['ROOT_ID'] or DEPART_ROOT_ID
     DEPART_ROOT_PID = _config_info['DEPART']['ROOT_PID'] or DEPART_ROOT_PID
+
+    # JWT
+    JWT_TOKEN_SECRET_KEY = _config_info['JWT']['KEY'] or JWT_TOKEN_SECRET_KEY
+    JWT_TOKEN_ALGORITHM = _config_info['JWT']['ALGORITHM'] or JWT_TOKEN_ALGORITHM
+    JWT_TOKEN_EXPIRE_MINUTES = int(_config_info['JWT']['EXPIRE']) or JWT_TOKEN_EXPIRE_MINUTES

@@ -40,6 +40,7 @@ from deploy.config import ADMIN, O_NOBN, \
     USER_DEFAULT_AVATAR
 from deploy.delib.store_lib import StoreLib
 from deploy.delib.image_lib import ImageLib
+from deploy.utils.verify import decode_access_token_rtx
 
 
 class SysUserService(object):
@@ -169,7 +170,12 @@ class SysUserService(object):
         if not token:
             return user_res
 
-        user = self.sysuser_bo.get_user_by_token(token)
+        # 解码jwt token
+        rtx_id = decode_access_token_rtx(token)
+        if not rtx_id:
+            return user_res
+
+        user = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
         return self._model_to_dict(user, _type='base') if user else user_res
 
     def get_login_by_token(self, token: str) -> dict:

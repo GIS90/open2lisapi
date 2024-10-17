@@ -66,11 +66,11 @@ class SysUserBo(BOBase):
         q = q.filter(SysUserModel.rtx_id == rtx_id)
         return q.first() if q else None
 
-    def get_user_by_token(self, token):
-        if not token:
+    def get_user_by_md5_id(self, md5_id):
+        if not md5_id:
             return None
         q = self.session.query(SysUserModel)
-        q = q.filter(SysUserModel.md5_id == token)
+        q = q.filter(SysUserModel.md5_id == md5_id)
         return q.first() if q else None
 
     def get_auth_by_rtx(self, rtx_id):

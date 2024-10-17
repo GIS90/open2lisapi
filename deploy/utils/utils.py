@@ -125,6 +125,16 @@ def s2ts(s, fmt="%Y-%m-%d %H:%M:%S"):
     return d2ts(d)
 
 
+def ts2d(st):
+    """
+    时间戳转日期
+
+    :param st: timestamp
+    :return: datetime type time
+    """
+    return datetime.fromtimestamp(st)
+
+
 def dura_date(d1, d2, need_d=False):
     """
     get datetime1 and datetime2 difference
