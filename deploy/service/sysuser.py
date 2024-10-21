@@ -166,17 +166,7 @@ class SysUserService(object):
 
         token is user md5-id
         """
-        user_res = dict()
-        if not token:
-            return user_res
-
-        # 解码jwt token
-        rtx_id = decode_access_token_rtx(token)
-        if not rtx_id:
-            return user_res
-
-        user = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
-        return self._model_to_dict(user, _type='base') if user else user_res
+        pass
 
     def get_login_by_token(self, token: str) -> dict:
         """
@@ -190,11 +180,18 @@ class SysUserService(object):
 
         # -------------------- check data --------------------
         token = token.strip()   #去空格
-        user_model = self.get_user_by_token(token, is_vue=True)
+        # 验证jwt token
+        rtx_id = decode_access_token_rtx(token)
+        if not rtx_id:
+            return Status(
+                200, StatusEnum.FAILURE.value, StatusMsgs.get(200), {}).json()
+
+        user = self.sysuser_bo.get_user_by_rtx_id(rtx_id)
         # user model is not exist
-        if not user_model:
+        if not user:
             return Status(
                 202, StatusEnum.FAILURE.value, '用户未注册', {}).json()
+        user_model = self._model_to_dict(user, _type='base')
         # user model is deleted
         if user_model.get('is_del'):
             return Status(

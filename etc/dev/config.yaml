@@ -118,7 +118,7 @@ DEPART:
 JWT:
   KEY : "Enjoy the good life everyday！！!"
   ALGORITHM: "HS256"
-  EXPIRE: 1
+  EXPIRE: 30
 
 
 # 其他配置

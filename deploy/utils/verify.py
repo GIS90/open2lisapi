@@ -69,6 +69,7 @@ def encode_access_token(rtx_id: str) -> None:
     to_encode_data['apply_time'] = d2s(token_apply_time, fmt="%Y-%m-%d %H:%M:%S")
     # token过期日期
     expire = token_apply_time + timedelta(minutes=JWT_TOKEN_EXPIRE_MINUTES or TOKEN_DEFAULT_EXPIRE_MINUTES)  # 如果没有配置默认登录时长，默认4h
+    # expire = token_apply_time + timedelta(seconds=6)  # 调试
     expire_ts = d2ts(expire)
     to_encode_data['expire_time'] = d2s(expire, fmt="%Y-%m-%d %H:%M:%S")
     to_encode_data['expire_time_ts'] = expire_ts
@@ -106,6 +107,8 @@ def decode_access_token(token: str) -> dict:
 
     try:
         decode_jwt = jwt.decode(jwt=token, key=JWT_TOKEN_SECRET_KEY, algorithms=[JWT_TOKEN_ALGORITHM])
+    except (ExpiredSignatureError, InvalidTokenError):
+        return res
     except Exception:
         raise JwtCredentialsException("The credentials token [decode] is failure.")
     """
@@ -147,7 +150,6 @@ def verify_access_token_expire(token: str) -> (bool, str):
         now_datetime = get_now_time()
         return False if now_datetime < exp_datetime else True, rtx_id
     except (ExpiredSignatureError, InvalidTokenError):
-        print('ExpiredSignatureError, InvalidTokenError' * 10)
         return True, None
     except Exception:
         raise JwtCredentialsException("The credentials token [decode] is failure.")
