@@ -125,6 +125,8 @@ class WebFlaskServer(WebBaseClass):
             """
             if get_user_id():
                 return
+
+            # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
             """
             no check condition
             no record request condition
@@ -154,15 +156,19 @@ class WebFlaskServer(WebBaseClass):
                     (request.endpoint.endswith('ForApi')
                      or request.endpoint.endswith('for_api')):
                 return
+            # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             """
             check current access user is or not legal request
             request require X-Token information at request headers
             X-Token to check legal user by database table sysuser[md5-id]
             legal request && legal user >>>>> access
             otherwise >>>>> no access
-            
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            # 用户model验证：
+            """
+
+            # 方式一：用户model验证：
+            """
             if request.headers.get('X-Token'):      # legal request
                 user_model = self.sysuser_service.get_user_by_token(request.headers.get('X-Token'))   # legal user
                 if user_model:
@@ -172,9 +178,9 @@ class WebFlaskServer(WebBaseClass):
                             205, StatusEnum.FAILURE.value, "用户Token与当前登录用户不符合", {}).json()
             
                     return
-            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             """
-            # JWT Token验证
+
+            # 方式二：JWT Token验证
             if request.headers.get('X-Token'):      # legal request
                 expire, rtx_id = verify_access_token_expire(request.headers.get('X-Token'))  # legal user
                 if not expire:
@@ -187,6 +193,7 @@ class WebFlaskServer(WebBaseClass):
                 else:
                     return Status(
                         209, StatusEnum.FAILURE.value, StatusMsgs.get(209), {}).json()
+            # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
             # Other condition, user is required login in
             return Status(
@@ -205,6 +212,7 @@ class WebFlaskServer(WebBaseClass):
             resp.headers['Access-Control-Allow-Headers'] = 'x-requested-with,content-type'
             """
             resp.headers['Content-Type'] = 'application/json;charset=UTF-8'
+            resp.headers['python-api-framework'] = 'gunicorn+flask'
             return resp
 
         @self.app.before_first_request
