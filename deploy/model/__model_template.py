@@ -21,7 +21,7 @@ base_info:
     __project__ = "open2lisapi"
 
 usage:
-    from deploy.models.model_template import ModelTemplate
+    from deploy.models.model_template import TemplateModel
 
 design:
     > sqlalchemy ORM type relation:
@@ -81,11 +81,11 @@ from sqlalchemy import func
 from deploy.model import base
 
 
-__all__ = ["ModelTemplate"]
+__all__ = ["TemplateModel"]
 
 
-class ModelTemplate(base.ModelBase):
-    __tablename__ = 'model_template'
+class TemplateModel(base.ModelBase):
+    __tablename__ = 'template_model'
 
     id = Column(name="id", type_=Integer, autoincrement="auto", primary_key=True, index=True, comment="主键，自增ID")
     name = Column(name="name", type_=String(25), nullable=False, comment="名称")
@@ -105,7 +105,7 @@ class ModelTemplate(base.ModelBase):
     # __mapper_args = {"order_by": id}
 
     def __str__(self):
-        return "ModelTemplate Class, relate to DB table: model_template."
+        return "TemplateModel Class, relate to DB table: model_template."
 
     def __repr__(self):
         return self.__str__()
