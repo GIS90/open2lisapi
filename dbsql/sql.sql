@@ -725,6 +725,35 @@ CREATE UNIQUE INDEX sysuser_avatar_index ON sqlbase (`md5_id`);
 ------------------------------------------------------------------------------------------------
 
 
+-- 短信信息表
+------------------------------------------------------------------------------------------------
+-- create sms
+DROP TABLES IF EXISTS `sms`;
+
+CREATE TABLE `sms`  (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '主键，自增ID',
+  `rtx_id` varchar(25) NOT NULL COMMENT '创建人RTX-ID',
+  `md5_id` varchar(55) NOT NULL COMMENT '唯一标识：MD5-ID',
+  `telephone` varchar(2000) NULL COMMENT '电话号码列表',
+  `content` varchar(255) NULL COMMENT '短信内容',
+  `mass` boolean DEFAULT False COMMENT '是否群发：0-单人发送 1-多人发送',
+  `send` boolean DEFAULT False COMMENT '是否发送：0-未发送 1-已发送',
+  `success` varchar(2000) NULL COMMENT '成果电话号码列表',
+  `failure` varchar(2000) NULL COMMENT '失败电话号码列表',
+  `create_time` timestamp not null default CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_rtx` varchar(25) COMMENT '最近更新用户rtx',
+  `update_time` datetime COMMENT '最近更新时间',
+  `delete_rtx` varchar(25) COMMENT '删除用户rtx',
+  `delete_time` datetime COMMENT '删除时间',
+  `is_del` bool DEFAULT False COMMENT '是否删除标识',
+  PRIMARY KEY (`id`)
+);
+
+CREATE UNIQUE INDEX sms_index ON sms (`md5_id`);
+------------------------------------------------------------------------------------------------
+
+
+
 -- 表
 ------------------------------------------------------------------------------------------------
 

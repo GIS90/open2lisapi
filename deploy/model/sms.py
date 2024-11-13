@@ -4,6 +4,7 @@
 ------------------------------------------------
 
 describe: 
+    sms model
 
 base_info:
     __author__ = "PyGo"
@@ -32,22 +33,53 @@ Life is short, I use python.
 # ------------------------------------------------------------
 # usage: /usr/bin/python sms.py
 # ------------------------------------------------------------
+from sqlalchemy import (
+        Column,
+        Integer,
+        SmallInteger,
+        String,
+        Float,
+        DECIMAL,
+        Boolean,
+        Date,
+        DateTime,
+        Time,
+        TIMESTAMP,
+        Enum,
+        Text
+)
+
+from sqlalchemy import func
+from deploy.model import base
 
 
+__all__ = ["SmsModel"]
 
 
+class SmsModel(base.ModelBase):
+    __tablename__ = 'sms_model'
 
+    id = Column(Integer, primary_key=True)
+    rtx_id = Column(String(25))
+    md5_id = Column(String(55))
+    telephone = Column(String(2000))
+    content = Column(String(255))
+    mass = Column(Boolean())
+    send = Column(Boolean())
+    success = Column(String(2000))
+    failure = Column(String(2000))
+    create_time = Column(TIMESTAMP())
+    update_rtx = Column(String(25))
+    update_time = Column(TIMESTAMP())
+    delete_rtx = Column(String(25))
+    delete_time = Column(TIMESTAMP())
+    is_del = Column(Boolean())
 
+    # 定义DB默认操作[过时]
+    # __mapper_args = {"order_by": id}
 
+    def __str__(self):
+        return "SmsModel Class, relate to DB table: sms."
 
-if __name__ == '__main__':
-    pass
-
-
-
-
-
-
-
-
-
+    def __repr__(self):
+        return self.__str__()
