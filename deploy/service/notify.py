@@ -45,6 +45,8 @@ from deploy.bo.dtalk_robot import DtalkRobotBo
 from deploy.bo.qywx_message import QywxMessageBo
 from deploy.bo.qywx_robot import QywxRobotBo
 from deploy.bo.enum import EnumBo
+from deploy.bo.sms import SmsBo
+
 from deploy.utils.status import Status
 from deploy.utils.status_msg import StatusMsgs, StatusEnum
 from deploy.config import OFFICE_LIMIT, SHEET_NUM_LIMIT, SHEET_NAME_LIMIT, \
@@ -386,6 +388,42 @@ class NotifyService(object):
         'file',  # 普通文件
     ]
 
+    req_sms_add_attrs = [
+        'rtx_id',
+        'mass',
+        'title',
+        'content',
+        'user'
+    ]
+
+    req_sms_add_length_check = {
+        'title': 55,
+        'content': 255,
+        'user': 2000
+    }
+
+    sms_list_attrs = [
+        "id",
+        "rtx_id",
+        "md5_id",
+        "title",
+        "content",
+        "mass",
+        "send",
+        "create_time",
+        "update_rtx",
+        "update_time",
+        "delete_rtx",
+        "delete_time",
+        "is_del"
+    ]
+
+    sms_extra_detail_attrs = [
+        "user",
+        "success",
+        "failure"
+    ]
+
     def __init__(self):
         """
         NotifyService class initialize
@@ -401,6 +439,7 @@ class NotifyService(object):
         self.qywx_bo = QywxMessageBo()
         self.qywx_robot_bo = QywxRobotBo()
         self.enum_bo = EnumBo()
+        self.sms_bo = SmsBo()
 
     def __str__(self):
         print("NotifyService class.")
@@ -2528,12 +2567,12 @@ class NotifyService(object):
             100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
         ).json()
 
-    def __format_qywx_content(self, f_type, q_type, q_content):
+    def __format_message_content_abbr(self, f_type, q_type, q_content):
         """
-        format qywx message  content
+        format message content
         f_type: format type
-        q_type: qywx message type
-        q_content: qywx message content
+        q_type: message type
+        q_content: message content
         """
         if f_type == 'list':
             if q_type in self.temp_upload_types:
@@ -2576,7 +2615,7 @@ class NotifyService(object):
             elif attr == 'title':
                 _res[attr] = getattr(model, 'title', '')
             elif attr == 'content':
-                _res[attr] = self.__format_qywx_content(
+                _res[attr] = self.__format_message_content_abbr(
                     f_type=_type, q_type=q_type,
                     q_content=getattr(model, 'content', ''))
             elif attr == 'user':
@@ -3733,3 +3772,471 @@ class NotifyService(object):
                 new_res.append(_new_res_dict)
                 n += 1
         return new_res
+
+    def sms_add_init(self, params: dict) -> json:
+        """
+        新增短信消息记录初始化dialog枚举数据
+        :return: many json data
+
+        > Boolean列表
+        """
+        # parameters
+        rtx_id = params.get('rtx_id')
+        if not rtx_id:
+            return Status(
+                4001, StatusEnum.FAILURE.value, '缺少RTX-ID请求参数', {}).json()
+
+        """   return data   """
+        # >>>>>> 企业微信类型
+        enums = self.enum_bo.get_model_by_name('bool-type')
+        enums_res = list()
+        for e in enums:
+            if not e: continue
+            enums_res.append({'label': str(e.value), 'value': str(e.key)})
+
+        _res = {
+            'bool': enums_res
+        }
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res
+        ).json()
+
+    def sms_add(self, params: dict) -> json:
+        """
+        add new sms message data
+        :return: many json data
+        """
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_sms_add_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        #################### check parameters ====================
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            # check: not allow parameters
+            if k not in self.req_sms_add_attrs:
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if k != 'mass' and not v:
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+
+            new_params[k] = v
+
+        # check: length
+        for _key, _value in self.req_sms_add_length_check.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
+
+        # 用户列表处理
+        user = str(new_params.get("user")).strip()  # 去空格
+        if user[-1] == ';':
+            user = user[0:-1]
+        for u in user.split(';'):
+            if len(u) != 11:
+                return Status(
+                    404, StatusEnum.FAILURE.value, '电话号码：【%s】不足11位' % u, {}).json()
+
+        # --------------------------------------- add model --------------------------------------
+        new_model = self.sms_bo.new_mode()
+        new_model.rtx_id = new_params.get('rtx_id')
+        new_model.title = new_params.get('title')
+        new_model.content = new_params.get('content')
+        new_model.user = new_params.get('user')
+        new_model.mass = new_params.get('mass')
+        new_model.send = False
+        md5_id = md5(new_params.get('rtx_id') + new_params.get('title') + new_params.get('content') + get_now())
+        new_model.md5_id = md5_id
+        new_model.create_time = get_now()
+        new_model.is_del = False
+        # 添加try异常处理，防止数据库add失败
+        self.sms_bo.add_model(new_model)
+        try:
+            return Status(
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': md5_id}).json()
+        except:
+            return Status(
+                601, StatusEnum.FAILURE.value, "数据库新增数据失败", {}).json()
+
+    def _sms_model_to_dict(self, model, _type="list"):
+        """
+        sms model to dict
+        params model: sms model object
+        attrs from class define attrs
+        return dict data
+
+        type[list detail]
+        type is list table show data
+        type is detail data detail and config
+
+        """
+        _res = dict()
+        if not model:
+            return _res
+
+        attrs = self.sms_list_attrs if _type == "list" \
+            else self.sms_list_attrs.extend(self.sms_extra_detail_attrs)
+
+        for attr in attrs:
+            if not attr: continue
+
+            if attr == 'id':
+                _res[attr] = getattr(model, 'id', '')
+            elif attr == 'rtx_id':
+                _res[attr] = getattr(model, 'rtx_id', '')
+            elif attr == 'md5_id':
+                _res[attr] = getattr(model, 'md5_id', '')
+            elif attr == 'title':
+                _res[attr] = getattr(model, 'title', '')
+            elif attr == 'content':
+                _res[attr] = self.__format_message_content_abbr(
+                    _type, "text",
+                    getattr(model, 'content', ''))
+            elif attr == 'user':
+                _res[attr] = getattr(model, 'user', '')
+            elif attr == 'mass':
+                _res[attr] = "是" if model.mass else "否"
+            elif attr == 'send':
+                _res[attr] = "是" if model.send else "否"
+            elif attr == 'success':
+                _res[attr] = getattr(model, 'success', '')
+            elif attr == 'failure':
+                _res[attr] = getattr(model, 'failure', '')
+            elif attr == 'create_time':
+                _res[attr] = self._transfer_time(model.create_time)
+            elif attr == 'update_time':
+                _res[attr] = self._transfer_time(model.update_time)
+            elif attr == 'update_rtx':
+                _res[attr] = getattr(model, 'update_rtx', '')
+            elif attr == 'delete_time':
+                _res[attr] = self._transfer_time(model.delete_time)
+            elif attr == 'delete_rtx':
+                _res[attr] = getattr(model, 'delete_rtx', '')
+            elif attr == 'is_del':
+                _res[attr] = model.is_del or False
+        else:
+            return _res
+
+    def sms_list(self, params: dict):
+        """
+        get sms list data
+        return json data
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_page_comm_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_page_comm_attrs:
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if k == 'limit':
+                v = int(v) if v else OFFICE_LIMIT
+            elif k == 'offset':
+                v = int(v) if v else 0
+            else:
+                v = str(v) if v else ''
+            new_params[k] = v
+
+        # **************** 管理员获取ALL数据 *****************
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join():
+            new_params.pop('rtx_id')
+
+        # <get data>
+        res, total = self.sms_bo.get_all(new_params)
+        if not res:
+            return Status(
+                101, StatusEnum.SUCCESS.value, StatusMsgs.get(101), {'list': [], 'total': 0}).json()
+        # ================= 遍历数据 ==================
+        new_res = list()
+        n = 1 + new_params.get('offset')
+        for _d in res:
+            if not _d: continue
+            _res_dict = self._sms_model_to_dict(_d)
+            if _res_dict:
+                _res_dict['id'] = n
+                new_res.append(_res_dict)
+                n += 1
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'list': new_res, 'total': total}
+        ).json()
+
+    def sms_delete(self, params: dict):
+        """
+        delete one sms data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_delete_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_delete_attrs:
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+
+        # ====================== data check ======================
+        model = self.sms_bo.get_model_by_md5(md5=new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
+        # data is deleted
+        if model and model.is_del:
+            return Status(
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
+            return Status(
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+        try:
+            # <update data> 软删除
+            model.is_del = True
+            model.delete_rtx = rtx_id
+            model.delete_time = get_now()
+            self.sms_bo.merge_model(model)
+        except:
+            return Status(
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {'md5': new_params.get('md5')}).json()
+
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': new_params.get('md5')}
+        ).json()
+
+    def sms_deletes(self, params: dict):
+        """
+        delete many sms data by params
+        params is dict
+        """
+        # ====================== parameters check ======================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_deletes_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_deletes_attrs:
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if not v:   # parameter is not allow null
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            if k == 'list':     # check type
+                if not isinstance(v, list):
+                    return Status(
+                        402, StatusEnum.FAILURE.value, '请求参数%s类型需要是List' % k, {}).json()
+                new_params[k] = [str(i) for i in v]
+            else:
+                new_params[k] = str(v)
+        # **************** 管理员获取ALL数据 *****************
+        # 特权账号
+        if new_params.get('rtx_id') in auth_rtx_join():
+            new_params.pop('rtx_id')
+        # << batch delete >>
+        try:
+            res = self.sms_bo.batch_delete_by_md5(params=new_params)
+        except:
+            return Status(
+                602, StatusEnum.FAILURE.value, "数据库删除数据失败", {}).json()
+
+        return Status(100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {}).json() \
+            if res == len(new_params.get('list')) \
+            else Status(508, StatusEnum.FAILURE.value,
+                        "结果：成功[%s]，失败[%s]" % (res, len(new_params.get('list'))-res),
+                        {'success': res, 'failure': (len(new_params.get('list'))-res)}).json()
+
+    def sms_detail(self, params: dict):
+        """
+        get the latest sms detail information by md5
+        :return: json data
+        """
+        # ================== parameters check && format ==================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_detail_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_detail_attrs:
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            if not v:
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+
+        """ ************ check auth ************ """
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
+            return Status(
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
+        """  return data """
+        # enum: qywx-type
+        enums = self.enum_bo.get_model_by_name('qywx-type')
+        type_res = list()
+        for e in enums:
+            if not e: continue
+            type_res.append({'label': str(e.value), 'value': str(e.key)})
+
+        # >>>>>> robot列表
+        # 特权账号 + 数据账号
+        if rtx_id in auth_rtx_join():
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=None)
+        else:
+            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
+        robot_res = list()
+        for r in robots:
+            if not r: continue
+            robot_res.append({'label': str(r.name), 'value': str(r.md5_id), 'rtx': str(r.rtx_id)})
+
+        model_dict = self._qywx_model_to_dict(model, _type='detail')
+        _res = {
+            'title': model_dict.get('title'),
+            'content': model_dict.get('content'),
+            'user': model_dict.get('user'),
+            'type': model_dict.get('type'),
+            'type_lists': type_res,
+            'robot': model_dict.get('robot'),
+            'robot_lists': robot_res
+        }
+        return Status(
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
+
+    def sms_update(self, params: dict):
+        """
+        update sms information, contain:
+            - title 消息标题
+            - content 消息内容
+            - mass 是否群发
+            - user 用户列表
+        by data md5
+        :return: json data
+        """
+        # ====================== parameters check and format ======================
+        if not params:
+            return Status(
+                400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
+        # **************************************************************************
+        """inspect api request necessary parameters"""
+        for _attr in self.req_qywx_update_attrs:
+            if _attr not in params.keys():
+                return Status(
+                    400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
+        """end"""
+        # **************************************************************************
+        # new parameters
+        new_params = dict()
+        for k, v in params.items():
+            if not k: continue
+            if k not in self.req_qywx_update_attrs:      # 不合法参数
+                return Status(
+                    401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+            # check: value is not null
+            if not v:
+                return Status(
+                    403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
+            new_params[k] = str(v)
+            # check: length
+        for _key, _value in self.req_qywx_add_length_check.items():
+            if not _key: continue
+            if not check_length(new_params.get(_key), _value):
+                return Status(
+                    405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
+
+        # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
+        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
+        # not exist
+        if not model:
+            return Status(
+                501, StatusEnum.FAILURE.value, '数据不存在', {"md5": new_params.get('md5')}).json()
+        # deleted
+        if model and model.is_del:
+            return Status(
+                503, StatusEnum.FAILURE.value, '数据已删除，不允许操作', {"md5": new_params.get('md5')}).json()
+        # authority【管理员具有所有数据权限】
+        rtx_id = new_params.get('rtx_id')
+        # 特权账号 + 数据账号
+        if rtx_id not in auth_rtx_join([model.rtx_id]):
+            return Status(
+                504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
+
+        # --------------------------------------- update model --------------------------------------
+        try:
+            model.title = new_params.get('title')
+            model.content = new_params.get('content')
+            model.type = new_params.get('type')
+            model.user = new_params.get('user')
+            model.robot = new_params.get('robot')
+            self.qywx_bo.merge_model(model)
+            return Status(
+                100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': model.md5_id}).json()
+        except:
+            return Status(
+                603, StatusEnum.FAILURE.value, "数据库更新数据失败", {'md5': new_params.get('md5')}).json()

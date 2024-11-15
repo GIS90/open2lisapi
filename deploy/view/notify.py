@@ -726,3 +726,124 @@ def qywx_temp_upload():
 
     return notify_service.qywx_temp_upload(params, upload_file)
 
+
+@notify.route('/sms_add_init/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def sms_add_init():
+    """
+    新增短信消息记录初始化dialog枚举数据
+    特殊：get，无参
+    :return: many json data
+    """
+    if request.method == 'POST':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # GET请求参数
+    params = request.args
+    return notify_service.sms_add_init(params)
+
+
+@notify.route('/sms_add/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+# @watch_except
+def sms_add():
+    """
+    add new message message data
+    :return: many json data
+    """
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return notify_service.sms_add(params)
+
+
+@notify.route('/sms_list/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def sms_list():
+    """
+    get many sms data list
+    :return: many json data
+    """
+
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return notify_service.sms_list(params)
+
+
+@notify.route('/sms_delete/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def sms_delete():
+    """
+    delete one sms data by md5
+    :return: json data
+    """
+    if request.method in ['GET', 'POST']:
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return notify_service.sms_delete(params)
+
+
+@notify.route('/sms_deletes/', methods=['GET', 'POST', 'DELETE'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def sms_deletes():
+    """
+    delete many sms data by md5 list
+    :return: json data
+    """
+    if request.method in ['GET', 'POST']:
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return notify_service.sms_deletes(params)
+
+
+@notify.route('/sms_detail/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def sms_detail():
+    """
+    get the latest sms detail information by md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return notify_service.sms_detail(params)
+
+
+@notify.route('/sms_update/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def sms_update():
+    """
+    update sms information, by data md5
+    :return: json data
+    """
+    if request.method == 'GET':
+        return Status(
+            300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
+
+    # 参数
+    params = request.get_json() or {}
+    return notify_service.sms_update(params)
+

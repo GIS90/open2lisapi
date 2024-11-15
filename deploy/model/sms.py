@@ -57,13 +57,14 @@ __all__ = ["SmsModel"]
 
 
 class SmsModel(base.ModelBase):
-    __tablename__ = 'sms_model'
+    __tablename__ = 'sms'
 
     id = Column(Integer, primary_key=True)
     rtx_id = Column(String(25))
     md5_id = Column(String(55))
-    telephone = Column(String(2000))
+    title = Column(String(55))
     content = Column(String(255))
+    user = Column(String(2000))
     mass = Column(Boolean())
     send = Column(Boolean())
     success = Column(String(2000))
