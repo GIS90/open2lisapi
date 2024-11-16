@@ -424,6 +424,15 @@ class NotifyService(object):
         "failure"
     ]
 
+    req_sms_update_attrs = [
+        'rtx_id',
+        'title',
+        'content',
+        'user',
+        'mass',
+        'md5'
+    ]
+
     def __init__(self):
         """
         NotifyService class initialize
@@ -3843,10 +3852,11 @@ class NotifyService(object):
         user = str(new_params.get("user")).strip()  # 去空格
         if user[-1] == ';':
             user = user[0:-1]
+            new_params['user'] = user[0:-1]
         for u in user.split(';'):
             if len(u) != 11:
                 return Status(
-                    404, StatusEnum.FAILURE.value, '电话号码：【%s】不足11位' % u, {}).json()
+                    404, StatusEnum.FAILURE.value, '电话号码：【%s】不满足11位' % u, {}).json()
 
         # --------------------------------------- add model --------------------------------------
         new_model = self.sms_bo.new_mode()
@@ -3886,7 +3896,7 @@ class NotifyService(object):
             return _res
 
         attrs = self.sms_list_attrs if _type == "list" \
-            else self.sms_list_attrs.extend(self.sms_extra_detail_attrs)
+            else self.sms_list_attrs + self.sms_extra_detail_attrs
 
         for attr in attrs:
             if not attr: continue
@@ -3906,9 +3916,15 @@ class NotifyService(object):
             elif attr == 'user':
                 _res[attr] = getattr(model, 'user', '')
             elif attr == 'mass':
-                _res[attr] = "是" if model.mass else "否"
+                if _type == 'list':
+                    _res[attr] = "是" if model.mass else "否"
+                else:
+                    _res[attr] = "1" if model.mass else "0"
             elif attr == 'send':
-                _res[attr] = "是" if model.send else "否"
+                if _type == 'list':
+                    _res[attr] = "是" if model.send else "否"
+                else:
+                    _res[attr] = model.send
             elif attr == 'success':
                 _res[attr] = getattr(model, 'success', '')
             elif attr == 'failure':
@@ -4119,7 +4135,7 @@ class NotifyService(object):
                     403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
             new_params[k] = str(v)
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
-        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
+        model = self.sms_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
@@ -4138,36 +4154,10 @@ class NotifyService(object):
                 504, StatusEnum.FAILURE.value, "非数据权限人员，无权限操作", {"md5": new_params.get('md5')}).json()
 
         """  return data """
-        # enum: qywx-type
-        enums = self.enum_bo.get_model_by_name('qywx-type')
-        type_res = list()
-        for e in enums:
-            if not e: continue
-            type_res.append({'label': str(e.value), 'value': str(e.key)})
-
-        # >>>>>> robot列表
-        # 特权账号 + 数据账号
-        if rtx_id in auth_rtx_join():
-            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=None)
-        else:
-            robots = self.qywx_robot_bo.get_model_by_rtx(rtx=rtx_id)
-        robot_res = list()
-        for r in robots:
-            if not r: continue
-            robot_res.append({'label': str(r.name), 'value': str(r.md5_id), 'rtx': str(r.rtx_id)})
-
-        model_dict = self._qywx_model_to_dict(model, _type='detail')
-        _res = {
-            'title': model_dict.get('title'),
-            'content': model_dict.get('content'),
-            'user': model_dict.get('user'),
-            'type': model_dict.get('type'),
-            'type_lists': type_res,
-            'robot': model_dict.get('robot'),
-            'robot_lists': robot_res
-        }
+        model_dict = self._sms_model_to_dict(model, _type='detail')
+        data = {'detail': model_dict}
         return Status(
-            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), _res).json()
+            100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), data).json()
 
     def sms_update(self, params: dict):
         """
@@ -4185,7 +4175,7 @@ class NotifyService(object):
                 400, StatusEnum.FAILURE.value, StatusMsgs.get(400), {}).json()
         # **************************************************************************
         """inspect api request necessary parameters"""
-        for _attr in self.req_qywx_update_attrs:
+        for _attr in self.req_sms_update_attrs:
             if _attr not in params.keys():
                 return Status(
                     400, StatusEnum.FAILURE.value, '缺少请求参数%s' % _attr, {}).json()
@@ -4195,23 +4185,36 @@ class NotifyService(object):
         new_params = dict()
         for k, v in params.items():
             if not k: continue
-            if k not in self.req_qywx_update_attrs:      # 不合法参数
+            if k not in self.req_sms_update_attrs:      # 不合法参数
                 return Status(
                     401, StatusEnum.FAILURE.value, '请求参数%s不合法' % k, {}).json()
+
             # check: value is not null
-            if not v:
+            if k != 'mass' and not v:
                 return Status(
                     403, StatusEnum.FAILURE.value, '请求参数%s不允许为空' % k, {}).json()
-            new_params[k] = str(v)
-            # check: length
-        for _key, _value in self.req_qywx_add_length_check.items():
+
+            new_params[k] = v
+
+        # check: length
+        for _key, _value in self.req_sms_add_length_check.items():
             if not _key: continue
             if not check_length(new_params.get(_key), _value):
                 return Status(
                     405, StatusEnum.FAILURE.value, '请求参数%s长度超出限制' % _key, {}).json()
 
+        # 用户列表处理
+        user = str(new_params.get("user")).strip()  # 去空格
+        if user[-1] == ';':
+            user = user[0:-1]
+            new_params['user'] = user[0:-1]
+        for u in user.split(';'):
+            if len(u) != 11:
+                return Status(
+                    404, StatusEnum.FAILURE.value, '电话号码：【%s】不满足11位' % u, {}).json()
+
         # <<<<<<<<<<<<<<<<< get model >>>>>>>>>>>>>>>>>>>>
-        model = self.qywx_bo.get_model_by_md5(new_params.get('md5'))
+        model = self.sms_bo.get_model_by_md5(new_params.get('md5'))
         # not exist
         if not model:
             return Status(
@@ -4231,10 +4234,9 @@ class NotifyService(object):
         try:
             model.title = new_params.get('title')
             model.content = new_params.get('content')
-            model.type = new_params.get('type')
+            model.mass = new_params.get('mass')
             model.user = new_params.get('user')
-            model.robot = new_params.get('robot')
-            self.qywx_bo.merge_model(model)
+            self.sms_bo.merge_model(model)
             return Status(
                 100, StatusEnum.SUCCESS.value, StatusMsgs.get(100), {'md5': model.md5_id}).json()
         except:

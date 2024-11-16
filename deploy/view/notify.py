@@ -747,7 +747,7 @@ def sms_add_init():
 
 @notify.route('/sms_add/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
-# @watch_except
+@watch_except
 def sms_add():
     """
     add new message message data
