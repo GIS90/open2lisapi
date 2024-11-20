@@ -155,7 +155,7 @@ def sqlbase_detail():
     return search_service.sqlbase_detail(params)
 
 
-@search.route('/sqlbase_update/', methods=['GET', 'POST'], strict_slashes=False)
+@search.route('/sqlbase_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def sqlbase_update():
@@ -172,7 +172,7 @@ def sqlbase_update():
 
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 

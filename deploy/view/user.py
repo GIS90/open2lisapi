@@ -110,7 +110,7 @@ def auth():
     return sysuser_service.get_login_auth_by_rtx(rtx_id)
 
 
-@user.route('/update/', methods=['GET', 'POST'], strict_slashes=False)
+@user.route('/update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def update():
@@ -118,7 +118,7 @@ def update():
     update login user information
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 

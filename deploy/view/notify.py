@@ -128,7 +128,7 @@ def dtalk_detail():
     return notify_service.dtalk_detail(params)
 
 
-@notify.route('/dtalk_update/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/dtalk_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def dtalk_update():
@@ -139,7 +139,7 @@ def dtalk_update():
         - set_sheet 设置的sheet
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -251,7 +251,7 @@ def dtalk_robot_detail():
     return notify_service.dtalk_robot_detail(params)
 
 
-@notify.route('/dtalk_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/dtalk_robot_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def dtalk_robot_update():
@@ -264,7 +264,7 @@ def dtalk_robot_update():
         - select 选择
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -426,7 +426,7 @@ def qywx_robot_detail():
     return notify_service.qywx_robot_detail(params)
 
 
-@notify.route('/qywx_robot_update/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/qywx_robot_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def qywx_robot_update():
@@ -440,7 +440,7 @@ def qywx_robot_update():
     by md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -552,7 +552,7 @@ def qywx_detail():
     return notify_service.qywx_detail(params)
 
 
-@notify.route('/qywx_update/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/qywx_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def qywx_update():
@@ -566,7 +566,7 @@ def qywx_update():
     by data md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -831,7 +831,7 @@ def sms_detail():
     return notify_service.sms_detail(params)
 
 
-@notify.route('/sms_update/', methods=['GET', 'POST'], strict_slashes=False)
+@notify.route('/sms_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def sms_update():
@@ -839,7 +839,7 @@ def sms_update():
     update sms information, by data md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 

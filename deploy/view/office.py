@@ -68,7 +68,7 @@ def excel_source_list():
     return office_service.excel_source_list(params)
 
 
-@office.route('/excel_source_update/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_source_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def excel_source_update():
@@ -79,7 +79,7 @@ def excel_source_update():
     by excel file md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -158,7 +158,7 @@ def excel_history_list():
     return office_service.excel_history_list(params)
 
 
-@office.route('/excel_result_update/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/excel_result_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def excel_result_update():
@@ -167,7 +167,7 @@ def excel_result_update():
     by excel file md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -298,7 +298,7 @@ def office_pdf_detail():
     return office_service.office_pdf_detail(params)
 
 
-@office.route('/office_pdf_update/', methods=['GET', 'POST'], strict_slashes=False)
+@office.route('/office_pdf_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def office_pdf_update():
@@ -311,7 +311,7 @@ def office_pdf_update():
     by file md5
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 

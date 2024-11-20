@@ -105,7 +105,7 @@ def role_add():
     return authority_service.role_add(params)
 
 
-@auth.route('/role_update/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/role_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def role_update():
@@ -116,7 +116,7 @@ def role_update():
         - introduction
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -306,7 +306,7 @@ def user_status():
     return authority_service.user_status(params)
 
 
-@auth.route('/user_update/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/user_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def user_update():
@@ -314,7 +314,7 @@ def user_update():
     update exist user by rtx id
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -406,7 +406,7 @@ def menu_add_init():
     return authority_service.menu_add_init()   # no parameters
 
 
-@auth.route('/menu_update/', methods=['GET', 'POST'], strict_slashes=False)
+@auth.route('/menu_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def menu_update():
@@ -414,7 +414,7 @@ def menu_update():
     update menu detail information from db table menu, menu is dict object
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 

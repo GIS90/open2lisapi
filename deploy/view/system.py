@@ -157,7 +157,7 @@ def dict_detail():
     return info_service.dict_detail(params)
 
 
-@system.route('/dict_update/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/dict_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def dict_update():
@@ -170,7 +170,7 @@ def dict_update():
         - order_id 排序ID
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -307,7 +307,7 @@ def api_detail():
     return info_service.api_detail(params)
 
 
-@system.route('/api_update/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/api_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def api_update():
@@ -324,7 +324,7 @@ def api_update():
         - path = /blueprint/apiname
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -452,7 +452,7 @@ def depart_detail():
     return info_service.depart_detail(params)
 
 
-@system.route('/depart_update/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/depart_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def depart_update():
@@ -460,7 +460,7 @@ def depart_update():
     update department to db table department by md5-id
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
@@ -571,7 +571,7 @@ def avatar_detail():
     return info_service.avatar_detail(params)
 
 
-@system.route('/avatar_update/', methods=['GET', 'POST'], strict_slashes=False)
+@system.route('/avatar_update/', methods=['GET', 'POST', 'PUT'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
 def avatar_update():
@@ -584,7 +584,7 @@ def avatar_update():
         - order_id
     :return: json data
     """
-    if request.method == 'GET':
+    if request.method != 'PUT':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
