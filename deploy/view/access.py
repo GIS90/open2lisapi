@@ -95,6 +95,9 @@ def login():
         if not user_model.get('md5_id'):
             return Status(
                 999, StatusEnum.FAILURE.value, '用户Token初始化失败，请联系管理员', {}).json()
+        # 删除密码
+        # if user_model.get('password'):
+        #     del user_model['password']
 
         """ user is login success"""
         rtx_id = user_model.get('rtx_id') or rtx_id

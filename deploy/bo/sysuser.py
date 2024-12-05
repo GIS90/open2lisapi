@@ -50,7 +50,7 @@ class SysUserBo(BOBase):
     def new_mode(self):
         return SysUserModel()
 
-    def get_user_by_params(self, user_id):
+    def get_login_by_params(self, user_id):
         if not user_id:
             return None
         q = self.session.query(SysUserModel)

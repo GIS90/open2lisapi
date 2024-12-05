@@ -156,7 +156,7 @@ class SysUserService(object):
         if not rtx_id:
             return user_res
 
-        user = self.sysuser_bo.get_user_by_params(rtx_id)   # 用户多参登录方法
+        user = self.sysuser_bo.get_login_by_params(rtx_id)   # 用户多参登录方法
         return self._model_to_dict(user, _type='base') if user else user_res
 
     def get_user_by_token(self, token: str, is_vue: bool = False) -> dict:
