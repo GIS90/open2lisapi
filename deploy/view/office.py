@@ -45,7 +45,7 @@ from deploy.utils.watcher import watcher
 from deploy.service.office import OfficeService
 
 
-office = Blueprint(name='office', import_name=__name__, url_prefix='/office')
+office = Blueprint(name='office', import_name=__name__, url_prefix='/api/office')
 CORS(office, supports_credentials=True)
 
 office_service = OfficeService()

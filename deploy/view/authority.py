@@ -47,7 +47,7 @@ from deploy.utils.decorator import watch_except
 from deploy.service.authority import AuthorityService
 
 
-auth = Blueprint(name='auth', import_name=__name__, url_prefix='/auth')
+auth = Blueprint(name='auth', import_name=__name__, url_prefix='/api/auth')
 CORS(auth, supports_credentials=True)
 
 authority_service = AuthorityService()

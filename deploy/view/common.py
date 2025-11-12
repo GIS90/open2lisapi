@@ -47,7 +47,7 @@ from deploy.utils.decorator import watch_except
 from deploy.service.common import CommonService
 
 
-common = Blueprint(name='common', import_name=__name__, url_prefix='/common')
+common = Blueprint(name='common', import_name=__name__, url_prefix='/api/common')
 CORS(common, supports_credentials=True)
 
 common_service = CommonService()

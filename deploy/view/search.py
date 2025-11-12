@@ -47,7 +47,7 @@ from deploy.service.search import SearchService
 from deploy.utils.decorator import watch_except
 
 
-search = Blueprint(name='search', import_name=__name__, url_prefix='/search')
+search = Blueprint(name='search', import_name=__name__, url_prefix='/api/search')
 CORS(search, supports_credentials=True)
 
 search_service = SearchService()
