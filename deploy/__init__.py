@@ -141,9 +141,9 @@ class WebFlaskServer(WebBaseClass):
             # url>path
             if getattr(request, 'path', None):
                 if any([
-                    request.path.startswith('/api/api'),
-                    request.path.startswith('/api/access'),
-                    request.path.startswith('/api/user/info')
+                    request.path.startswith('/api'),
+                    request.path.startswith('/access'),
+                    request.path.startswith('/user/info')
                 ]):
                     return
             """
