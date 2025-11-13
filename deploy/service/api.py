@@ -76,6 +76,15 @@ class ApiService(object):
     def __repr__(self):
         self.__str__()
 
+    @staticmethod
+    def api_demo(params: dict) -> dict:
+        return params or {
+            "k1": "v1",
+            "k2": "v2",
+            "k3": "v3"
+        }
+
+
     def zlxcx_token(self) -> dict:
         url = "http://tmis.pasok.cn/tmis/api/loginToken?_code=aHXCeyJwYXNzd29yZCI6Ijc3QjhCRjUxRUFFOUJCODVBMEM0RDk4QzcwM0ZGNjc1IiwidXNlcm5hbWUiOiIxMjE3NCJ9n5Ws"
 
