@@ -32,11 +32,11 @@ MAIL:
 
 # 用户配置
 USER:
-  AVATAR: http://2lstore.pygo2.top/avatars/default.png
+  AVATAR: https://2lstore.pygo2.top/avatars/default.png
   PASSWORD: abc1234
   TIMELINE: 10
   INTRODUCTION: 这家伙很懒，什么也没留下......
-  STORE_BASE_URL: http://avatar.pygo2.top
+  STORE_BASE_URL: https://avatar.pygo2.top
   STORE_NAME: avatar-default
 
 
@@ -47,7 +47,7 @@ STORE:
   CACHE: /home/mingliang.gao/cache
   ACCESS: mRF0cKGUJcfv7ry_Wyvc24cDNWEQz9DAKo_UOn0G
   SECRET: xabmlB9zZ_MRwtgofQJzUxINnmcO_VUfkXYILx_Q
-  BASE_URL: http://2lstore.pygo2.top
+  BASE_URL: https://2lstore.pygo2.top
   SPACE_NAME: open2lstore
 
 
