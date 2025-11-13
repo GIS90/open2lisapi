@@ -49,7 +49,7 @@ from deploy.service.info import InfoService
 from deploy.utils.decorator import watch_except
 
 
-system = Blueprint(name='system', import_name=__name__, url_prefix='/api/system')
+system = Blueprint(name='system', import_name=__name__, url_prefix='/system')
 CORS(system, supports_credentials=True)
 
 info_service = InfoService()

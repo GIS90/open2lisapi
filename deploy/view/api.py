@@ -43,7 +43,7 @@ from deploy.utils.watcher import watcher
 from deploy.utils.decorator import watch_except
 
 
-api = Blueprint(name='api', import_name=__name__, url_prefix='/api/api')
+api = Blueprint(name='api', import_name=__name__, url_prefix='/api')
 CORS(api, supports_credentials=True)
 
 api_service = ApiService()

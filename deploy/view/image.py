@@ -44,7 +44,7 @@ from deploy.service.image import ImageService
 from deploy.utils.decorator import watch_except
 
 
-image = Blueprint(name='image', import_name=__name__, url_prefix='/api/image')
+image = Blueprint(name='image', import_name=__name__, url_prefix='/image')
 CORS(image, supports_credentials=True)
 
 image_service = ImageService()

@@ -47,7 +47,7 @@ from deploy.utils.decorator import watch_except
 from deploy.utils.verify import encode_access_token
 
 
-access = Blueprint(name='access', import_name=__name__, url_prefix='/api/access')
+access = Blueprint(name='access', import_name=__name__, url_prefix='/access')
 CORS(access, supports_credentials=True)
 
 NoNameBody = 'NoNameBody'

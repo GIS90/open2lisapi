@@ -45,7 +45,7 @@ from deploy.utils.watcher import watcher
 from deploy.service.dashboard import DashboardService
 
 
-dashboard = Blueprint(name='dashboard', import_name=__name__, url_prefix='/api/dashboard')
+dashboard = Blueprint(name='dashboard', import_name=__name__, url_prefix='/dashboard')
 CORS(dashboard, supports_credentials=True)
 
 dashboard_service = DashboardService()
