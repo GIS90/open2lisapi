@@ -52,6 +52,7 @@ CORS(access, supports_credentials=True)
 
 NoNameBody = 'NoNameBody'
 request_service = RequestService()
+sysuser_service = SysUserService()
 
 
 @access.route('/login/', methods=['GET', 'POST'], strict_slashes=False)
@@ -77,7 +78,7 @@ def login():
         start = datetime.now()      # start time
         # 支持用户rtx-id、phone、email登录
         rtx_id = rtx_id.strip()  # 去空格
-        user_model = SysUserService().get_login_by_rtx(rtx_id)  # 用户多参登录
+        user_model = sysuser_service.get_login_by_rtx(rtx_id)  # 用户多参登录
         # user is not exist
         if not user_model:
             return Status(
@@ -96,8 +97,8 @@ def login():
             return Status(
                 999, StatusEnum.FAILURE.value, '用户Token初始化失败，请联系管理员', {}).json()
         # 删除密码
-        # if user_model.get('password'):
-        #     del user_model['password']
+        if user_model.get('password'):
+            del user_model['password']
 
         """ user is login success"""
         rtx_id = user_model.get('rtx_id') or rtx_id

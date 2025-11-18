@@ -39,16 +39,17 @@ Life is short, I use python.
 # usage: /usr/bin/python base_class.py
 # ------------------------------------------------------------
 import threading
+from abc import ABC, abstractmethod
 
 
-class WebBaseClass(object):
-    """单例模式+WEB"""
+class WebBaseClass(ABC):
+    """单例模式+ABC"""
     _instance = None
     _instance_lock = threading.Lock()
 
     def __init__(self):
         super(WebBaseClass, self).__init__()
-        self.init_run()
+        self.entry_point()
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -56,29 +57,8 @@ class WebBaseClass(object):
                 cls._instance = object.__new__(cls)
         return cls._instance
 
-    def init_run(self):
-        pass
-
-
-class AppBaseClass(object):
-    """单例模式+APP[任务脚本]"""
-    _instance = None
-    _instance_lock = threading.Lock()
-
-    def __init__(self):
-        super(AppBaseClass, self).__init__()
-        self.entry_point()
-
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            with AppBaseClass._instance_lock:
-                cls._instance = object.__new__(cls)
-        return cls._instance
-
+    @abstractmethod
     def entry_point(self):
-        self.run()
-
-    def run(self):
         pass
 
 

@@ -268,8 +268,9 @@ class WebFlaskServer(WebBaseClass):
             if not route: continue
             self.register_blueprint(route.get('name'), route.get('route'))
 
-    def init_run(self):
+    def entry_point(self):
         """
+        class entry
         Parent class build-in method
         """
         LOG.debug('Web server is initializing......')
