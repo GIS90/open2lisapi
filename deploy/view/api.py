@@ -49,6 +49,17 @@ CORS(api, supports_credentials=True)
 api_service = ApiService()
 
 
+@api.route('/health/', methods=['GET', 'POST'], strict_slashes=False)
+@watcher(watcher_args=request)
+@watch_except
+def api_health():
+    """
+    api: health
+    :return: json data
+    """
+    return {"status": "Health"}
+
+
 @api.route('/demo/', methods=['GET', 'POST'], strict_slashes=False)
 @watcher(watcher_args=request)
 @watch_except
@@ -57,7 +68,7 @@ def api_demo():
     api: demo
     :return: json data
     """
-    if request.method == 'POST':
+    if request.method == 'GET':
         return Status(
             300, StatusEnum.FAILURE.value, StatusMsgs.get(300), {}).json()
 
